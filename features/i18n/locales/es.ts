@@ -1,0 +1,199 @@
+import type { LocaleBundle } from '../types';
+
+export const esBundle: LocaleBundle = {
+  locale: 'es',
+  displayName: 'Español',
+  messages: {
+    appName: 'Textos con mi ex',
+    appTagline: 'Una mirada honesta a lo que pasó.',
+    hero_tagline: 'Una mirada honesta de IA a lo que pasó.',
+    hero_tagline_alt1: 'Debajo del capó: IA y ciencia, no drama.',
+    hero_tagline_alt2: 'Conducta, apego y conflicto — analizados por IA para ti.',
+    hero_cta: 'Analizar conversación con IA',
+    hero_copy: 'Sube tus chats para obtener un análisis imparcial de relaciones impulsado por IA.',
+    footer_disclaimer: 'No es terapia, no es chisme — solo claridad IA.',
+    language_label: 'Idioma',
+    uploadExport: 'Subir exportación de chat',
+    uploadExportDescription: 'Seleccione su archivo de exportación de chat para comenzar el análisis',
+    analyzing: 'IA analizando conversación...',
+    progress_starting: 'Inicializando análisis IA...',
+    progress_parsing: 'Analizando conversación...',
+    progress_analyzing: 'IA analizando patrones de conversación...',
+    progress_media: 'IA analizando contenido multimedia...',
+    progress_chunking: 'Procesando segmentos de conversación...',
+    progress_completed: '¡Análisis IA completado!',
+    progress_error: 'Análisis IA fallido',
+    progress_analyzing_hint: 'La IA está analizando patrones, estilos de comunicación y dinámicas relacionales...',
+    progress_media_hint: 'Analizando imágenes, stickers y contenido multimedia con modelos de visión IA...',
+    progress_chunk_label: 'Segmento {current} de {total}',
+    progress_disclaimer: 'Por favor, no cierre esta ventana mientras el análisis está en progreso.',
+    backToHome: 'Volver al inicio',
+    noAnalysisFound: 'No se encontró análisis. Por favor, sube una conversación primero.',
+    analysisReport: 'Informe de análisis IA',
+    gaslightingRisk: 'Riesgo de manipulación',
+    conflictIntensity: 'Intensidad del conflicto',
+    supportiveness: 'Comportamiento de apoyo',
+    apologyFrequency: 'Frecuencia de disculpas',
+    evidence: 'Evidencia',
+    scientificAnalysis: 'Análisis científico',
+    plainLanguage: 'En términos simples',
+    score: 'Puntuación',
+    section_gaslighting: 'Riesgo de manipulación',
+    section_conflictIntensity: 'Intensidad del conflicto',
+    section_supportiveness: 'Comportamiento de apoyo',
+    section_apologyFrequency: 'Frecuencia de disculpas',
+    section_redFlags: 'Señales de alerta',
+    section_conflict: 'Intensidad del conflicto',
+    section_support: 'Comportamiento de apoyo',
+    section_apology: 'Frecuencia de disculpas',
+    imported: 'Importado',
+    messages: 'mensajes',
+    privacyNote: 'Tus datos se procesan de forma efímera y nunca se almacenan permanentemente.',
+    fileUploadHelp:
+      'La versión actual funciona mejor con exports pequeños de texto/json. Gratis: solo .json y .txt. Premium: .zip con análisis de medios llegará en la próxima versión.',
+    premium_badge: 'Premium',
+    free_badge: 'Gratis',
+    premium_hint:
+      'Análisis premium con insights psicológicos más profundos, más ejemplos de evidencia y medios cuando están disponibles.',
+    free_hint:
+      'Análisis gratuito — solo texto (hasta 50k mensajes), sin análisis de medios ni modo de análisis profundo.',
+    premium_progress_hint:
+      'Ejecutando análisis premium: prompts más profundos y uso de medios (cuando están disponibles).',
+    free_progress_hint:
+      'Ejecutando análisis gratuito: visión general solo de texto. Pasa a premium para medios e insights más profundos.',
+    selectPlatform: 'Seleccionar plataforma',
+    platform_telegram: 'Telegram',
+    platform_whatsapp: 'WhatsApp',
+    platform_signal: 'Signal',
+    platform_discord: 'Discord',
+    platform_messenger: 'Facebook Messenger',
+    platform_imessage: 'iMessage',
+    platform_viber: 'Viber',
+    selectFile: 'Seleccionar archivo',
+    clickToSelectFile: 'Haz clic para seleccionar archivo',
+    ready: 'Listo',
+    uploadAndAnalyze: 'Subir y analizar',
+    inputMode_upload: 'Subir exportación',
+    inputMode_paste: 'Pegar texto',
+    pasteLabel: 'Pega un breve fragmento de tu conversación',
+    pastePlaceholder:
+      'Pega aquí los mensajes (solo un fragmento pequeño, no todo el chat de años)...',
+    pasteHelp:
+      'Funciona mejor con fragmentos pequeños. Para historiales largos, usa la exportación de chat.',
+    analyzePasted: 'Analizar texto pegado',
+    paste_error_empty: 'Primero pega el texto de la conversación.',
+    paste_error_too_long:
+      'El texto pegado es demasiado largo. Usa un fragmento más corto (hasta 8000 caracteres).',
+    exportTXT: 'Exportar TXT',
+    exportJSON: 'Exportar JSON',
+    exportPDF: 'Exportar PDF',
+    exportReportTitle: 'Informe de análisis',
+    exportGeneratedBy: 'Creado con "Texts With my Ex" - AI Gaslight Detection App',
+    exportDate: 'Fecha',
+    exportOverview: 'Resumen',
+    exportScores: 'Puntuaciones',
+    exportPatterns: 'Patrones',
+    exportEvidence: 'Evidencia',
+
+    // Ayuda para exportar chats
+    exportHelpTitle: 'Cómo exportar tus chats',
+    exportHelpTelegram:
+      'Telegram (ordenador): abre el chat → menú → "Exportar historial de chat" → elige JSON o texto y sube el archivo aquí.',
+    exportHelpWhatsApp:
+      'WhatsApp (móvil): abre el chat → menú → "Exportar chat" → elige Sin archivos multimedia (más rápido) o Con archivos multimedia, envía el archivo a ti mismo y súbelo aquí.',
+    exportHelpOther:
+      'Para Signal, Discord, Facebook Messenger, iMessage/SMS o Viber, exporta el chat a un archivo de texto/JSON (o ZIP) desde la app o con una herramienta de confianza y luego súbelo.',
+
+    // Cómo funciona
+    howItWorks: 'Cómo funciona',
+    step1_title: 'Sube tu conversación',
+    step1_description: 'Exporta tu conversación de Telegram o WhatsApp y súbela aquí. Tus datos se procesan de forma segura y nunca se almacenan.',
+    step2_title: 'Análisis IA',
+    step2_description: 'Nuestra IA analiza patrones de comunicación, detecta comportamientos de gaslighting e identifica dinámicas relacionales usando métodos científicos.',
+    step3_title: 'Obtén insights',
+    step3_description: 'Recibe un informe completo con puntuaciones, evidencia y explicaciones para ayudarte a entender lo que realmente sucedió.',
+
+    // FAQ corto: por qué y para quién
+    faq_why:
+      'Esta app te ayuda a ver patrones de comunicación en tus conversaciones — no para señalar culpables, sino para entender mejor qué estaba pasando entre ustedes.',
+    faq_forWhom:
+      'Está pensada para personas que se sienten confundidas tras una relación, sospechan manipulación o gaslighting, o simplemente quieren una mirada externa neutral sobre su forma de comunicarse.',
+    faq_notSides:
+      'El análisis no toma partido ni dice quién tiene “razón” o “culpa” — describe patrones y da ejemplos de ambos lados.',
+    faq_notTherapy:
+      'Esto no es terapia, ni diagnóstico ni asesoría legal. Es una perspectiva basada en IA sobre tus mensajes.',
+    faq_goal:
+      'El objetivo principal es apoyar la reflexión y el entendimiento mutuo, no iniciar nuevos conflictos ni servir como arma en discusiones.',
+    help_tooltip_label: 'Ayuda e información del servicio',
+    help_tooltip_title: 'Acerca del servicio',
+    help_tooltip_close: 'Cerrar',
+    report_disclaimer_main:
+      'Este informe está generado por IA solo a partir de los mensajes que subiste. Puede perder contexto y debe verse como una perspectiva más, no como la verdad absoluta.',
+    report_disclaimer_safety:
+      'Si tu situación implica violencia, autolesiones o te sientes en peligro, no confíes solo en esta app — busca apoyo de personas de confianza o de profesionales.',
+
+    // Testimonios
+    testimonials_label: 'HISTORIAS REALES, PERSPECTIVAS CAMBIADAS',
+    testimonials_title: 'Personas que usaron esto para entender mejor sus conversaciones',
+    testimonial_anna_name: '«Anna», 28',
+    testimonial_anna_role: 'Después de una larga ruptura',
+    testimonial_anna_quote:
+      'Tenía capturas de pantalla y opiniones de amigos, pero esta fue la primera vez que vi toda nuestra conversación expuesta con calma. Me ayudó a dejar de obsesionarme con una pelea y ver el patrón más amplio.',
+    testimonial_marco_name: '«Marco», 34',
+    testimonial_marco_role: 'En una nueva relación',
+    testimonial_marco_quote:
+      'Lo usé no para probar nada a mi pareja, sino para revisar mis propias reacciones. El informe mostró dónde escalaba o me cerraba, lo cual era incómodo — pero útil.',
+    testimonial_lea_name: '«Lea», 31',
+    testimonial_lea_role: 'Cuestionando la manipulación',
+    testimonial_lea_quote:
+      'Tenía miedo de que me «juzgara» a mí o a mi ex. En cambio, se sintió como un espejo neutral. No me dijo qué hacer, pero me dio el lenguaje para describir lo que sentía.',
+    testimonial_sara_name: '«Sara», 29',
+    testimonial_sara_role: 'Después de relación tóxica',
+    testimonial_sara_quote:
+      'Finalmente, tenía prueba de que no estaba loca. Los patrones eran claros — contradicciones constantes, cambio de culpa. Me dio la confianza para seguir adelante.',
+    testimonial_david_name: '«David», 35',
+    testimonial_david_role: 'Intentando mejorar',
+    testimonial_david_quote:
+      'Quería entender por qué mis relaciones seguían fallando. El análisis mostró mis patrones de comunicación — defensivo, desdeñoso. Difícil de escuchar, pero necesario.',
+    testimonial_yuki_name: '«Yuki», 27',
+    testimonial_yuki_role: 'Relación a distancia',
+    testimonial_yuki_quote:
+      'Estábamos peleando constantemente por texto. Esto me ayudó a ver que la mayoría de los conflictos comenzaban con malentendidos, no con malicia. Ambos necesitábamos comunicarnos mejor.',
+    testimonial_sofia_name: '«Sofia», 32',
+    testimonial_sofia_role: 'Claridad post-divorcio',
+    testimonial_sofia_quote:
+      'Necesitaba cerrar. Leer años de mensajes era abrumador, pero el análisis de IA destacó los patrones clave. No se trataba de culpa — se trataba de comprensión.',
+
+    // Términos y condiciones
+    terms_title: 'Términos y Condiciones',
+    terms_intro:
+      'Estos Términos y Condiciones ("Términos") rigen tu uso de la aplicación web Textos con mi ex ("Servicio"). Al acceder o usar el Servicio, aceptas estar sujeto a estos Términos.',
+    terms_section1_title: '1. Descripción del servicio',
+    terms_section1_content:
+      'Textos con mi ex es una herramienta de análisis asistida por IA y anónima que te permite subir exportaciones de chats (por ejemplo, Telegram o WhatsApp) y recibir un informe automatizado sobre patrones de comunicación. No es terapia, asesoramiento legal ni un servicio de crisis.',
+    terms_section2_title: '2. Elegibilidad y uso',
+    terms_section2_content:
+      'Solo puedes usar el Servicio si tienes al menos 18 años y eres legalmente capaz de celebrar estos Términos. Eres responsable de asegurarte de que tienes derecho a subir y procesar los chats que envías al Servicio.',
+    terms_section3_title: '3. Manejo de datos y privacidad',
+    terms_section3_content:
+      'Procesamos tus chats subidos de manera efímera con el propósito de generar un informe de análisis. Los datos subidos y los informes generados no se almacenan más tiempo del necesario para proporcionar el Servicio y no se usan para entrenar modelos de terceros. Para más detalles, consulta nuestra Política de Privacidad (cuando esté disponible).',
+    terms_section4_title: '4. Pagos y suscripciones',
+    terms_section4_content:
+      'Ciertas funciones pueden ofrecerse de forma de pago (por ejemplo, análisis premium o análisis de medios). Los pagos son procesados por nuestro proveedor de pagos, Paddle, actuando como comerciante. Los precios, intervalos de facturación y reglas de reembolso se muestran en el checkout y pueden actualizarse de vez en cuando.',
+    terms_section5_title: '5. Sin garantías',
+    terms_section5_content:
+      'El análisis es generado por grandes modelos de lenguaje y puede ser incompleto, inexacto o reflejar sesgos inherentes en esos modelos. No garantizamos la exactitud, integridad o idoneidad de ningún análisis para tu situación particular.',
+    terms_section6_title: '6. Uso prohibido',
+    terms_section6_content:
+      'Aceptas no usar el Servicio para fines ilegales, violar los derechos de otros o subir contenido que infrinja la propiedad intelectual, privacidad u otros derechos de terceros.',
+    terms_section7_title: '7. Limitación de responsabilidad',
+    terms_section7_content:
+      'En la máxima medida permitida por la ley, Textos con mi ex y sus operadores no serán responsables de ningún daño indirecto, incidental, especial, consecuente o punitivo que surja de o esté relacionado con tu uso del Servicio.',
+    terms_section8_title: '8. Cambios a estos términos',
+    terms_section8_content:
+      'Podemos actualizar estos Términos de vez en cuando. La fecha de "última actualización" en la parte superior de esta página indicará cuándo los cambios se vuelven efectivos. Tu uso continuado del Servicio después de cualquier cambio significa que aceptas los Términos actualizados.',
+    terms_section9_title: '9. Contacto',
+    terms_section9_content:
+      'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos usando los detalles proporcionados en el sitio principal o dentro de la aplicación.'
+  }
+};

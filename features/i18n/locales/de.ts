@@ -1,0 +1,199 @@
+import type { LocaleBundle } from '../types';
+
+export const deBundle: LocaleBundle = {
+  locale: 'de',
+  displayName: 'Deutsch',
+  messages: {
+    appName: 'Texte mit meinem Ex',
+    appTagline: 'Ein ehrlicher Blick auf das, was passiert ist.',
+    hero_tagline: 'Ein ehrlicher KI-Blick auf das, was passiert ist.',
+    hero_tagline_alt1: 'Unter der Haube: KI und Wissenschaft statt Drama.',
+    hero_tagline_alt2: 'Verhalten, Bindung und Konflikte — KI-analytisch ausgewertet.',
+    hero_cta: 'Konversation mit KI analysieren',
+    hero_copy: 'Laden Sie Ihre Chats hoch, um eine unparteiische, KI-gestützte Beziehungsanalyse zu erhalten.',
+    footer_disclaimer: 'Keine Therapie, kein Klatsch — nur KI-Klarheit.',
+    language_label: 'Sprache',
+    uploadExport: 'Chat-Export hochladen',
+    uploadExportDescription: 'Wählen Sie Ihre Chat-Exportdatei aus, um mit der Analyse zu beginnen',
+    analyzing: 'KI analysiert Konversation...',
+    progress_starting: 'KI-Analyse wird initialisiert...',
+    progress_parsing: 'Konversation wird analysiert...',
+    progress_analyzing: 'KI analysiert Konversationsmuster...',
+    progress_media: 'KI analysiert Medieninhalte...',
+    progress_chunking: 'Konversationsabschnitte werden verarbeitet...',
+    progress_completed: 'KI-Analyse abgeschlossen!',
+    progress_error: 'KI-Analyse fehlgeschlagen',
+    progress_analyzing_hint: 'KI analysiert Muster, Kommunikationsstile und Beziehungsdynamiken...',
+    progress_media_hint: 'Analyse von Bildern, Stickern und Medieninhalten mit KI-Visionsmodellen...',
+    progress_chunk_label: 'Abschnitt {current} von {total}',
+    progress_disclaimer: 'Bitte schließen Sie dieses Fenster während der Analyse nicht.',
+    backToHome: 'Zurück zur Startseite',
+    noAnalysisFound: 'Keine Analyse gefunden. Bitte laden Sie zuerst eine Konversation hoch.',
+    analysisReport: 'KI-Analysebericht',
+    gaslightingRisk: 'Manipulationsrisiko',
+    conflictIntensity: 'Konfliktintensität',
+    supportiveness: 'Unterstützendes Verhalten',
+    apologyFrequency: 'Häufigkeit der Entschuldigungen',
+    evidence: 'Beweise',
+    scientificAnalysis: 'Wissenschaftliche Analyse',
+    plainLanguage: 'In einfachen Worten',
+    score: 'Punktzahl',
+    section_gaslighting: 'Manipulationsrisiko',
+    section_conflictIntensity: 'Konfliktintensität',
+    section_supportiveness: 'Unterstützendes Verhalten',
+    section_apologyFrequency: 'Häufigkeit der Entschuldigungen',
+    section_redFlags: 'Warnsignale',
+    section_conflict: 'Konfliktintensität',
+    section_support: 'Unterstützendes Verhalten',
+    section_apology: 'Häufigkeit der Entschuldigungen',
+    imported: 'Importiert',
+    messages: 'Nachrichten',
+    privacyNote: 'Ihre Daten werden vorübergehend verarbeitet und niemals dauerhaft gespeichert.',
+    fileUploadHelp:
+      'Aktuelle Version funktioniert am besten mit kleinen Text-/JSON-Exports. Kostenlos: nur .json und .txt. Premium: .zip mit Medienanalyse folgt in der nächsten Version.',
+    premium_badge: 'Premium',
+    free_badge: 'Kostenlos',
+    premium_hint:
+      'Premium-Analyse mit tieferen psychologischen Einsichten, mehr Beweisbeispielen und Medien, wo verfügbar.',
+    free_hint:
+      'Kostenlose Analyse — nur Text (bis 50k Nachrichten), ohne Medienanalyse oder erweiterten Deep-Dive-Modus.',
+    premium_progress_hint:
+      'Premium-Analyse läuft: tiefere Prompts und Berücksichtigung von Medien (wo verfügbar).',
+    free_progress_hint:
+      'Kostenlose Analyse läuft: reine Textübersicht. Für Medien und tiefere Insights auf Premium upgraden.',
+    selectPlatform: 'Plattform auswählen',
+    platform_telegram: 'Telegram',
+    platform_whatsapp: 'WhatsApp',
+    platform_signal: 'Signal',
+    platform_discord: 'Discord',
+    platform_messenger: 'Facebook Messenger',
+    platform_imessage: 'iMessage',
+    platform_viber: 'Viber',
+    selectFile: 'Datei auswählen',
+    clickToSelectFile: 'Klicken Sie, um eine Datei auszuwählen',
+    ready: 'Bereit',
+    uploadAndAnalyze: 'Hochladen & Analysieren',
+    inputMode_upload: 'Export hochladen',
+    inputMode_paste: 'Text einfügen',
+    pasteLabel: 'Fügen Sie einen kurzen Auszug Ihrer Konversation ein',
+    pastePlaceholder:
+      'Fügen Sie hier Nachrichten ein (nur kurzer Ausschnitt, kein mehrjähriger Chat)...',
+    pasteHelp:
+      'Funktioniert am besten mit kurzen Ausschnitten. Für lange Verläufe bitte den Chat-Export nutzen.',
+    analyzePasted: 'Eingefügten Text analysieren',
+    paste_error_empty: 'Bitte fügen Sie zuerst einen Konversationstext ein.',
+    paste_error_too_long:
+      'Der eingefügte Text ist zu lang. Bitte verwenden Sie einen kürzeren Ausschnitt (bis zu 8000 Zeichen).',
+    exportTXT: 'TXT exportieren',
+    exportJSON: 'JSON exportieren',
+    exportPDF: 'PDF exportieren',
+    exportReportTitle: 'Analysebericht',
+    exportGeneratedBy: 'Erstellt mit "Texts With my Ex" - AI Gaslight Detection App',
+    exportDate: 'Datum',
+    exportOverview: 'Übersicht',
+    exportScores: 'Punktzahlen',
+    exportPatterns: 'Muster',
+    exportEvidence: 'Beweise',
+
+    // Hilfe zum Export von Chats
+    exportHelpTitle: 'So exportieren Sie Ihre Chats',
+    exportHelpTelegram:
+      'Telegram (Desktop): Chat öffnen → Menü → „Chatverlauf exportieren“ → JSON oder Text wählen und die Datei hier hochladen.',
+    exportHelpWhatsApp:
+      'WhatsApp (Handy): Chat öffnen → Menü → „Chat exportieren“ → Ohne Medien (schneller) oder Mit Medien wählen, sich die Datei selbst schicken und sie hier hochladen.',
+    exportHelpOther:
+      'Für Signal, Discord, Facebook Messenger, iMessage/SMS oder Viber den Chat in eine Text-/JSON-Datei (oder ZIP) aus der App oder mit einem vertrauenswürdigen Export-Tool exportieren und diese Datei hochladen.',
+
+    // Wie es funktioniert
+    howItWorks: 'Wie es funktioniert',
+    step1_title: 'Chat hochladen',
+    step1_description: 'Exportieren Sie Ihre Unterhaltung aus Telegram oder WhatsApp und laden Sie sie hier hoch. Ihre Daten werden sicher verarbeitet und niemals gespeichert.',
+    step2_title: 'KI-Analyse',
+    step2_description: 'Unsere KI analysiert Kommunikationsmuster, erkennt Gaslighting-Verhalten und identifiziert Beziehungsdynamiken mit wissenschaftlichen Methoden.',
+    step3_title: 'Einblicke erhalten',
+    step3_description: 'Erhalten Sie einen umfassenden Bericht mit Bewertungen, Beweisen und Erklärungen, um zu verstehen, was wirklich passiert ist.',
+
+    // Kurzes FAQ: warum und für wen
+    faq_why:
+      'Diese App hilft Ihnen, Kommunikationsmuster in Ihren Chats zu erkennen – nicht um Schuld zuzuweisen, sondern um besser zu verstehen, was zwischen Ihnen passiert ist.',
+    faq_forWhom:
+      'Sie richtet sich an Menschen, die nach einer Beziehung verwirrt sind, Manipulation oder Gaslighting vermuten oder einfach einen neutralen Außenblick auf ihren Kommunikationsstil wünschen.',
+    faq_notSides:
+      'Die Analyse ergreift keine Partei und sagt nicht, wer „recht“ oder „schuld“ hat – sie beschreibt Muster und zeigt Beispiele von beiden Seiten.',
+    faq_notTherapy:
+      'Dies ist keine Therapie, keine Diagnose und keine Rechtsberatung. Es ist eine KI-basierte Perspektive auf Ihre Nachrichten.',
+    faq_goal:
+      'Das Hauptziel ist, Reflexion und gegenseitiges Verständnis zu unterstützen – nicht neue Konflikte zu schüren oder als „Waffe" in Streitigkeiten zu dienen.',
+    help_tooltip_label: 'Hilfe und Service-Informationen',
+    help_tooltip_title: 'Über den Service',
+    help_tooltip_close: 'Schließen',
+    report_disclaimer_main:
+      'Dieser Bericht wird von KI ausschließlich anhand der hochgeladenen Nachrichten erzeugt. Kontext kann fehlen; er sollte als eine Sichtweise verstanden werden, nicht als absolute Wahrheit.',
+    report_disclaimer_safety:
+      'Wenn Ihre Situation Gewalt, Selbstverletzung oder ein Gefühl von Gefahr beinhaltet, sollten Sie sich nicht nur auf diese App verlassen – wenden Sie sich an vertraute Personen oder professionelle Hilfe.',
+
+    // Testimonials
+    testimonials_label: 'ECHTE GESCHICHTEN, VERÄNDERTE PERSPEKTIVEN',
+    testimonials_title: 'Menschen, die dies nutzten, um ihre Chats besser zu verstehen',
+    testimonial_anna_name: '„Anna", 28',
+    testimonial_anna_role: 'Nach langer Trennung',
+    testimonial_anna_quote:
+      'Ich hatte Screenshots und Meinungen von Freunden, aber das war das erste Mal, dass ich unsere ganze Unterhaltung ruhig ausgebreitet sah. Es half mir, aufzuhören, mich auf einen Streit zu fixieren und das größere Muster zu sehen.',
+    testimonial_marco_name: '„Marco", 34',
+    testimonial_marco_role: 'In neuer Beziehung',
+    testimonial_marco_quote:
+      'Ich nutzte es nicht, um meiner Partnerin etwas zu beweisen, sondern um meine eigenen Reaktionen zu überprüfen. Der Bericht zeigte, wo ich eskalierte oder mich verschloss – unangenehm, aber nützlich.',
+    testimonial_lea_name: '„Lea", 31',
+    testimonial_lea_role: 'Fragte sich, ob Gaslighting vorlag',
+    testimonial_lea_quote:
+      'Ich hatte Angst, es würde mich oder meinen Ex „verurteilen". Stattdessen fühlte es sich wie ein neutraler Spiegel an. Es sagte mir nicht, was ich tun sollte, aber es gab mir die Worte, um zu beschreiben, was ich fühlte.',
+    testimonial_sara_name: '„Sara", 29',
+    testimonial_sara_role: 'Nach toxischer Beziehung',
+    testimonial_sara_quote:
+      'Endlich hatte ich den Beweis, dass ich nicht verrückt war. Die Muster waren klar – ständige Widersprüche, Schuldverschiebung. Es gab mir das Vertrauen, weiterzugehen.',
+    testimonial_david_name: '„David", 35',
+    testimonial_david_role: 'Versucht sich zu verbessern',
+    testimonial_david_quote:
+      'Ich wollte verstehen, warum meine Beziehungen immer scheiterten. Die Analyse zeigte meine Kommunikationsmuster – defensiv, abweisend. Schwer zu hören, aber notwendig.',
+    testimonial_yuki_name: '„Yuki", 27',
+    testimonial_yuki_role: 'Fernbeziehung',
+    testimonial_yuki_quote:
+      'Wir stritten ständig per Text. Das half mir zu sehen, dass die meisten Konflikte mit Missverständnissen begannen, nicht mit Bosheit. Wir beide mussten besser kommunizieren.',
+    testimonial_sofia_name: '„Sofia", 32',
+    testimonial_sofia_role: 'Klarheit nach Scheidung',
+    testimonial_sofia_quote:
+      'Ich brauchte Abschluss. Jahre von Nachrichten zu lesen war überwältigend, aber die KI-Analyse hob die Schlüsselmuster hervor. Es ging nicht um Schuld – es ging um Verständnis.',
+
+    // Nutzungsbedingungen
+    terms_title: 'Nutzungsbedingungen',
+    terms_intro:
+      'Diese Nutzungsbedingungen ("Bedingungen") regeln Ihre Nutzung der Webanwendung Texte mit meinem Ex ("Service"). Durch den Zugriff auf oder die Nutzung des Service stimmen Sie zu, an diese Bedingungen gebunden zu sein.',
+    terms_section1_title: '1. Servicebeschreibung',
+    terms_section1_content:
+      'Texte mit meinem Ex ist ein anonymes, KI-gestütztes Analysetool, das es Ihnen ermöglicht, Chat-Exporte (z. B. Telegram oder WhatsApp) hochzuladen und einen automatisierten Bericht über Kommunikationsmuster zu erhalten. Es ist keine Therapie, Rechtsberatung oder Krisendienst.',
+    terms_section2_title: '2. Berechtigung und Nutzung',
+    terms_section2_content:
+      'Sie dürfen den Service nur nutzen, wenn Sie mindestens 18 Jahre alt sind und rechtlich in der Lage sind, diese Bedingungen einzugehen. Sie sind dafür verantwortlich sicherzustellen, dass Sie das Recht haben, die Chats, die Sie an den Service übermitteln, hochzuladen und zu verarbeiten.',
+    terms_section3_title: '3. Datenverarbeitung und Datenschutz',
+    terms_section3_content:
+      'Wir verarbeiten Ihre hochgeladenen Chats vorübergehend zum Zweck der Generierung eines Analyseberichts. Hochgeladene Daten und generierte Berichte werden nicht länger gespeichert, als es zur Bereitstellung des Service erforderlich ist, und werden nicht zum Training von Drittmodellen verwendet. Weitere Details finden Sie in unserer Datenschutzerklärung (wenn verfügbar).',
+    terms_section4_title: '4. Zahlungen und Abonnements',
+    terms_section4_content:
+      'Bestimmte Funktionen können gegen Gebühr angeboten werden (z. B. Premium-Analyse oder Medienanalyse). Zahlungen werden von unserem Zahlungsanbieter Paddle verarbeitet, der als Händler fungiert. Preise, Abrechnungsintervalle und Rückerstattungsregeln werden an der Kasse angezeigt und können von Zeit zu Zeit aktualisiert werden.',
+    terms_section5_title: '5. Keine Garantien',
+    terms_section5_content:
+      'Die Analyse wird von großen Sprachmodellen generiert und kann unvollständig, ungenau sein oder Vorurteile widerspiegeln, die diesen Modellen innewohnen. Wir garantieren nicht die Genauigkeit, Vollständigkeit oder Eignung einer Analyse für Ihre spezielle Situation.',
+    terms_section6_title: '6. Verbotene Nutzung',
+    terms_section6_content:
+      'Sie stimmen zu, den Service nicht für rechtswidrige Zwecke zu nutzen, die Rechte anderer zu verletzen oder Inhalte hochzuladen, die geistiges Eigentum, Privatsphäre oder andere Rechte Dritter verletzen.',
+    terms_section7_title: '7. Haftungsbeschränkung',
+    terms_section7_content:
+      'Im maximal zulässigen Umfang haften Texte mit meinem Ex und seine Betreiber nicht für indirekte, zufällige, besondere, Folgeschäden oder Strafschäden, die sich aus Ihrer Nutzung des Service ergeben oder damit zusammenhängen.',
+    terms_section8_title: '8. Änderungen dieser Bedingungen',
+    terms_section8_content:
+      'Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Das Datum der "letzten Aktualisierung" oben auf dieser Seite zeigt an, wann Änderungen wirksam werden. Ihre fortgesetzte Nutzung des Service nach Änderungen bedeutet, dass Sie die aktualisierten Bedingungen akzeptieren.',
+    terms_section9_title: '9. Kontakt',
+    terms_section9_content:
+      'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte über die auf der Hauptseite oder in der App angegebenen Kontaktdaten.'
+  }
+};

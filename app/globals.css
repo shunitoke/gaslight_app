@@ -1,0 +1,243 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Shadcn color system - Light mode (default pink theme) - HSL format */
+    --background: 60 14% 95%; /* #f5f5f0 - soft neutral */
+    --foreground: 0 0% 18%; /* #2d2d2d - elegant dark text */
+    --card: 0 0% 100%; /* White card in light mode */
+    --card-foreground: 0 0% 18%; /* Dark text on white card */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 18%;
+    --primary: 330 41% 39%; /* #8b3a62 - sweet pink accent */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 355 50% 81%; /* #e8b4b8 - soft pink */
+    --secondary-foreground: 0 0% 18%;
+    --muted: 60 14% 95%; /* #f5f5f0 */
+    --muted-foreground: 0 0% 45%;
+    --accent: 330 41% 39%; /* #8b3a62 - sweet pink */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 355 50% 81% / 0.3; /* soft pink border */
+    --input: 355 50% 81% / 0.3;
+    --ring: 330 41% 39%; /* sweet pink ring */
+    --radius: 0.5rem;
+    
+    /* Legacy color variables for backward compatibility */
+    --color-primary: #e8b4b8; /* soft pink */
+    --color-accent: #8b3a62; /* sweet pink */
+    --color-warning: #d17a47;
+    --color-neutral: #f5f5f0; /* soft neutral */
+    --color-text: #2d2d2d; /* elegant dark */
+    --color-highlight: #d4af37;
+  }
+
+  :root[data-color-scheme='dark'],
+  .dark {
+    /* Shadcn color system - Dark mode (default pink theme) - HSL format */
+    --background: 0 8% 12%; /* #1f1a1a - elegant dark */
+    --foreground: 0 0% 98%; /* #fafafa - soft light text */
+    --card: 0 8% 14%; /* Dark card, slightly lighter than background for subtle contrast */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 8% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 330 45% 55%; /* #b85d8a - sweet pink (lighter for dark mode) */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 355 60% 85%; /* #f5d0d4 - soft pink (lighter for dark mode) */
+    --secondary-foreground: 0 8% 12%;
+    --muted: 0 8% 12%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 330 45% 55%; /* #b85d8a - sweet pink */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 355 50% 81% / 0.2; /* soft pink border */
+    --input: 355 50% 81% / 0.2;
+    --ring: 330 45% 55%; /* sweet pink ring */
+    
+    /* Legacy color variables for backward compatibility */
+    --color-primary: #f5d0d4; /* soft pink (lighter) */
+    --color-accent: #b85d8a; /* sweet pink (lighter) */
+    --color-warning: #e68a5a;
+    --color-neutral: #1f1a1a; /* elegant dark */
+    --color-text: #fafafa; /* soft light */
+    --color-highlight: #f0d870;
+  }
+
+  /* Alternative theme (blue/gray) - Light - HSL format */
+  [data-color-theme='alternative'] {
+    --background: 210 20% 98%; /* #f8f9fa - soft neutral blue-gray */
+    --foreground: 0 0% 18%; /* #2d2d2d - elegant dark */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 18%;
+    --primary: 195 55% 30%; /* #2c5f6f - elegant blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 20% 50%; /* #6b7c93 - soft blue-gray */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 20% 98%; /* #f8f9fa */
+    --muted-foreground: 0 0% 45%;
+    --accent: 195 55% 30%; /* #2c5f6f - elegant blue */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 20% 50% / 0.3; /* soft blue-gray border */
+    --input: 215 20% 50% / 0.3;
+    --ring: 195 55% 30%; /* elegant blue ring */
+    
+    /* Legacy color variables for backward compatibility */
+    --color-primary: #6b7c93; /* soft blue-gray */
+    --color-accent: #2c5f6f; /* elegant blue */
+    --color-warning: #d17a47;
+    --color-neutral: #f8f9fa; /* soft neutral */
+    --color-text: #2d2d2d; /* elegant dark */
+    --color-highlight: #c9a961;
+  }
+
+  /* Alternative theme - Dark - HSL format */
+  [data-color-theme='alternative']:root[data-color-scheme='dark'],
+  [data-color-theme='alternative'].dark {
+    --background: 210 40% 8%; /* #0f1419 - elegant dark blue */
+    --foreground: 0 0% 96%; /* #f5f5f5 - soft light */
+    --card: 210 40% 10%; /* Slightly lighter than background for subtle contrast */
+    --card-foreground: 0 0% 96%;
+    --popover: 210 40% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 195 35% 48%; /* #5a8a9a - elegant blue (lighter for dark mode) */
+    --primary-foreground: 0 0% 96%;
+    --secondary: 215 40% 70%; /* #9db3d0 - soft blue (lighter for dark mode) */
+    --secondary-foreground: 210 40% 8%;
+    --muted: 210 40% 8%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 195 35% 48%; /* #5a8a9a - elegant blue */
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 96%;
+    --border: 215 20% 50% / 0.2; /* soft blue-gray border */
+    --input: 215 20% 50% / 0.2;
+    --ring: 195 35% 48%; /* elegant blue ring */
+    
+    /* Legacy color variables for backward compatibility */
+    --color-primary: #9db3d0; /* soft blue (lighter) */
+    --color-accent: #5a8a9a; /* elegant blue (lighter) */
+    --color-warning: #e68a5a;
+    --color-neutral: #0f1419; /* elegant dark blue */
+    --color-text: #f5f5f5; /* soft light */
+    --color-highlight: #e0c880;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Ensure cards are dark in dark mode ONLY - fix white text on light cards */
+  /* Use broad selector to catch all card elements */
+  :root[data-color-scheme='dark'] div[class*="rounded-2xl"],
+  .dark div[class*="rounded-2xl"] {
+    background-color: hsl(0 8% 14%) !important; /* Dark card background */
+    color: hsl(0 0% 98%) !important; /* Light text on dark card */
+  }
+  
+  /* Alternative theme dark mode cards */
+  [data-color-theme='alternative'][data-color-scheme='dark'] div[class*="rounded-2xl"],
+  [data-color-theme='alternative'].dark div[class*="rounded-2xl"] {
+    background-color: hsl(210 40% 10%) !important; /* Dark blue card background */
+    color: hsl(0 0% 96%) !important; /* Light text on dark blue card */
+  }
+}
+
+/* Tagline animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.will-change-transform {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.tagline-animate {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Hide scrollbar but keep scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Testimonial cards - responsive width for desktop */
+/* Use fixed width to ensure exactly 3 cards fit */
+@media (min-width: 768px) {
+  [data-testimonial-card] {
+    width: 310px !important;
+    min-width: 310px;
+    max-width: 310px;
+  }
+}
