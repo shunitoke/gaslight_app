@@ -11,7 +11,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
     <input
       ref={ref}
       className={clsx(
-        'w-full rounded-md border border-primary/30 bg-white/80 dark:bg-neutral-800/90 dark:border-primary/40 dark:text-text px-4 py-2 text-text shadow-sm placeholder:text-text/40 dark:placeholder:text-text/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30',
+        'w-full rounded-md border border-primary/30 bg-white/80 dark:bg-neutral-800/90 dark:border-primary/40 dark:text-text px-4 py-2 text-text shadow-sm placeholder:text-text/40 dark:placeholder:text-text/50 transition-all duration-200 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 focus:scale-[1.01]',
         className
       )}
       {...props}

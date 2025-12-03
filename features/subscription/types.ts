@@ -25,9 +25,16 @@ export type SubscriptionFeatures = {
  * - Tokens are stored client-side only
  */
 export async function getSubscriptionTier(request?: Request): Promise<SubscriptionTier> {
-  if (!request) return 'free';
-
   const isDev = process.env.NODE_ENV === 'development';
+
+  // In development we temporarily treat all users as premium
+  // so that all advanced analysis features are available.
+  // TODO: revert to token/header-based logic when we reintroduce free tier limits.
+  if (isDev) {
+    return 'premium';
+  }
+
+  if (!request) return 'free';
 
   // 1. Check for valid premium token (production method)
   try {
@@ -44,15 +51,7 @@ export async function getSubscriptionTier(request?: Request): Promise<Subscripti
     // If premium token module fails, fall through to other checks
   }
 
-  // 2. Check for development/testing header (for local testing only)
-  if (isDev) {
-    const devHeader = request.headers.get('x-subscription-tier');
-    if (devHeader === 'premium') {
-      return 'premium';
-    }
-  }
-
-  // 3. Default to free
+  // 2. Default to free
   return 'free';
 }
 

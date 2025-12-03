@@ -292,6 +292,128 @@ export async function parseWhatsAppExport(
 }
 
 /**
+ * Parse a generic plain-text conversation (fallback for arbitrary TXT files).
+ * Expected format (best effort):
+ * - "Name: message"
+ * - Or free-form lines (assigned to last speaker)
+ */
+export async function parseGenericTextExport(
+  fileContent: string,
+  fileName: string
+): Promise<NormalizedConversation> {
+  const trimmed = fileContent.trim();
+  if (!trimmed) {
+    throw new Error('Text file appears to be empty');
+  }
+
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0) {
+    throw new Error('No valid lines found in text file');
+  }
+
+  const conversationId = `generic_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  const participantsMap = new Map<string, Participant>();
+  const normalizedMessages: Message[] = [];
+  const mediaArtifacts: MediaArtifact[] = [];
+  let lastSenderId: string | null = null;
+
+  const getParticipantId = (name: string): string => {
+    const slug = name
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_а-яё-]/gi, '');
+    const id = `participant_${slug || 'user'}`;
+    if (!participantsMap.has(id)) {
+      const role: 'user' | 'other' | 'groupMember' | 'unknown' =
+        participantsMap.size === 0 ? 'user' : 'other';
+      participantsMap.set(id, {
+        id,
+        displayName: name,
+        role
+      });
+    }
+    return id;
+  };
+
+  const baseTimestamp = Date.now();
+
+  lines.forEach((line, index) => {
+    const match = line.match(/^([^:]{1,40}):\s+(.+)$/);
+    let senderId: string;
+    let text: string;
+
+    if (match) {
+      const name = match[1].trim();
+      text = match[2].trim();
+      senderId = getParticipantId(name);
+    } else {
+      senderId = lastSenderId || getParticipantId('You');
+      text = line;
+    }
+
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const sentAt = new Date(baseTimestamp + index * 1000).toISOString();
+
+    normalizedMessages.push({
+      id: messageId,
+      conversationId,
+      senderId,
+      sentAt,
+      text,
+      isSystem: false
+    });
+
+    lastSenderId = senderId;
+  });
+
+  // For generic TXT we hard-cap the number of messages to keep analysis tractable.
+  // Keep the last N messages (most recent context), which is usually most relevant.
+  const MAX_GENERIC_MESSAGES = 4000;
+  let trimmedMessages = normalizedMessages;
+  if (normalizedMessages.length > MAX_GENERIC_MESSAGES) {
+    trimmedMessages = normalizedMessages.slice(
+      normalizedMessages.length - MAX_GENERIC_MESSAGES
+    );
+    logInfo('generic_import_trimmed', {
+      fileName,
+      originalCount: normalizedMessages.length,
+      keptCount: trimmedMessages.length
+    });
+  }
+
+  const participants = Array.from(participantsMap.values());
+  const conversation: Conversation = {
+    id: conversationId,
+    sourcePlatform: 'generic',
+    title: fileName || 'TXT conversation',
+    startedAt: trimmedMessages[0]?.sentAt ?? null,
+    endedAt: trimmedMessages[trimmedMessages.length - 1]?.sentAt ?? null,
+    participantIds: participants.map((p) => p.id),
+    languageCodes: detectLanguages(trimmedMessages),
+    messageCount: trimmedMessages.length,
+    status: 'imported'
+  };
+
+  logInfo('generic_import_success', {
+    fileName,
+    messageCount: trimmedMessages.length,
+    participantCount: participants.length
+  });
+
+  return {
+    conversation,
+    participants,
+    messages: trimmedMessages,
+    media: mediaArtifacts,
+    mediaFiles: new Map()
+  };
+}
+
+/**
  * Parse Signal JSON export format.
  * Expected format: { "messages": [{ "sent_at": timestamp, "text": "...", "source": "..." }] }
  */
@@ -806,6 +928,8 @@ export async function parseExport(
       return parseIMessageExport(textContent, payload.fileName);
     case 'viber':
       return parseViberExport(textContent, payload.fileName);
+    case 'generic':
+      return parseGenericTextExport(textContent, payload.fileName);
     default:
       throw new Error(`Unsupported platform: ${payload.platform}`);
   }

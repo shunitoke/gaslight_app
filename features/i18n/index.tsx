@@ -69,52 +69,86 @@ function detectSystemLanguage(): SupportedLocale {
   return defaultLocale;
 }
 
-export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  // Always start with defaultLocale to ensure server/client match
-  // System language will be detected and applied after mount
-  const [locale, setLocale] = useState<SupportedLocale>(defaultLocale);
-  const [mounted, setMounted] = React.useState(false);
+export const LanguageProvider = ({ 
+  children,
+  initialLocale 
+}: { 
+  children: React.ReactNode;
+  initialLocale?: SupportedLocale;
+}) => {
+  // Initialize locale: always use initialLocale from server to match SSR
+  // This prevents hydration mismatch - server and client start with same language
+  const [locale, setLocale] = useState<SupportedLocale>(() => {
+    // Always use server-provided locale to match SSR
+    if (initialLocale && supportedLocales.includes(initialLocale)) {
+      return initialLocale;
+    }
+    return defaultLocale;
+  });
 
-  // Auto-detect system language after mount
+  // On mount, check if user has changed language preference
+  // Only run once on mount to avoid infinite loops
   React.useEffect(() => {
-    // Use setTimeout to defer setState and avoid cascading renders warning
-    const timer = setTimeout(() => {
-      setMounted(true);
-    }, 0);
-
-    // Check localStorage first (user preference)
-    // Prefer new unified key, but fall back to old keys for backwards compatibility.
+    // Check localStorage (user preference) - only change if different from initial
     const stored =
       localStorage.getItem(LOCALE_STORAGE_KEY) ??
       localStorage.getItem('gaslite-locale') ??
       localStorage.getItem('app-locale');
 
     if (stored && supportedLocales.includes(stored as SupportedLocale)) {
-      setLocale(stored as SupportedLocale);
-    } else {
-      // Otherwise detect from system
-      const detected = detectSystemLanguage();
-      setLocale(detected);
-    }
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Save to localStorage when locale changes (only after mount)
-  React.useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      // Keep <html lang="..."> in sync with current locale for a11y/SEO.
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('lang', locale);
+      const storedLocale = stored as SupportedLocale;
+      // Only update if stored preference differs from initial locale
+      if (storedLocale !== initialLocale) {
+        setLocale(storedLocale);
       }
     }
-  }, [locale, mounted]);
+    // Only run once on mount - remove locale from deps to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save to localStorage immediately when locale changes and update HTML lang attribute
+  React.useEffect(() => {
+    // Save immediately to localStorage
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    
+    // Mirror to cookie so the server can SSR the correct lang attribute
+    try {
+      document.cookie = `${LOCALE_STORAGE_KEY}=${locale}; path=/; max-age=31536000; samesite=lax`;
+    } catch (e) {
+      // Ignore cookie errors
+    }
+    
+    // Keep <html lang="..."> in sync with current locale for a11y/SEO.
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('lang', locale);
+    }
+  }, [locale]);
+
+  // Cache translations in memory to prevent re-computation
+  const translationCache = useMemo(() => {
+    const cache = new Map<string, string>();
+    const bundle = bundles[locale];
+    return {
+      get: (key: string) => {
+        if (cache.has(key)) {
+          return cache.get(key)!;
+        }
+        const value = bundle.messages[key] ?? key;
+        cache.set(key, value);
+        return value;
+      },
+      clear: () => cache.clear(),
+    };
+  }, [locale]);
 
   const value = useMemo<LanguageContextValue>(() => {
-    const t = (key: string) => bundles[locale].messages[key] ?? key;
+    const t = (key: string) => translationCache.get(key);
     return { locale, setLocale, t };
-  }, [locale]);
+  }, [locale, translationCache]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };

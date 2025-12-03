@@ -46,8 +46,8 @@ npm install
 3. Create a `.env.local` file:
 ```env
 OPENROUTER_API_KEY=your_api_key_here
-GASLITE_TEXT_MODEL=openai/gpt-4o-mini
-GASLITE_VISION_MODEL=openai/gpt-4o-mini
+GASLIGHT_TEXT_MODEL=openai/gpt-4o-mini
+GASLIGHT_VISION_MODEL=openai/gpt-4o-mini
 MAX_UPLOAD_SIZE_MB=25
 ANALYSIS_TIMEOUT_MS=120000
 ```
@@ -107,8 +107,8 @@ site/
 
 - `OPENROUTER_API_KEY` (required) - Your OpenRouter API key
 - `OPENROUTER_BASE_URL` (optional) - OpenRouter API base URL (default: https://openrouter.ai/api/v1)
-- `GASLITE_TEXT_MODEL` (optional) - Model for text analysis (default: openai/gpt-4o-mini)
-- `GASLITE_VISION_MODEL` (optional) - Model for vision analysis (default: openai/gpt-4o-mini)
+- `GASLIGHT_TEXT_MODEL` (optional) - Model for text analysis (default: openai/gpt-4o-mini)
+- `GASLIGHT_VISION_MODEL` (optional) - Model for vision analysis (default: openai/gpt-4o-mini)
 - `MAX_UPLOAD_SIZE_MB` (optional) - Maximum upload size in MB (default: 25)
 - `ANALYSIS_TIMEOUT_MS` (optional) - Analysis timeout in milliseconds (default: 120000)
 

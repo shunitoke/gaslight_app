@@ -33,29 +33,31 @@ function detectSystemColorScheme(): ColorScheme {
 }
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  // Initialize with 'light' to ensure server/client match (prevents hydration mismatch)
-  // System preference will be detected and applied after mount
-  const [colorTheme, setColorThemeState] = useState<ColorTheme>('default');
+  // Initialize with 'alternative' (blue) to ensure server/client match.
+  // System preference / stored values are applied immediately after mount.
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>('alternative');
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>('light');
-  const [mounted, setMounted] = useState(false);
 
-  // Load from localStorage and detect system preference after mount
+  // Load from localStorage immediately on mount (inline script / SSR already applied, we just sync state)
   useEffect(() => {
-    // Use setTimeout to defer setState and avoid cascading renders warning
-    const timer = setTimeout(() => {
-      setMounted(true);
-    }, 0);
-    
     // Load color theme (migrate from old key if present)
     const storedTheme =
       localStorage.getItem(COLOR_THEME_STORAGE_KEY) ??
       localStorage.getItem('gaslite-color-theme');
     if (storedTheme === 'visual-concept') {
-      // Migrate old 'visual-concept' to 'default' (pink is now default)
-      localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'default');
-      setColorThemeState('default');
+      // Migrate old 'visual-concept' to 'alternative' (blue is now default)
+      localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'alternative');
+      setColorThemeState('alternative');
     } else if (storedTheme && (storedTheme === 'default' || storedTheme === 'alternative')) {
       setColorThemeState(storedTheme as ColorTheme);
+    } else {
+      // No stored theme - check what inline script set, or default to 'alternative'
+      const currentTheme = document.documentElement.getAttribute('data-color-theme');
+      if (currentTheme === 'alternative') {
+        setColorThemeState('alternative');
+      } else {
+        setColorThemeState('alternative');
+      }
     }
     
     // Load color scheme - prioritize localStorage, fallback to system preference
@@ -64,9 +66,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     if (storedScheme && (storedScheme === 'light' || storedScheme === 'dark')) {
       setColorSchemeState(storedScheme);
     } else {
-      // No stored preference - use system preference
-      const systemScheme = detectSystemColorScheme();
-      setColorSchemeState(systemScheme);
+      // No stored preference - check what inline script set, or use system preference
+      const isDark = document.documentElement.classList.contains('dark');
+      setColorSchemeState(isDark ? 'dark' : detectSystemColorScheme());
     }
     
     // Listen for system preference changes
@@ -88,7 +90,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
     
     return () => {
-      clearTimeout(timer);
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener('change', handleSystemPreferenceChange);
       } else {
@@ -98,9 +99,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Only apply theme changes after mount to prevent hydration mismatch
-    if (!mounted) return;
-    
+    // Apply theme changes immediately and save to localStorage + cookies
     const root = document.documentElement;
     
     // Set color theme
@@ -109,7 +108,18 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       root.removeAttribute('data-color-theme');
     }
-    localStorage.setItem(COLOR_THEME_STORAGE_KEY, colorTheme);
+    // Save immediately to localStorage
+    try {
+      localStorage.setItem(COLOR_THEME_STORAGE_KEY, colorTheme);
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    // Mirror to cookie so the server (Next.js layout) can SSR the correct theme
+    try {
+      document.cookie = `${COLOR_THEME_STORAGE_KEY}=${colorTheme}; path=/; max-age=31536000; samesite=lax`;
+    } catch (e) {
+      // Ignore cookie errors
+    }
 
     // Set color scheme (light/dark)
     if (colorScheme === 'dark') {
@@ -119,9 +129,21 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       root.removeAttribute('data-color-scheme');
       root.classList.remove('dark');
     }
-    localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
-  }, [colorTheme, colorScheme, mounted]);
+    // Save immediately to localStorage
+    try {
+      localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    // Mirror to cookie so SSR can read it
+    try {
+      document.cookie = `${COLOR_SCHEME_STORAGE_KEY}=${colorScheme}; path=/; max-age=31536000; samesite=lax`;
+    } catch (e) {
+      // Ignore cookie errors
+    }
+  }, [colorTheme, colorScheme]);
 
+  // These setters immediately update state, which triggers useEffect to save to localStorage
   const setColorTheme = (newTheme: ColorTheme) => {
     setColorThemeState(newTheme);
   };

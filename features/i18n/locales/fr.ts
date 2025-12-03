@@ -21,14 +21,19 @@ export const frBundle: LocaleBundle = {
     progress_analyzing: "L'IA analyse les modèles de conversation...",
     progress_media: "L'IA analyse le contenu multimédia...",
     progress_chunking: 'Traitement des segments de conversation...',
+    progress_finalizing: "L'IA finalise le rapport...",
     progress_completed: "Analyse IA terminée !",
     progress_error: "L'analyse IA a échoué",
     progress_analyzing_hint: "L'IA analyse les modèles, les styles de communication et la dynamique relationnelle...",
     progress_media_hint: "Analyse des images, autocollants et contenus multimédias avec les modèles de vision IA...",
+    progress_finalizing_hint:
+      'Assemblage des sections, graphiques et réponses recommandées. Cette dernière étape peut prendre jusqu’à une minute — merci de patienter.',
     progress_chunk_label: 'Segment {current} sur {total}',
     progress_disclaimer: "Veuillez ne pas fermer cette fenêtre pendant l'analyse.",
     backToHome: "Retour à l'accueil",
     noAnalysisFound: "Aucune analyse trouvée. Veuillez d'abord télécharger une conversation.",
+    noAnalysisFound_help:
+      "Revenez à la page d'accueil, téléchargez l'export de votre conversation et attendez la fin de l'analyse pour voir le rapport.",
     analysisReport: "Rapport d'analyse IA",
     gaslightingRisk: 'Risque de manipulation',
     conflictIntensity: 'Intensité des conflits',
@@ -58,9 +63,12 @@ export const frBundle: LocaleBundle = {
     free_hint:
       "Analyse gratuite — uniquement texte (jusqu'à 50k messages), sans analyse des médias ni mode d'analyse approfondie.",
     premium_progress_hint:
-      "Analyse premium en cours : prompts plus profonds et prise en compte des médias (lorsque disponible).",
+      "Analyse premium en cours : prompts plus profonds, traitement des médias, génération de profils participants et réponses recommandées.",
     free_progress_hint:
-      "Analyse gratuite en cours : vue d'ensemble textuelle. Passez en premium pour les médias et des insights plus profonds.",
+      "Analyse gratuite en cours : vue d'ensemble textuelle. Passez en premium pour les médias, profils participants, réponses recommandées et graphiques d'activité.",
+    progress_premium_features_profiles: 'Génération de profils psychologiques des participants',
+    progress_premium_features_replies: 'Création d\'exemples de réponses saines',
+    progress_premium_features_activity: 'Construction du graphique d\'activité quotidienne',
     selectPlatform: 'Sélectionner la plateforme',
     platform_telegram: 'Telegram',
     platform_whatsapp: 'WhatsApp',
@@ -69,6 +77,7 @@ export const frBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
+    platform_generic: 'TXT libre / Autre',
     selectFile: 'Sélectionner le fichier',
     clickToSelectFile: 'Cliquez pour sélectionner un fichier',
     ready: 'Prêt',
@@ -94,6 +103,17 @@ export const frBundle: LocaleBundle = {
     exportScores: 'Scores',
     exportPatterns: 'Modèles',
     exportEvidence: 'Preuves',
+    analysisDefaultOverview: 'Analyse terminée. Consultez les sections pour des informations détaillées.',
+    analysisDefaultNoPatterns: 'Analyse terminée. Aucun modèle spécifique détecté dans cet extrait.',
+    analysisDefaultTitle: 'Analyse',
+    analysisParseError: 'Analyse terminée avec des résultats partiels en raison d\'une erreur d\'analyse.',
+    analysisEmptySummary: 'Analyse terminée. Aucun modèle spécifique détecté dans cette section.',
+    analysisGenericWarningTitle:
+      "Il semble que l’IA ait renvoyé uniquement un résumé générique sans exemples concrets.",
+    analysisGenericWarningBody:
+      'Veuillez relancer l’analyse. Si le problème persiste, essayez de diviser la conversation en extraits plus courts.',
+    showDetails: 'Afficher les détails',
+    hideDetails: 'Masquer les détails',
 
     // Aide à l'export de chats
     exportHelpTitle: "Comment exporter vos conversations",
@@ -112,6 +132,41 @@ export const frBundle: LocaleBundle = {
     step2_description: 'Notre IA analyse les modèles de communication, détecte les comportements de gaslighting et identifie la dynamique relationnelle en utilisant des méthodes scientifiques.',
     step3_title: 'Obtenez des insights',
     step3_description: "Recevez un rapport complet avec des scores, des preuves et des explications pour vous aider à comprendre ce qui s'est vraiment passé.",
+    howItWorks_subtitle: '3 étapes rapides, puis l\'IA fait le gros du travail pour vous.',
+
+    // Badges et carte de prévisualisation dans le héros
+    hero_badge_patterns: 'Analyse approfondie des schémas',
+    hero_badge_boundaries: 'Les limites d’abord',
+    hero_badge_multilang: 'Chats multilingues',
+    hero_preview_title: 'Scan de conversation par IA',
+    hero_preview_subtitle: 'Exemple fictif de ce que le détecteur met en avant.',
+    hero_preview_live: 'Prévisualisation en direct',
+    hero_preview_flag_title: 'Schéma de gaslighting détecté',
+    hero_preview_flag_subtitle:
+      'Distorsion de la réalité · Minimisation de l’expérience · Renversement de culpabilité',
+    hero_preview_score_label: 'Indice de sécurité émotionnelle',
+    hero_preview_score_low: 'Faible',
+    emotional_safety_medium: 'Moyen',
+    emotional_safety_high: 'Élevé',
+    hero_preview_typing: "L’IA lit encore…",
+
+    // Pastilles de confidentialité
+    privacy_chip_no_sharing: 'Rien n’est publié en ligne',
+    privacy_chip_local_session: 'Uniquement pour cette session',
+    privacy_chip_control: 'Vous gardez le contrôle',
+
+    // Messages d’exemple dans le chat de prévisualisation
+    // left = abuseur, right = victime
+    hero_preview_msg1_left: 'Tu dramatises encore, ce n’était pas si grave.',
+    hero_preview_msg1_right: 'Je m’en souviens complètement autrement. Tu déformes toujours tout.',
+    hero_preview_msg2_left: 'Si tu m’aimais vraiment, tu ne remettrais pas tout en question comme ça.',
+    hero_preview_msg2_right: 'Je veux juste qu’on parle honnêtement de ce qui s’est passé.',
+    hero_preview_msg3_left: 'Je n’ai jamais dit ça, tu inventes encore.',
+    hero_preview_msg3_right: 'J’ai les messages sauvegardés. Pourquoi tu nies toujours tout ?',
+    hero_preview_msg4_left: 'Peut‑être que le problème, c’est à quel point tu es sensible.',
+    hero_preview_msg4_right: 'Ce n’est pas une question de sensibilité, c’est ce que tu as dit.',
+    hero_preview_msg5_left: 'Tout le monde trouve que je suis raisonnable, il n’y a que toi qui te plains.',
+    hero_preview_msg5_right: 'Je n’essaie pas de créer un conflit, je veux juste comprendre.',
 
     // Court FAQ : pourquoi et pour qui
     faq_why:
@@ -155,6 +210,20 @@ export const frBundle: LocaleBundle = {
     testimonial_david_role: 'Essayant de s\'améliorer',
     testimonial_david_quote:
       'Je voulais comprendre pourquoi mes relations échouaient toujours. L\'analyse a montré mes schémas de communication — défensif, dédaigneux. Difficile à entendre, mais nécessaire.',
+    // Dashboard
+    dashboard_title: 'Tableau de bord d\'analyse',
+    heatmap_title: 'Carte de chaleur d\'activité',
+    heatmap_description:
+      'Intensité de la conversation par semaine. Le rouge met en évidence les périodes avec conflits ou événements significatifs.',
+    calendar_title: 'Calendrier de conversation',
+    calendar_description:
+      'Les dates importantes sont surlignées en rouge. Survolez les dates pour voir les détails.',
+    important_dates_label: 'Dates importantes',
+    important_date: 'Date importante',
+    important_dates_list_title: 'Dates importantes',
+    message_intensity_label: 'Intensité des messages',
+    more_dates: 'dates supplémentaires',
+
     testimonial_yuki_name: '« Yuki », 27 ans',
     testimonial_yuki_role: 'Relation à distance',
     testimonial_yuki_quote:
@@ -179,7 +248,7 @@ export const frBundle: LocaleBundle = {
       'Nous traitons vos chats téléchargés de manière éphémère dans le but de générer un rapport d\'analyse. Les données téléchargées et les rapports générés ne sont pas stockés plus longtemps que nécessaire pour fournir le Service et ne sont pas utilisés pour former des modèles tiers. Pour plus de détails, veuillez consulter notre Politique de confidentialité (lorsqu\'elle sera disponible).',
     terms_section4_title: '4. Paiements et abonnements',
     terms_section4_content:
-      'Certaines fonctionnalités peuvent être proposées sur une base payante (par exemple, analyse premium ou analyse des médias). Les paiements sont traités par notre fournisseur de paiement, Paddle, agissant en tant que marchand. Les prix, les intervalles de facturation et les règles de remboursement sont indiqués à la caisse et peuvent être mis à jour de temps à autre.',
+      'Certaines fonctionnalités peuvent être proposées sur une base payante (par exemple, analyse premium ou analyse des médias). Les paiements sont traités via notre système de traitement des paiements. Les prix, les intervalles de facturation et les règles de remboursement sont indiqués à la caisse et peuvent être mis à jour de temps à autre.',
     terms_section5_title: '5. Aucune garantie',
     terms_section5_content:
       'L\'analyse est générée par de grands modèles de langage et peut être incomplète, inexacte ou refléter des biais inhérents à ces modèles. Nous ne garantissons pas l\'exactitude, l\'exhaustivité ou l\'adéquation de toute analyse pour votre situation particulière.',
@@ -194,6 +263,11 @@ export const frBundle: LocaleBundle = {
       'Nous pouvons mettre à jour ces Conditions de temps à autre. La date de "dernière mise à jour" en haut de cette page indiquera quand les modifications entrent en vigueur. Votre utilisation continue du Service après toute modification signifie que vous acceptez les Conditions mises à jour.',
     terms_section9_title: '9. Contact',
     terms_section9_content:
-      'Si vous avez des questions concernant ces Conditions ou le Service, veuillez nous contacter en utilisant les coordonnées fournies sur le site principal ou dans l\'application.'
+      'Si vous avez des questions concernant ces Conditions ou le Service, veuillez nous contacter en utilisant les coordonnées fournies sur le site principal ou dans l\'application.',
+    install_app: 'Installer l\'application',
+    install_app_instructions: 'Pour installer cette application :',
+    install_app_chrome: 'Chrome/Edge : Cliquez sur l\'icône d\'installation dans la barre d\'adresse, ou allez dans Menu → Installer l\'application',
+    install_app_safari: 'Safari (iOS) : Appuyez sur Partager → Ajouter à l\'écran d\'accueil',
+    install_app_firefox: 'Firefox : Pas encore pris en charge'
   }
 };

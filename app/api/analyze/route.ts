@@ -14,7 +14,7 @@ import { logError } from '../../../lib/telemetry';
 async function updateAnalysisProgress(
   conversationId: string,
   updates: {
-    status?: 'starting' | 'parsing' | 'analyzing' | 'media' | 'chunking' | 'completed' | 'error';
+    status?: 'starting' | 'parsing' | 'analyzing' | 'media' | 'chunking' | 'finalizing' | 'completed' | 'error';
     progress?: number;
     currentChunk?: number;
     totalChunks?: number;
@@ -184,12 +184,31 @@ export async function POST(request: Request) {
       locale || 'en' // Pass locale for prompt translation
     );
 
+    // Aggregate simple daily activity for lightweight timeline/heatmap visuals
+    const activityMap = new Map<string, { date: string; messageCount: number }>();
+    for (const message of messages) {
+      const dateKey = new Date(message.sentAt).toISOString().split('T')[0];
+      const existing = activityMap.get(dateKey);
+      if (existing) {
+        existing.messageCount += 1;
+      } else {
+        activityMap.set(dateKey, {
+          date: dateKey,
+          messageCount: 1
+        });
+      }
+    }
+    const activityByDay = Array.from(activityMap.values()).sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
+
     // Mark conversation as completed
     updatedConversation.status = 'completed';
 
     return NextResponse.json({
       conversation: updatedConversation,
-      analysis: analysisResult
+      analysis: analysisResult,
+      activityByDay
     });
   } catch (error) {
     const errorMessage = (error as Error).message || 'Analysis failed';

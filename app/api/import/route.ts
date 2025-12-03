@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const supportedPlatforms: SupportedPlatform[] = ['telegram', 'whatsapp', 'signal', 'viber', 'discord', 'imessage', 'messenger'];
+    const supportedPlatforms: SupportedPlatform[] = ['telegram', 'whatsapp', 'signal', 'viber', 'discord', 'imessage', 'messenger', 'generic'];
     if (!supportedPlatforms.includes(platform as SupportedPlatform)) {
       return NextResponse.json(
         { error: `Unsupported platform. Supported: ${supportedPlatforms.join(', ')}` },

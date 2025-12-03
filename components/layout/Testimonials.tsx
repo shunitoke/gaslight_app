@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Quote } from 'lucide-react';
 
-import { CardBase as Card, CardContent } from '../ui/card';
+import { CardBase as Card } from '../ui/card';
 import { useLanguage } from '../../features/i18n';
 
 type Testimonial = {
@@ -83,7 +83,7 @@ export const TestimonialsSection: React.FC = () => {
         if (!firstCard) return;
         
         const cardWidth = firstCard.offsetWidth;
-        const gap = 16; // gap-4 = 16px
+        const gap = window.innerWidth < 640 ? 0 : 16; // gap-0 on mobile, gap-4 on desktop
         const scrollAmount = cardWidth + gap;
         const currentIndex = Math.round(scrollLeft / scrollAmount);
         const nextScrollPosition = (currentIndex + 1) * scrollAmount;
@@ -124,44 +124,43 @@ export const TestimonialsSection: React.FC = () => {
   }, [isPaused]);
 
   return (
-    <section className="w-full max-w-5xl mx-auto px-4">
+    <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
       <div className="flex items-center justify-center gap-2 mb-4">
-        <Quote className="h-4 w-4 text-primary" />
+        <Quote className="h-4 w-4 text-primary animate-pulse-glow" />
         <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">
           {t('testimonials_label')}
         </p>
       </div>
-      <h2 className="text-center text-lg sm:text-xl font-semibold text-foreground mb-6">
+      <h2 className="text-center text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-5">
         {t('testimonials_title')}
       </h2>
       <div
         ref={scrollContainerRef}
-        className="relative overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 scrollbar-hide snap-x snap-mandatory md:overflow-hidden"
+        className="relative overflow-x-auto pb-4 -mx-4 sm:-mx-6 md:mx-0 scrollbar-hide snap-x snap-mandatory md:overflow-hidden"
         style={{ 
           scrollBehavior: 'smooth', 
-          WebkitOverflowScrolling: 'touch',
-          scrollPaddingLeft: '1rem',
-          scrollPaddingRight: '1rem'
+          WebkitOverflowScrolling: 'touch'
         }}
       >
-        <div className="flex gap-4 min-w-max md:min-w-0 md:max-w-[calc(3*310px+2*1rem)] md:mx-auto pr-4 md:pr-0">
+        <div className="flex gap-0 sm:gap-4 min-w-max md:min-w-0 md:max-w-[calc(3*310px+2*1rem)] md:mx-auto pl-4 pr-4 sm:pl-6 sm:pr-6 md:pl-0 md:pr-0">
           {TESTIMONIALS.map((item) => (
             <Card
               key={item.id}
               data-testimonial-card
-              className="h-[280px] sm:h-[270px] md:h-[290px] border-border/50 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-lg shadow-lg w-[calc(100vw-2rem)] max-w-[320px] sm:w-[320px] md:w-[310px] flex-shrink-0 snap-start md:min-w-[310px] md:max-w-[310px]"
+              className="h-[280px] sm:h-[270px] md:h-[290px] border-border/50 backdrop-blur-lg shadow-lg w-[calc(100vw-2rem)] sm:w-[320px] md:w-[310px] flex-shrink-0 snap-center md:snap-start md:min-w-[310px] md:max-w-[310px]"
+              style={{ backgroundColor: 'hsl(var(--card) / 0.75)', willChange: 'background-color, opacity', backfaceVisibility: 'hidden' }}
             >
-              <CardContent className="p-5 sm:p-5 flex flex-col gap-3 h-full">
-                <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] font-medium">
+              <div className="p-5 sm:p-5 flex flex-col gap-2.5 sm:gap-3 h-full">
+                <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] font-medium flex-shrink-0">
                   {t(item.roleKey)}
                 </p>
-                <p className="text-sm text-foreground leading-relaxed italic flex-1 overflow-y-auto scrollbar-hide">
+                <p className="text-sm text-foreground leading-relaxed sm:leading-relaxed italic flex-1 overflow-y-auto scrollbar-hide min-h-0">
                   "{t(item.quoteKey)}"
                 </p>
-                <p className="text-sm font-semibold text-foreground mt-auto">
+                <p className="text-sm font-semibold text-foreground mt-auto flex-shrink-0 pt-1">
                   {t(item.nameKey)}
                 </p>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
@@ -169,8 +168,3 @@ export const TestimonialsSection: React.FC = () => {
     </section>
   );
 };
-
-
-
-
-

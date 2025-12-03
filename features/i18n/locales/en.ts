@@ -22,14 +22,19 @@ export const enBundle: LocaleBundle = {
     progress_analyzing: 'AI analyzing conversation patterns...',
     progress_media: 'AI analyzing media content...',
     progress_chunking: 'Processing conversation chunks...',
+    progress_finalizing: 'AI wrapping up the final report...',
     progress_completed: 'AI analysis complete!',
     progress_error: 'AI analysis failed',
     progress_analyzing_hint: 'AI is analyzing patterns, communication styles, and relationship dynamics...',
     progress_media_hint: 'Analyzing images, stickers, and media content with AI vision models...',
+    progress_finalizing_hint:
+      'Combining all sections, dashboards, and recommended replies. This last step can take up to a minute — thanks for waiting.',
     progress_chunk_label: 'Chunk {current} of {total}',
     progress_disclaimer: 'Please do not close this window while analysis is in progress.',
     backToHome: 'Back to Home',
     noAnalysisFound: 'No analysis found. Please upload a conversation first.',
+    noAnalysisFound_help:
+      'Go back to the home page, upload a chat export, and wait for the analysis to finish to see your report.',
     analysisReport: 'AI Analysis Report',
     gaslightingRisk: 'Gaslighting Risk',
     conflictIntensity: 'Conflict Intensity',
@@ -58,9 +63,12 @@ export const enBundle: LocaleBundle = {
     free_hint:
       'Free tier analysis — text-only (up to 50k messages), without media analysis or enhanced deep-dive mode.',
     premium_progress_hint:
-      'Running premium analysis: using deeper prompts and media (where available).',
+      'Running premium analysis: using deeper prompts, media processing, generating participant profiles and recommended replies.',
     free_progress_hint:
-      'Running free analysis: text-only overview. Upgrade to premium for media and deeper insights.',
+      'Running free analysis: text-only overview. Upgrade to premium for media, participant profiles, recommended replies, and activity charts.',
+    progress_premium_features_profiles: 'Generating participant psychological profiles',
+    progress_premium_features_replies: 'Creating example healthy replies',
+    progress_premium_features_activity: 'Building daily activity chart',
     selectPlatform: 'Select Platform',
     platform_telegram: 'Telegram',
     platform_whatsapp: 'WhatsApp',
@@ -69,6 +77,7 @@ export const enBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
+    platform_generic: 'Plain TXT / Other',
     selectFile: 'Select File',
     clickToSelectFile: 'Click to select file',
     ready: 'Ready',
@@ -91,6 +100,16 @@ export const enBundle: LocaleBundle = {
     exportScores: 'Scores',
     exportPatterns: 'Patterns',
     exportEvidence: 'Evidence',
+    analysisDefaultOverview: 'Analysis completed. Review sections for detailed insights.',
+    analysisDefaultNoPatterns: 'Analysis completed. No specific patterns detected in this excerpt.',
+    analysisDefaultTitle: 'Analysis',
+    analysisParseError: 'Analysis completed with partial results due to parsing error.',
+    analysisEmptySummary: 'Analysis completed. No specific patterns detected in this section.',
+    analysisGenericWarningTitle: 'It looks like the AI only returned a generic summary without concrete examples.',
+    analysisGenericWarningBody:
+      'Please try running the analysis again. If this keeps happening, try splitting your conversation into shorter chunks.',
+    showDetails: 'Show details',
+    hideDetails: 'Hide details',
 
     // Export help (how to export chats)
     exportHelpTitle: 'How to export your chats',
@@ -109,6 +128,43 @@ export const enBundle: LocaleBundle = {
     step2_description: 'Our AI analyzes communication patterns, detects gaslighting behaviors, and identifies relationship dynamics using scientific methods.',
     step3_title: 'Get Insights',
     step3_description: 'Receive a comprehensive report with scores, evidence, and explanations to help you understand what really happened.',
+    howItWorks_subtitle: '3 quick steps, then the AI does the heavy lifting for you.',
+
+    // Hero badges & preview card
+    hero_badge_patterns: 'Deep pattern analysis',
+    hero_badge_boundaries: 'Boundaries first',
+    hero_badge_multilang: 'Multi-language chats',
+    hero_preview_title: 'AI conversation scan',
+    hero_preview_subtitle: 'A fictional example of what the detector highlights.',
+    hero_preview_live: 'Live preview',
+    hero_preview_flag_title: 'Gaslighting pattern detected',
+    hero_preview_flag_subtitle:
+      'Reality distortion · Minimizing experience · Blame shifting',
+    hero_preview_score_label: 'Emotional safety score',
+    hero_preview_score_low: 'Low',
+    emotional_safety_medium: 'Medium',
+    emotional_safety_high: 'High',
+    relationship_health_title: 'Relationship Health Overview',
+    relationship_health_summary: 'Overall relationship dynamics',
+    hero_preview_typing: 'AI is still reading…',
+
+    // Privacy chips
+    privacy_chip_no_sharing: 'No public sharing',
+    privacy_chip_local_session: 'Local session only',
+    privacy_chip_control: 'You stay in control',
+
+    // Hero preview sample messages
+    // left = abuser, right = victim
+    hero_preview_msg1_left: 'You’re overreacting, it wasn’t that bad.',
+    hero_preview_msg1_right: 'I remember it completely differently. You always twist things.',
+    hero_preview_msg2_left: 'If you really loved me, you wouldn’t question this so much.',
+    hero_preview_msg2_right: 'I just want us to talk about what happened honestly.',
+    hero_preview_msg3_left: 'I never said that, you’re making it up again.',
+    hero_preview_msg3_right: 'I have the messages saved. Why do you always deny it?',
+    hero_preview_msg4_left: 'Maybe the problem is how sensitive you are.',
+    hero_preview_msg4_right: 'This isn’t about being sensitive, it’s about what you said.',
+    hero_preview_msg5_left: 'Everyone else thinks I’m reasonable, only you complain.',
+    hero_preview_msg5_right: 'I’m not trying to start a fight, I just want to understand.',
 
     // Short FAQ / purpose & disclaimers
     faq_why:
@@ -128,6 +184,52 @@ export const enBundle: LocaleBundle = {
       'This report is generated by AI based only on the messages you uploaded. It can miss context and should be treated as one perspective, not the final truth.',
     report_disclaimer_safety:
       'If your situation involves violence, self-harm or feels unsafe, please do not rely on this app alone — reach out to trusted people or professional support.',
+
+    // Daily activity chart
+    activity_chart_title: 'Daily conversation activity',
+    activity_chart_description:
+      'Shows on which days more messages were exchanged. Spikes may coincide with periods of tension.',
+    activity_chart_messages_label: 'Messages',
+    activity_chart_color_hint:
+      'Green ≈ calmer periods, red ≈ days linked to intense conflict or manipulation.',
+
+    // Recommended replies
+    recommended_replies_toggle_show: 'Show example healthy replies',
+    recommended_replies_toggle_hide: 'Hide example replies',
+    recommended_replies_gaslighting_1:
+      "When you say I'm exaggerating or 'making things up', I feel dismissed. It's important for me that my feelings are acknowledged, even if you see the situation differently.",
+    recommended_replies_gaslighting_2:
+      "It's hard for me when my words or memories are completely denied. Can we try to talk about what each of us remembers without labels like 'you're crazy / you invented this'?",
+    recommended_replies_gaslighting_3:
+      "If you disagree, it would help me to hear something like 'I remember it differently, let's figure it out' instead of 'you always twist everything'.",
+    recommended_replies_conflict_1:
+      'Right now this is turning into a win/lose argument, and I feel exhausted. Can we pause and come back when we can talk more calmly?',
+    recommended_replies_conflict_2:
+      "I don't want to win this fight, I want to understand what's happening between us. Can we try to speak one at a time and not interrupt?",
+    recommended_replies_conflict_3:
+      'When voices get raised, I stop hearing the meaning. Can we try to discuss this more calmly or move the conversation to another time?',
+    recommended_replies_support_1:
+      'When you support me in difficult moments, I feel safer with you. I want to be able to do the same for you.',
+    recommended_replies_support_2:
+      "It matters to me to know how I can be there for you when you're struggling. Can you tell me what helps you most?",
+    recommended_replies_support_3:
+      'I see that this was hard for you, and I appreciate that you still stayed in contact. That feels like care to me.',
+
+    // Dashboard
+    dashboard_title: 'Analysis Dashboard',
+    heatmap_title: 'Activity Heatmap',
+    heatmap_description:
+      'Conversation intensity by week. Red highlights periods with conflicts or significant events.',
+    heatmap_color_hint:
+      'Green ≈ lower message intensity, red ≈ weeks with severe conflicts or gaslighting.',
+    calendar_title: 'Conversation Calendar',
+    calendar_description:
+      'Important dates are highlighted in red. Hover over dates to view details.',
+    important_dates_label: 'Important Dates',
+    important_date: 'Important Date',
+    important_dates_list_title: 'Important Dates',
+    message_intensity_label: 'Message Intensity',
+    more_dates: 'more dates',
 
     // Testimonials
     testimonials_label: 'REAL STORIES, CHANGED PERSPECTIVES',
@@ -176,7 +278,7 @@ export const enBundle: LocaleBundle = {
       'We process your uploaded chats ephemerally for the purpose of generating an analysis report. Uploaded data and generated reports are not stored longer than necessary to provide the Service, and are not used for training third-party models. For more details, please refer to our Privacy Policy (when available).',
     terms_section4_title: '4. Payments & Subscriptions',
     terms_section4_content:
-      'Certain features may be offered on a paid basis (for example, premium analysis or media analysis). Payments are processed by our payment provider, Paddle, acting as merchant of record. Prices, billing intervals, and refund rules are shown at checkout and may be updated from time to time.',
+      'Certain features may be offered on a paid basis (for example, premium analysis or media analysis). Payments are processed through our payment processing system. Prices, billing intervals, and refund rules are shown at checkout and may be updated from time to time.',
     terms_section5_title: '5. No Guarantees',
     terms_section5_content:
       'The analysis is generated by large language models and may be incomplete, inaccurate, or reflect biases inherent in those models. We do not guarantee the accuracy, completeness, or suitability of any analysis for your particular situation.',
@@ -191,7 +293,12 @@ export const enBundle: LocaleBundle = {
       'We may update these Terms from time to time. The "last updated" date at the top of this page will indicate when changes become effective. Your continued use of the Service after any changes means you accept the updated Terms.',
     terms_section9_title: '9. Contact',
     terms_section9_content:
-      'If you have questions about these Terms or the Service, please contact us using the details provided on the main site or within the app.'
+      'If you have questions about these Terms or the Service, please contact us using the details provided on the main site or within the app.',
+    install_app: 'Install App',
+    install_app_instructions: 'To install this app:',
+    install_app_chrome: 'Chrome/Edge: Click the install icon in the address bar, or go to Menu → Install app',
+    install_app_safari: 'Safari (iOS): Tap Share → Add to Home Screen',
+    install_app_firefox: 'Firefox: Not supported yet'
   }
 };
 

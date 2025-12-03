@@ -7,7 +7,8 @@ export type SupportedPlatform =
   | 'viber' 
   | 'discord' 
   | 'imessage' 
-  | 'messenger';
+  | 'messenger'
+  | 'generic';
 
 export type ImportPayload = {
   platform: SupportedPlatform;

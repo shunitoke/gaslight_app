@@ -18,7 +18,6 @@ const localeToCode: Record<string, string> = {
 export const LanguageSwitcher = () => {
   const { locale, setLocale, t } = useLanguage();
   const [mounted, setMounted] = React.useState(false);
-  const [isOpen, setIsOpen] = React.useState(false);
   const selectRef = React.useRef<HTMLSelectElement>(null);
 
   // Prevent hydration mismatch by only showing correct locale after mount
@@ -26,12 +25,16 @@ export const LanguageSwitcher = () => {
     setMounted(true);
   }, []);
 
-  // During SSR and before mount, use default locale to match server render
-  const displayLocale = mounted ? locale : defaultLocale;
-  const displayT = mounted ? t : ((key: string) => {
-    // Fallback to English bundle during SSR
-    return enBundle.messages[key] ?? key;
-  });
+  // Hide switcher until we've mounted and synced language from storage
+  // so it doesn't first render as "English" and then jump to the saved
+  // language on every page load.
+  if (!mounted) {
+    return null;
+  }
+
+  // After mount we can safely rely on context value.
+  const displayLocale = locale;
+  const displayT = t;
 
   const handleMobileClick = () => {
     if (selectRef.current) {
@@ -77,7 +80,7 @@ export const LanguageSwitcher = () => {
         <select
           value={displayLocale}
           onChange={(event) => setLocale(event.target.value as typeof locale)}
-          className="rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer min-w-[100px]"
+          className="rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring hover:border-primary/50 cursor-pointer min-w-[100px]"
         >
           {supportedLocales.map((code) => (
             <option key={code} value={code}>

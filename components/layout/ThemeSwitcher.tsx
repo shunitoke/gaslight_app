@@ -7,39 +7,42 @@ import { useTheme } from '../../features/theme';
 export const ThemeSwitcher = () => {
   const { colorTheme, setColorTheme, colorScheme, setColorScheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
-  
-  // Prevent hydration mismatch by only showing correct state after mount
+
+  // Render nothing until mounted so we don't "jump" from default
+  // values to the values restored from storage. This removes the
+  // annoying first-frame flicker of the toggles on every page load.
   React.useEffect(() => {
     setMounted(true);
   }, []);
-  
+
+  if (!mounted) {
+    return null;
+  }
+
   const isAlternative = colorTheme === 'alternative';
   const isDark = colorScheme === 'dark';
-  
-  // During SSR and before mount, default to light mode to match server render
-  const displayIsDark = mounted ? isDark : false;
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-3">
       {/* Light/Dark Mode Toggle */}
       <button
         type="button"
-        onClick={() => setColorScheme(displayIsDark ? 'light' : 'dark')}
+        onClick={() => setColorScheme(isDark ? 'light' : 'dark')}
         className="relative flex h-6 w-10 sm:h-7 sm:w-12 items-center rounded-full border border-primary/30 bg-gradient-to-r transition-all duration-300 ease-in-out hover:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2"
-        aria-label={`Switch to ${displayIsDark ? 'light' : 'dark'} mode`}
+        aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       >
         <div
           className={`absolute inset-0 rounded-full transition-all duration-300 ${
-            displayIsDark ? 'bg-gradient-to-r from-primary/60 to-accent/60' : 'bg-gradient-to-r from-accent/20 to-primary/20'
+            isDark ? 'bg-gradient-to-r from-primary/60 to-accent/60' : 'bg-gradient-to-r from-accent/20 to-primary/20'
           }`}
         />
         <span
           className={`relative z-10 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-white shadow-md transition-all duration-300 ${
-            displayIsDark ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0.5 sm:translate-x-1'
+            isDark ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0.5 sm:translate-x-1'
           }`}
         >
           <span className="absolute inset-0 flex items-center justify-center text-[10px]">
-            {displayIsDark ? '🌙' : '☀️'}
+            {isDark ? '🌙' : '☀️'}
           </span>
         </span>
       </button>

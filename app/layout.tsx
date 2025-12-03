@@ -1,18 +1,33 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import React from 'react';
+import { cookies, headers } from 'next/headers';
 
 import { Footer } from '../components/layout/Footer';
 import { Header } from '../components/layout/Header';
 import { BackgroundAnimation } from '../components/layout/BackgroundAnimation';
 import { PWAInstallPrompt } from '../components/PWAInstallPrompt';
 import { PWAInstaller } from '../components/PWAInstaller';
-import { LanguageProvider, LOCALE_STORAGE_KEY } from '../features/i18n';
+import { LanguageProvider, LOCALE_STORAGE_KEY, supportedLocales } from '../features/i18n';
+import type { SupportedLocale } from '../features/i18n/types';
 import { ThemeProvider } from '../features/theme';
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'] });
+const inter = Inter({ 
+  subsets: ['latin', 'cyrillic'],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+});
+const playfair = Playfair_Display({ 
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: true,
+  fallback: ['Georgia', 'serif'],
+});
 
 export const metadata: Metadata = {
   title: 'Texts with My Ex - AI Gaslight Detection',
@@ -57,9 +72,74 @@ type RootLayoutProps = {
   children: React.ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps) {
+// Helper to detect browser language from Accept-Language header
+function detectBrowserLanguageFromHeader(acceptLanguage: string | null): SupportedLocale {
+  if (!acceptLanguage) return 'en';
+  
+  const languages = acceptLanguage
+    .split(',')
+    .map(lang => {
+      const [code, q = '1'] = lang.trim().split(';q=');
+      return { code: code.split('-')[0].toLowerCase(), quality: parseFloat(q) };
+    })
+    .sort((a, b) => b.quality - a.quality);
+
+  const languageMap: Record<string, SupportedLocale> = {
+    en: 'en',
+    ru: 'ru',
+    fr: 'fr',
+    de: 'de',
+    es: 'es',
+    pt: 'pt'
+  };
+
+  // List of supported locales (inline to avoid import issues on server)
+  const supported: SupportedLocale[] = ['en', 'ru', 'fr', 'de', 'es', 'pt'];
+
+  for (const lang of languages) {
+    if (languageMap[lang.code] && supported.includes(languageMap[lang.code])) {
+      return languageMap[lang.code];
+    }
+  }
+
+  return 'en';
+}
+
+export default async function RootLayout({ children }: RootLayoutProps) {
+  // Read persisted preferences from cookies so each page is SSR'd
+  // with the user's last chosen theme and language (no flash).
+  const cookieStore = await cookies();
+  const headersList = await headers();
+  const schemeCookie = cookieStore.get('gaslight-color-scheme')?.value;
+  const themeCookie = cookieStore.get('gaslight-color-theme')?.value;
+  const localeCookie = cookieStore.get(LOCALE_STORAGE_KEY)?.value;
+
+  const initialScheme = schemeCookie === 'dark' ? 'dark' : 'light';
+  const initialTheme =
+    themeCookie === 'default' || themeCookie === 'alternative'
+      ? themeCookie
+      : 'alternative';
+  
+  // Determine initial locale:
+  // 1. Use cookie if exists (user has chosen before)
+  // 2. Otherwise detect from Accept-Language header (browser language)
+  // 3. Fallback to 'en'
+  let initialLocale: SupportedLocale;
+  if (localeCookie && localeCookie.length > 0 && supportedLocales.includes(localeCookie as SupportedLocale)) {
+    initialLocale = localeCookie as SupportedLocale;
+  } else {
+    const acceptLanguage = headersList.get('accept-language');
+    initialLocale = detectBrowserLanguageFromHeader(acceptLanguage);
+  }
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang={initialLocale}
+      suppressHydrationWarning
+      data-color-theme={initialTheme === 'alternative' ? 'alternative' : undefined}
+      data-color-scheme={initialScheme === 'dark' ? 'dark' : undefined}
+      className={initialScheme === 'dark' ? 'dark' : undefined}
+    >
       <head>
         {/* PWA meta tags */}
         <meta name="application-name" content="Texts with My Ex" />
@@ -69,66 +149,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
-        
-        {/* Apply theme synchronously before React hydration to prevent white flash */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  // Load color scheme from localStorage (new key, then legacy key)
-                  const storedScheme = localStorage.getItem('gaslight-color-scheme') ||
-                    localStorage.getItem('gaslite-color-scheme');
-                  if (storedScheme === 'dark') {
-                    document.documentElement.setAttribute('data-color-scheme', 'dark');
-                    document.documentElement.classList.add('dark');
-                  } else if (storedScheme === 'light') {
-                    document.documentElement.removeAttribute('data-color-scheme');
-                    document.documentElement.classList.remove('dark');
-                  } else {
-                    // No stored preference - use system preference
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                      document.documentElement.setAttribute('data-color-scheme', 'dark');
-                      document.documentElement.classList.add('dark');
-                    }
-                  }
-                  
-                  // Load color theme from localStorage (new key, then legacy key)
-                  const storedTheme = localStorage.getItem('gaslight-color-theme') ||
-                    localStorage.getItem('gaslite-color-theme');
-                  if (storedTheme === 'alternative') {
-                    document.documentElement.setAttribute('data-color-theme', 'alternative');
-                  } else {
-                    document.documentElement.removeAttribute('data-color-theme');
-                  }
-                  
-                  // Load language from localStorage and set html lang attribute
-                  const storedLocale = localStorage.getItem('${LOCALE_STORAGE_KEY}') ||
-                    localStorage.getItem('gaslite-locale');
-                  if (storedLocale && ['en', 'ru', 'fr', 'de', 'es', 'pt'].includes(storedLocale)) {
-                    document.documentElement.setAttribute('lang', storedLocale);
-                  } else {
-                    // Use system language
-                    const systemLang = navigator.language || 'en';
-                    const langCode = systemLang.split('-')[0].toLowerCase();
-                    const supportedLangs = ['en', 'ru', 'fr', 'de', 'es', 'pt'];
-                    if (supportedLangs.includes(langCode)) {
-                      document.documentElement.setAttribute('lang', langCode);
-                    }
-                  }
-                } catch (e) {
-                  // Ignore localStorage errors
-                }
-              })();
-            `,
-          }}
-        />
+        {/* Resource hints for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://openrouter.ai" />
       </head>
-      <body className={`${inter.className} bg-background text-foreground`} suppressHydrationWarning>
+      <body className={`${inter.className} ${playfair.variable} bg-background text-foreground`} suppressHydrationWarning>
         <BackgroundAnimation />
         <PWAInstaller />
         <ThemeProvider>
-          <LanguageProvider>
+          <LanguageProvider initialLocale={initialLocale as SupportedLocale}>
             <div className="flex min-h-screen flex-col">
               <Header />
               <main className="flex-1" id="main-content" tabIndex={-1}>

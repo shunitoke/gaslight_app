@@ -6,20 +6,84 @@
  */
 
 import { NextResponse } from 'next/server';
-
-// In-memory store for analysis progress (ephemeral, per-session)
-const progressStore = new Map<string, {
-  conversationId: string;
-  status: 'starting' | 'parsing' | 'analyzing' | 'media' | 'chunking' | 'completed' | 'error';
-  progress: number; // 0-100
-  currentChunk?: number;
-  totalChunks?: number;
-  message?: string;
-  error?: string;
-}>();
+import { logInfo, logWarn } from '../../../../lib/telemetry';
+import {
+  isKvAvailable,
+  getProgressFromKv,
+  setProgressInKv
+} from '../../../../lib/kv';
+import { progressStore } from '../../../../lib/progress';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
+
+/**
+ * Get progress from store (for internal use)
+ * Uses KV if available, otherwise falls back to in-memory store
+ */
+export async function getProgressStore(conversationId: string) {
+  if (isKvAvailable()) {
+    const progress = await getProgressFromKv(conversationId);
+    if (progress) {
+      return progress;
+    }
+  }
+  return progressStore.get(conversationId);
+}
+
+/**
+ * Direct function to update progress store (for internal use)
+ * Uses KV if available, otherwise falls back to in-memory store
+ */
+export async function updateProgressStore(
+  conversationId: string,
+  updates: {
+    status?: 'starting' | 'parsing' | 'analyzing' | 'media' | 'chunking' | 'finalizing' | 'completed' | 'error';
+    progress?: number;
+    currentChunk?: number;
+    totalChunks?: number;
+    message?: string;
+    error?: string;
+    result?: {
+      conversation: any;
+      analysis: any;
+      activityByDay: Array<{ date: string; messageCount: number }>;
+    };
+  }
+): Promise<void> {
+  const existing = isKvAvailable()
+    ? await getProgressFromKv(conversationId)
+    : progressStore.get(conversationId);
+    
+  const newProgress = {
+    conversationId,
+    status: updates.status || existing?.status || 'analyzing',
+    progress: updates.progress !== undefined ? Math.max(0, Math.min(100, updates.progress)) : (existing?.progress || 0),
+    currentChunk: updates.currentChunk !== undefined ? updates.currentChunk : existing?.currentChunk,
+    totalChunks: updates.totalChunks !== undefined ? updates.totalChunks : existing?.totalChunks,
+    message: updates.message !== undefined ? updates.message : existing?.message,
+    error: updates.error !== undefined ? updates.error : existing?.error,
+    result: updates.result || existing?.result
+  };
+  
+  // Try KV first, fallback to in-memory
+  if (isKvAvailable()) {
+    await setProgressInKv(conversationId, newProgress);
+  } else {
+    progressStore.set(conversationId, newProgress);
+  }
+  
+  // Log for debugging
+  if (updates.result) {
+    logInfo('updateProgressStore_called', {
+      conversationId,
+      hasResult: !!newProgress.result,
+      hasAnalysis: !!newProgress.result?.analysis,
+      sectionsCount: newProgress.result?.analysis?.sections?.length || 0,
+      usingKv: isKvAvailable()
+    });
+  }
+}
 
 /**
  * GET endpoint for progress polling (simpler than SSE)
@@ -32,7 +96,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'conversationId required' }, { status: 400 });
   }
 
-  const progress = progressStore.get(conversationId);
+  const progress = await getProgressStore(conversationId);
   
   if (!progress) {
     return NextResponse.json({
@@ -42,7 +106,31 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.json(progress);
+  // Always log progress state for debugging
+  const resultSize = progress.result ? JSON.stringify(progress.result).length : 0;
+  logInfo('progress_get', {
+    conversationId,
+    status: progress.status,
+    progress: progress.progress,
+    hasResult: !!progress.result,
+    hasAnalysis: !!progress.result?.analysis,
+    sectionsCount: progress.result?.analysis?.sections?.length || 0,
+    resultKeys: progress.result ? Object.keys(progress.result) : [],
+    resultSizeBytes: resultSize
+  });
+
+  // Return progress with result included
+  const response = NextResponse.json(progress);
+  // Ensure result is included in response
+  if (progress.result) {
+    logInfo('progress_get_returning_result', {
+      conversationId,
+      resultSizeBytes: resultSize,
+      hasAnalysis: !!progress.result.analysis,
+      sectionsCount: progress.result.analysis?.sections?.length || 0
+    });
+  }
+  return response;
 }
 
 /**
@@ -51,20 +139,34 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { conversationId, status, progress, currentChunk, totalChunks, message, error } = body;
+    const { conversationId, status, progress, currentChunk, totalChunks, message, error, result } = body;
 
     if (!conversationId) {
       return NextResponse.json({ error: 'conversationId required' }, { status: 400 });
     }
 
-    progressStore.set(conversationId, {
-      conversationId,
+    const existing = await getProgressStore(conversationId);
+    const finalResult = result || existing?.result;
+    
+    if (result) {
+      logInfo('progress_post_with_result', {
+        conversationId,
+        status,
+        hasAnalysis: !!result.analysis,
+        sectionsCount: result.analysis?.sections?.length || 0,
+        usingKv: isKvAvailable()
+      });
+    }
+    
+    await updateProgressStore(conversationId, {
       status: status || 'analyzing',
       progress: Math.max(0, Math.min(100, progress || 0)),
       currentChunk,
       totalChunks,
       message,
-      error
+      error,
+      // Preserve existing result or set new one
+      result: finalResult
     });
 
     return NextResponse.json({ success: true });

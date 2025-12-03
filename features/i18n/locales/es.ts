@@ -21,14 +21,19 @@ export const esBundle: LocaleBundle = {
     progress_analyzing: 'IA analizando patrones de conversación...',
     progress_media: 'IA analizando contenido multimedia...',
     progress_chunking: 'Procesando segmentos de conversación...',
+    progress_finalizing: 'La IA está cerrando el informe final...',
     progress_completed: '¡Análisis IA completado!',
     progress_error: 'Análisis IA fallido',
     progress_analyzing_hint: 'La IA está analizando patrones, estilos de comunicación y dinámicas relacionales...',
     progress_media_hint: 'Analizando imágenes, stickers y contenido multimedia con modelos de visión IA...',
+    progress_finalizing_hint:
+      'Estamos uniendo secciones, gráficos y respuestas recomendadas. Este último paso puede tardar hasta un minuto — gracias por esperar.',
     progress_chunk_label: 'Segmento {current} de {total}',
     progress_disclaimer: 'Por favor, no cierre esta ventana mientras el análisis está en progreso.',
     backToHome: 'Volver al inicio',
     noAnalysisFound: 'No se encontró análisis. Por favor, sube una conversación primero.',
+    noAnalysisFound_help:
+      'Vuelve a la página de inicio, sube una exportación del chat y espera a que termine el análisis para ver tu informe.',
     analysisReport: 'Informe de análisis IA',
     gaslightingRisk: 'Riesgo de manipulación',
     conflictIntensity: 'Intensidad del conflicto',
@@ -58,9 +63,12 @@ export const esBundle: LocaleBundle = {
     free_hint:
       'Análisis gratuito — solo texto (hasta 50k mensajes), sin análisis de medios ni modo de análisis profundo.',
     premium_progress_hint:
-      'Ejecutando análisis premium: prompts más profundos y uso de medios (cuando están disponibles).',
+      'Ejecutando análisis premium: prompts más profundos, procesamiento de medios, generación de perfiles de participantes y respuestas recomendadas.',
     free_progress_hint:
-      'Ejecutando análisis gratuito: visión general solo de texto. Pasa a premium para medios e insights más profundos.',
+      'Ejecutando análisis gratuito: visión general solo de texto. Pasa a premium para medios, perfiles de participantes, respuestas recomendadas y gráficos de actividad.',
+    progress_premium_features_profiles: 'Generación de perfiles psicológicos de participantes',
+    progress_premium_features_replies: 'Creación de ejemplos de respuestas saludables',
+    progress_premium_features_activity: 'Construcción del gráfico de actividad diaria',
     selectPlatform: 'Seleccionar plataforma',
     platform_telegram: 'Telegram',
     platform_whatsapp: 'WhatsApp',
@@ -69,6 +77,7 @@ export const esBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
+    platform_generic: 'TXT plano / Otro',
     selectFile: 'Seleccionar archivo',
     clickToSelectFile: 'Haz clic para seleccionar archivo',
     ready: 'Listo',
@@ -94,6 +103,17 @@ export const esBundle: LocaleBundle = {
     exportScores: 'Puntuaciones',
     exportPatterns: 'Patrones',
     exportEvidence: 'Evidencia',
+    analysisDefaultOverview: 'Análisis completado. Revise las secciones para obtener información detallada.',
+    analysisDefaultNoPatterns: 'Análisis completado. No se detectaron patrones específicos en este extracto.',
+    analysisDefaultTitle: 'Análisis',
+    analysisParseError: 'Análisis completado con resultados parciales debido a un error de análisis.',
+    analysisEmptySummary: 'Análisis completado. No se detectaron patrones específicos en esta sección.',
+    analysisGenericWarningTitle:
+      'Parece que la IA solo devolvió un resumen genérico sin ejemplos concretos.',
+    analysisGenericWarningBody:
+      'Vuelve a ejecutar el análisis. Si el problema continúa, intenta dividir la conversación en fragmentos más cortos.',
+    showDetails: 'Mostrar detalles',
+    hideDetails: 'Ocultar detalles',
 
     // Ayuda para exportar chats
     exportHelpTitle: 'Cómo exportar tus chats',
@@ -112,6 +132,41 @@ export const esBundle: LocaleBundle = {
     step2_description: 'Nuestra IA analiza patrones de comunicación, detecta comportamientos de gaslighting e identifica dinámicas relacionales usando métodos científicos.',
     step3_title: 'Obtén insights',
     step3_description: 'Recibe un informe completo con puntuaciones, evidencia y explicaciones para ayudarte a entender lo que realmente sucedió.',
+    howItWorks_subtitle: '3 pasos rápidos, luego la IA hace el trabajo pesado por ti.',
+
+    // Insignias y tarjeta de vista previa en el héroe
+    hero_badge_patterns: 'Análisis profundo de patrones',
+    hero_badge_boundaries: 'Límites primero',
+    hero_badge_multilang: 'Chats en varios idiomas',
+    hero_preview_title: 'Escaneo de conversación con IA',
+    hero_preview_subtitle: 'Ejemplo ficticio de lo que resalta el detector.',
+    hero_preview_live: 'Vista previa en vivo',
+    hero_preview_flag_title: 'Patrón de gaslighting detectado',
+    hero_preview_flag_subtitle:
+      'Distorsión de la realidad · Minimizar la experiencia · Cambio de culpa',
+    hero_preview_score_label: 'Índice de seguridad emocional',
+    hero_preview_score_low: 'Bajo',
+    emotional_safety_medium: 'Medio',
+    emotional_safety_high: 'Alto',
+    hero_preview_typing: 'La IA sigue leyendo…',
+
+    // Chips de privacidad
+    privacy_chip_no_sharing: 'Nada se publica en ningún lado',
+    privacy_chip_local_session: 'Solo en esta sesión',
+    privacy_chip_control: 'Tú sigues teniendo el control',
+
+    // Mensajes de ejemplo en el chat de vista previa
+    // left = abusador, right = víctima
+    hero_preview_msg1_left: 'Estás exagerando otra vez, no fue para tanto.',
+    hero_preview_msg1_right: 'Yo lo recuerdo totalmente distinto. Siempre tergiversas todo.',
+    hero_preview_msg2_left: 'Si de verdad me amaras, no dudarías tanto de esto.',
+    hero_preview_msg2_right: 'Solo quiero que hablemos honestamente sobre lo que pasó.',
+    hero_preview_msg3_left: 'Nunca dije eso, te lo estás inventando otra vez.',
+    hero_preview_msg3_right: 'Tengo los mensajes guardados. ¿Por qué siempre lo niegas?',
+    hero_preview_msg4_left: 'A lo mejor el problema es lo sensible que eres.',
+    hero_preview_msg4_right: 'No se trata de ser sensible, se trata de lo que dijiste.',
+    hero_preview_msg5_left: 'Todo el mundo piensa que soy razonable, solo tú te quejas.',
+    hero_preview_msg5_right: 'No estoy tratando de empezar una pelea, solo quiero entender.',
 
     // FAQ corto: por qué y para quién
     faq_why:
@@ -119,7 +174,7 @@ export const esBundle: LocaleBundle = {
     faq_forWhom:
       'Está pensada para personas que se sienten confundidas tras una relación, sospechan manipulación o gaslighting, o simplemente quieren una mirada externa neutral sobre su forma de comunicarse.',
     faq_notSides:
-      'El análisis no toma partido ni dice quién tiene “razón” o “culpa” — describe patrones y da ejemplos de ambos lados.',
+      'El análisis no toma partido ni dice quién tiene "razón" o "culpa" — describe patrones y da ejemplos de ambos lados.',
     faq_notTherapy:
       'Esto no es terapia, ni diagnóstico ni asesoría legal. Es una perspectiva basada en IA sobre tus mensajes.',
     faq_goal:
@@ -155,6 +210,20 @@ export const esBundle: LocaleBundle = {
     testimonial_david_role: 'Intentando mejorar',
     testimonial_david_quote:
       'Quería entender por qué mis relaciones seguían fallando. El análisis mostró mis patrones de comunicación — defensivo, desdeñoso. Difícil de escuchar, pero necesario.',
+    // Dashboard
+    dashboard_title: 'Panel de análisis',
+    heatmap_title: 'Mapa de calor de actividad',
+    heatmap_description:
+      'Intensidad de conversación por semana. El rojo resalta períodos con conflictos o eventos significativos.',
+    calendar_title: 'Calendario de conversación',
+    calendar_description:
+      'Las fechas importantes están resaltadas en rojo. Pase el mouse sobre las fechas para ver detalles.',
+    important_dates_label: 'Fechas importantes',
+    important_date: 'Fecha importante',
+    important_dates_list_title: 'Fechas importantes',
+    message_intensity_label: 'Intensidad de mensajes',
+    more_dates: 'fechas adicionales',
+
     testimonial_yuki_name: '«Yuki», 27',
     testimonial_yuki_role: 'Relación a distancia',
     testimonial_yuki_quote:
@@ -179,7 +248,7 @@ export const esBundle: LocaleBundle = {
       'Procesamos tus chats subidos de manera efímera con el propósito de generar un informe de análisis. Los datos subidos y los informes generados no se almacenan más tiempo del necesario para proporcionar el Servicio y no se usan para entrenar modelos de terceros. Para más detalles, consulta nuestra Política de Privacidad (cuando esté disponible).',
     terms_section4_title: '4. Pagos y suscripciones',
     terms_section4_content:
-      'Ciertas funciones pueden ofrecerse de forma de pago (por ejemplo, análisis premium o análisis de medios). Los pagos son procesados por nuestro proveedor de pagos, Paddle, actuando como comerciante. Los precios, intervalos de facturación y reglas de reembolso se muestran en el checkout y pueden actualizarse de vez en cuando.',
+      'Ciertas funciones pueden ofrecerse de forma de pago (por ejemplo, análisis premium o análisis de medios). Los pagos son procesados a través de nuestro sistema de procesamiento de pagos. Los precios, intervalos de facturación y reglas de reembolso se muestran en el checkout y pueden actualizarse de vez en cuando.',
     terms_section5_title: '5. Sin garantías',
     terms_section5_content:
       'El análisis es generado por grandes modelos de lenguaje y puede ser incompleto, inexacto o reflejar sesgos inherentes en esos modelos. No garantizamos la exactitud, integridad o idoneidad de ningún análisis para tu situación particular.',
@@ -194,6 +263,11 @@ export const esBundle: LocaleBundle = {
       'Podemos actualizar estos Términos de vez en cuando. La fecha de "última actualización" en la parte superior de esta página indicará cuándo los cambios se vuelven efectivos. Tu uso continuado del Servicio después de cualquier cambio significa que aceptas los Términos actualizados.',
     terms_section9_title: '9. Contacto',
     terms_section9_content:
-      'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos usando los detalles proporcionados en el sitio principal o dentro de la aplicación.'
+      'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos usando los detalles proporcionados en el sitio principal o dentro de la aplicación.',
+    install_app: 'Instalar aplicación',
+    install_app_instructions: 'Para instalar esta aplicación:',
+    install_app_chrome: 'Chrome/Edge: Haz clic en el icono de instalación en la barra de direcciones, o ve a Menú → Instalar aplicación',
+    install_app_safari: 'Safari (iOS): Toca Compartir → Añadir a la pantalla de inicio',
+    install_app_firefox: 'Firefox: Aún no compatible'
   }
 };

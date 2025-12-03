@@ -12,7 +12,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-background py-12 px-6">
       <div className="max-w-3xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold text-foreground">{t('terms_title')}</h1>
-        <Card className="p-6 space-y-4 text-sm text-foreground shadow-xl border-border/30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg">
+        <Card className="p-6 space-y-4 text-sm text-foreground shadow-xl border-border/30 backdrop-blur-lg" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, opacity', backfaceVisibility: 'hidden' }}>
           <p>{t('terms_intro')}</p>
 
           <h2 className="text-xl font-semibold mt-4">{t('terms_section1_title')}</h2>

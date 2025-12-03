@@ -12,7 +12,15 @@ import { Input } from './Input';
 import { Label } from './label';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 
-type SupportedPlatform = 'telegram' | 'whatsapp' | 'signal' | 'viber' | 'discord' | 'imessage' | 'messenger';
+type SupportedPlatform =
+  | 'telegram'
+  | 'whatsapp'
+  | 'signal'
+  | 'viber'
+  | 'discord'
+  | 'imessage'
+  | 'messenger'
+  | 'generic';
 
 type FileUploadProps = {
   onFileSelect: (file: File, platform: SupportedPlatform) => void;
@@ -44,8 +52,8 @@ export function FileUpload({ onFileSelect, disabled, accept }: FileUploadProps) 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
+    <div className="space-y-6 h-full flex flex-col">
+      <div className="space-y-3 flex-1">
         <Label className="text-sm font-medium text-foreground">{t('selectPlatform')}</Label>
         <RadioGroup
           value={platform}
@@ -95,6 +103,12 @@ export function FileUpload({ onFileSelect, disabled, accept }: FileUploadProps) 
               {t('platform_viber')}
             </Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="generic" id="generic" />
+            <Label htmlFor="generic" className="cursor-pointer font-normal text-foreground text-sm">
+              {t('platform_generic')}
+            </Label>
+          </div>
         </RadioGroup>
       </div>
 
@@ -130,9 +144,9 @@ export function FileUpload({ onFileSelect, disabled, accept }: FileUploadProps) 
           />
           
           {selectedFile && (
-            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
+                <FileText className="h-4 w-4 text-primary animate-pulse-glow" />
                 <div>
                   <p className="text-sm font-medium text-foreground">{selectedFile.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -151,7 +165,7 @@ export function FileUpload({ onFileSelect, disabled, accept }: FileUploadProps) 
       <Button 
         onClick={handleUpload} 
         disabled={disabled || !selectedFile}
-        className="w-full text-base font-semibold"
+        className="w-full text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
         size="lg"
         aria-label="Upload selected file"
       >

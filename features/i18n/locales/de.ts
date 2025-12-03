@@ -21,14 +21,19 @@ export const deBundle: LocaleBundle = {
     progress_analyzing: 'KI analysiert Konversationsmuster...',
     progress_media: 'KI analysiert Medieninhalte...',
     progress_chunking: 'Konversationsabschnitte werden verarbeitet...',
+    progress_finalizing: 'KI fasst den Abschlussbericht zusammen...',
     progress_completed: 'KI-Analyse abgeschlossen!',
     progress_error: 'KI-Analyse fehlgeschlagen',
     progress_analyzing_hint: 'KI analysiert Muster, Kommunikationsstile und Beziehungsdynamiken...',
     progress_media_hint: 'Analyse von Bildern, Stickern und Medieninhalten mit KI-Visionsmodellen...',
+    progress_finalizing_hint:
+      'Wir führen alle Abschnitte, Diagramme und Antwortempfehlungen zusammen. Dieser letzte Schritt kann bis zu einer Minute dauern – bitte etwas Geduld.',
     progress_chunk_label: 'Abschnitt {current} von {total}',
     progress_disclaimer: 'Bitte schließen Sie dieses Fenster während der Analyse nicht.',
     backToHome: 'Zurück zur Startseite',
     noAnalysisFound: 'Keine Analyse gefunden. Bitte laden Sie zuerst eine Konversation hoch.',
+    noAnalysisFound_help:
+      'Gehen Sie zurück zur Startseite, laden Sie einen Chat-Export hoch und warten Sie, bis die Analyse abgeschlossen ist, um den Bericht zu sehen.',
     analysisReport: 'KI-Analysebericht',
     gaslightingRisk: 'Manipulationsrisiko',
     conflictIntensity: 'Konfliktintensität',
@@ -58,9 +63,12 @@ export const deBundle: LocaleBundle = {
     free_hint:
       'Kostenlose Analyse — nur Text (bis 50k Nachrichten), ohne Medienanalyse oder erweiterten Deep-Dive-Modus.',
     premium_progress_hint:
-      'Premium-Analyse läuft: tiefere Prompts und Berücksichtigung von Medien (wo verfügbar).',
+      'Premium-Analyse läuft: tiefere Prompts, Medienverarbeitung, Generierung von Teilnehmerprofilen und empfohlenen Antworten.',
     free_progress_hint:
-      'Kostenlose Analyse läuft: reine Textübersicht. Für Medien und tiefere Insights auf Premium upgraden.',
+      'Kostenlose Analyse läuft: reine Textübersicht. Für Medien, Teilnehmerprofile, empfohlene Antworten und Aktivitätsdiagramme auf Premium upgraden.',
+    progress_premium_features_profiles: 'Generierung psychologischer Teilnehmerprofile',
+    progress_premium_features_replies: 'Erstellung von Beispielen gesunder Antworten',
+    progress_premium_features_activity: 'Aufbau des täglichen Aktivitätsdiagramms',
     selectPlatform: 'Plattform auswählen',
     platform_telegram: 'Telegram',
     platform_whatsapp: 'WhatsApp',
@@ -69,6 +77,7 @@ export const deBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
+    platform_generic: 'TXT / andere Quelle',
     selectFile: 'Datei auswählen',
     clickToSelectFile: 'Klicken Sie, um eine Datei auszuwählen',
     ready: 'Bereit',
@@ -94,6 +103,17 @@ export const deBundle: LocaleBundle = {
     exportScores: 'Punktzahlen',
     exportPatterns: 'Muster',
     exportEvidence: 'Beweise',
+    analysisDefaultOverview: 'Analyse abgeschlossen. Überprüfen Sie die Abschnitte für detaillierte Einblicke.',
+    analysisDefaultNoPatterns: 'Analyse abgeschlossen. Keine spezifischen Muster in diesem Auszug erkannt.',
+    analysisDefaultTitle: 'Analyse',
+    analysisParseError: 'Analyse mit teilweisen Ergebnissen abgeschlossen aufgrund eines Parsing-Fehlers.',
+    analysisEmptySummary: 'Analyse abgeschlossen. Keine spezifischen Muster in diesem Abschnitt erkannt.',
+    analysisGenericWarningTitle:
+      'Es sieht so aus, als hätte die KI nur eine allgemeine Zusammenfassung ohne konkrete Beispiele zurückgegeben.',
+    analysisGenericWarningBody:
+      'Bitte führen Sie die Analyse erneut aus. Wenn das weiterhin passiert, teilen Sie die Unterhaltung in kürzere Abschnitte auf.',
+    showDetails: 'Details anzeigen',
+    hideDetails: 'Details ausblenden',
 
     // Hilfe zum Export von Chats
     exportHelpTitle: 'So exportieren Sie Ihre Chats',
@@ -112,6 +132,41 @@ export const deBundle: LocaleBundle = {
     step2_description: 'Unsere KI analysiert Kommunikationsmuster, erkennt Gaslighting-Verhalten und identifiziert Beziehungsdynamiken mit wissenschaftlichen Methoden.',
     step3_title: 'Einblicke erhalten',
     step3_description: 'Erhalten Sie einen umfassenden Bericht mit Bewertungen, Beweisen und Erklärungen, um zu verstehen, was wirklich passiert ist.',
+    howItWorks_subtitle: '3 schnelle Schritte, dann übernimmt die KI die schwere Arbeit für Sie.',
+
+    // Badges und Vorschaukarte im Hero
+    hero_badge_patterns: 'Tiefe Musteranalyse',
+    hero_badge_boundaries: 'Grenzen im Fokus',
+    hero_badge_multilang: 'Mehrsprachige Chats',
+    hero_preview_title: 'KI‑Scan der Konversation',
+    hero_preview_subtitle: 'Fiktives Beispiel dafür, was der Detektor hervorhebt.',
+    hero_preview_live: 'Live‑Vorschau',
+    hero_preview_flag_title: 'Gaslighting‑Muster erkannt',
+    hero_preview_flag_subtitle:
+      'Realitätsverzerrung · Abwertung der Erfahrung · Schuldverschiebung',
+    hero_preview_score_label: 'Index emotionaler Sicherheit',
+    hero_preview_score_low: 'Niedrig',
+    emotional_safety_medium: 'Mittel',
+    emotional_safety_high: 'Hoch',
+    hero_preview_typing: 'KI liest noch…',
+
+    // Datenschutz-Chips
+    privacy_chip_no_sharing: 'Keine Veröffentlichung nach außen',
+    privacy_chip_local_session: 'Nur in dieser Sitzung',
+    privacy_chip_control: 'Sie behalten die Kontrolle',
+
+    // Beispielnachrichten im Vorschaublock
+    // left = Täter, right = Opfer
+    hero_preview_msg1_left: 'Du übertreibst schon wieder, so schlimm war es nicht.',
+    hero_preview_msg1_right: 'Ich erinnere mich ganz anders daran. Du verdrehst immer alles.',
+    hero_preview_msg2_left: 'Wenn du mich wirklich lieben würdest, würdest du das nicht so infrage stellen.',
+    hero_preview_msg2_right: 'Ich möchte nur, dass wir ehrlich über das sprechen, was passiert ist.',
+    hero_preview_msg3_left: 'Das habe ich nie gesagt, das bildest du dir wieder ein.',
+    hero_preview_msg3_right: 'Ich habe die Nachrichten gespeichert. Warum leugnest du das immer?',
+    hero_preview_msg4_left: 'Vielleicht liegt das Problem daran, wie empfindlich du bist.',
+    hero_preview_msg4_right: 'Es geht nicht um Empfindlichkeit, sondern darum, was du gesagt hast.',
+    hero_preview_msg5_left: 'Alle anderen finden mich völlig vernünftig – nur du beschwerst dich.',
+    hero_preview_msg5_right: 'Ich versuche nicht, einen Streit anzufangen, ich will nur verstehen.',
 
     // Kurzes FAQ: warum und für wen
     faq_why:
@@ -155,6 +210,20 @@ export const deBundle: LocaleBundle = {
     testimonial_david_role: 'Versucht sich zu verbessern',
     testimonial_david_quote:
       'Ich wollte verstehen, warum meine Beziehungen immer scheiterten. Die Analyse zeigte meine Kommunikationsmuster – defensiv, abweisend. Schwer zu hören, aber notwendig.',
+    // Dashboard
+    dashboard_title: 'Analyse-Dashboard',
+    heatmap_title: 'Aktivitäts-Heatmap',
+    heatmap_description:
+      'Konversationsintensität pro Woche. Rot hebt Perioden mit Konflikten oder bedeutsamen Ereignissen hervor.',
+    calendar_title: 'Konversationskalender',
+    calendar_description:
+      'Wichtige Daten sind rot hervorgehoben. Bewegen Sie die Maus über Daten, um Details anzuzeigen.',
+    important_dates_label: 'Wichtige Daten',
+    important_date: 'Wichtiges Datum',
+    important_dates_list_title: 'Wichtige Daten',
+    message_intensity_label: 'Nachrichtenintensität',
+    more_dates: 'weitere Daten',
+
     testimonial_yuki_name: '„Yuki", 27',
     testimonial_yuki_role: 'Fernbeziehung',
     testimonial_yuki_quote:
@@ -179,7 +248,7 @@ export const deBundle: LocaleBundle = {
       'Wir verarbeiten Ihre hochgeladenen Chats vorübergehend zum Zweck der Generierung eines Analyseberichts. Hochgeladene Daten und generierte Berichte werden nicht länger gespeichert, als es zur Bereitstellung des Service erforderlich ist, und werden nicht zum Training von Drittmodellen verwendet. Weitere Details finden Sie in unserer Datenschutzerklärung (wenn verfügbar).',
     terms_section4_title: '4. Zahlungen und Abonnements',
     terms_section4_content:
-      'Bestimmte Funktionen können gegen Gebühr angeboten werden (z. B. Premium-Analyse oder Medienanalyse). Zahlungen werden von unserem Zahlungsanbieter Paddle verarbeitet, der als Händler fungiert. Preise, Abrechnungsintervalle und Rückerstattungsregeln werden an der Kasse angezeigt und können von Zeit zu Zeit aktualisiert werden.',
+      'Bestimmte Funktionen können gegen Gebühr angeboten werden (z. B. Premium-Analyse oder Medienanalyse). Zahlungen werden über unser Zahlungssystem verarbeitet. Preise, Abrechnungsintervalle und Rückerstattungsregeln werden an der Kasse angezeigt und können von Zeit zu Zeit aktualisiert werden.',
     terms_section5_title: '5. Keine Garantien',
     terms_section5_content:
       'Die Analyse wird von großen Sprachmodellen generiert und kann unvollständig, ungenau sein oder Vorurteile widerspiegeln, die diesen Modellen innewohnen. Wir garantieren nicht die Genauigkeit, Vollständigkeit oder Eignung einer Analyse für Ihre spezielle Situation.',
@@ -194,6 +263,11 @@ export const deBundle: LocaleBundle = {
       'Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Das Datum der "letzten Aktualisierung" oben auf dieser Seite zeigt an, wann Änderungen wirksam werden. Ihre fortgesetzte Nutzung des Service nach Änderungen bedeutet, dass Sie die aktualisierten Bedingungen akzeptieren.',
     terms_section9_title: '9. Kontakt',
     terms_section9_content:
-      'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte über die auf der Hauptseite oder in der App angegebenen Kontaktdaten.'
+      'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte über die auf der Hauptseite oder in der App angegebenen Kontaktdaten.',
+    install_app: 'App installieren',
+    install_app_instructions: 'So installieren Sie diese App:',
+    install_app_chrome: 'Chrome/Edge: Klicken Sie auf das Installationssymbol in der Adressleiste oder gehen Sie zu Menü → App installieren',
+    install_app_safari: 'Safari (iOS): Tippen Sie auf Teilen → Zum Home-Bildschirm hinzufügen',
+    install_app_firefox: 'Firefox: Noch nicht unterstützt'
   }
 };

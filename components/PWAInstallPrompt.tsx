@@ -3,9 +3,11 @@
 import { Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useLanguage } from '../features/i18n';
 import { Button } from './ui/Button';
 
 export function PWAInstallPrompt() {
+  const { t } = useLanguage();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
 
@@ -33,10 +35,10 @@ export function PWAInstallPrompt() {
     if (!deferredPrompt) {
       // Fallback: show instructions
       alert(
-        'To install this app:\n\n' +
-        'Chrome/Edge: Click the install icon in the address bar, or go to Menu → Install app\n\n' +
-        'Safari (iOS): Tap Share → Add to Home Screen\n\n' +
-        'Firefox: Not supported yet'
+        `${t('install_app_instructions')}\n\n` +
+        `${t('install_app_chrome')}\n\n` +
+        `${t('install_app_safari')}\n\n` +
+        `${t('install_app_firefox')}`
       );
       return;
     }
@@ -69,7 +71,7 @@ export function PWAInstallPrompt() {
         size="lg"
       >
         <Download className="h-4 w-4" />
-        Install App
+        {t('install_app')}
       </Button>
     </div>
   );

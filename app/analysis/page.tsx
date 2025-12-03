@@ -1,27 +1,358 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/card';
-import type { AnalysisResult, AnalysisSection, Participant } from '../../features/analysis/types';
+import { Card, CardBase } from '../../components/ui/card';
+import { ChartContainer } from '../../components/ui/chart';
+import type {
+  AnalysisResult,
+  AnalysisSection,
+  Conversation,
+  Participant,
+  ImportantDate
+} from '../../features/analysis/types';
 import { useLanguage } from '../../features/i18n';
-
-export const dynamic = 'force-dynamic'; // Disable static generation
+import { AnalysisRadarChart } from '../../components/analysis/AnalysisRadarChart';
+import { AnalysisDashboard } from '../../components/analysis/AnalysisDashboard';
+import type { SupportedLocale } from '../../features/i18n/types';
 
 type AnalysisPageProps = {
   analysisId?: string;
 };
 
+// In-memory cache for analysis data
+const analysisCache = new Map<string, {
+  analysis: AnalysisResult;
+  participants: Participant[];
+  isPremium: boolean;
+  timestamp: number;
+}>();
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+type DailyActivity = {
+  date: string;
+  messageCount: number;
+};
+
+type TranslationFn = (key: string) => string;
+
+type SectionCardProps = {
+  section: AnalysisSection;
+  t: TranslationFn;
+  locale: SupportedLocale;
+  conversationLanguage: SupportedLocale | 'unknown';
+  isPremiumAnalysis: boolean;
+  index: number;
+  shouldShowReplies: boolean;
+  getSectionTitle: (sectionId: string, fallbackTitle: string) => string;
+  replaceParticipantIds: (text: string) => string;
+  formatParticipantName: (
+    text: string
+  ) => { name: string; remainingText: string } | null;
+};
+
+function SectionCard({
+  section,
+  t,
+  locale,
+  conversationLanguage,
+  isPremiumAnalysis,
+  index,
+  shouldShowReplies,
+  getSectionTitle,
+  replaceParticipantIds,
+  formatParticipantName
+}: SectionCardProps) {
+  const [isRepliesOpen, setIsRepliesOpen] = React.useState(false);
+  const [generatedReplies, setGeneratedReplies] = React.useState<string[] | null>(null);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [visibleReplyCount, setVisibleReplyCount] = React.useState(0);
+
+  const sectionTitle = getSectionTitle(section.id, section.title);
+  const formattedSummary =
+    section.summary && section.summary.trim()
+      ? section.summary
+      : t('analysisEmptySummary');
+
+  const baseRecommended = Array.isArray(section.recommendedReplies)
+    ? section.recommendedReplies.map((r) => r.text).filter((txt) => txt.trim().length > 0)
+    : [];
+
+  const recommended = generatedReplies ?? baseRecommended;
+
+  React.useEffect(() => {
+    if (!isRepliesOpen || !recommended || recommended.length === 0) {
+      setVisibleReplyCount(0);
+      return;
+    }
+
+    setVisibleReplyCount(1);
+    if (recommended.length === 1) return;
+
+    let i = 1;
+    const interval = window.setInterval(() => {
+      i += 1;
+      setVisibleReplyCount((prev) => {
+        if (prev >= recommended.length) {
+          window.clearInterval(interval);
+          return prev;
+        }
+        return Math.min(i, recommended.length);
+      });
+      if (i >= recommended.length) {
+        window.clearInterval(interval);
+      }
+    }, 350);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [isRepliesOpen, recommended]);
+
+  return (
+    <Card
+      id={`section-${section.id}-${index}`}
+      className="p-3 sm:p-4"
+      style={{
+        willChange: 'transform, opacity',
+        backfaceVisibility: 'hidden',
+        transform: 'translate3d(0, 0, 0)'
+      }}
+    >
+      <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-1.5">
+        {sectionTitle}
+      </h2>
+      {section.score !== undefined && (
+        <div className="text-xs sm:text-sm text-muted-foreground mb-2">
+          {t('score')}: {(section.score * 100).toFixed(0)}%
+        </div>
+      )}
+      <div className="space-y-2 mb-3">
+        <div>
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-0.5">
+            {t('scientificAnalysis')}:
+          </p>
+          <p className="text-sm text-foreground">{formattedSummary}</p>
+        </div>
+        {section.plainSummary && (
+          <div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-0.5">
+              {t('plainLanguage')}:
+            </p>
+            <p className="text-sm text-foreground italic">
+              {section.plainSummary}
+            </p>
+          </div>
+        )}
+      </div>
+      {section.evidenceSnippets.length > 0 && (
+        <div className="space-y-2 mb-3">
+          <h3 className="text-sm font-medium text-foreground">
+            {t('evidence')}
+          </h3>
+          {section.evidenceSnippets.map((evidence, idx) => {
+            const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
+            const formattedExplanation = replaceParticipantIds(
+              evidence.explanation
+            );
+            const participantInfo = formatParticipantName(formattedExcerpt);
+
+            return (
+              <div
+                id={`evidence-${section.id}-${idx}`}
+                key={idx}
+                className="border-l-4 border-primary/50 pl-3 py-1.5"
+              >
+                {participantInfo ? (
+                  <div className="mb-1">
+                    <span className="font-semibold italic text-primary text-sm sm:text-base mr-2">
+                      {participantInfo.name}:
+                    </span>
+                    <span className="italic text-sm text-foreground/90">
+                      &ldquo;{participantInfo.remainingText}&rdquo;
+                    </span>
+                  </div>
+                ) : (
+                  <p className="italic text-sm text-foreground/90 mb-0.5">
+                    &ldquo;{formattedExcerpt}&rdquo;
+                  </p>
+                )}
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {formattedExplanation}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isPremiumAnalysis &&
+        shouldShowReplies &&
+        isRepliesOpen &&
+        conversationLanguage === locale && (
+        <div className="mt-2 border-t border-border/60 pt-2">
+          <button
+            type="button"
+            onClick={async () => {
+              // If уже есть рекомендованные ответы (из анализа или уже сгенерированные),
+              // просто переключаем видимость
+              if (recommended && recommended.length > 0) {
+                setIsRepliesOpen((prev) => !prev);
+                return;
+              }
+
+              if (isGenerating) return;
+              setIsGenerating(true);
+              try {
+                const res = await fetch('/api/replies', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    locale,
+                    conversationLanguage: locale,
+                    section: {
+                      id: section.id,
+                      title: sectionTitle,
+                      summary: formattedSummary,
+                      plainSummary: section.plainSummary,
+                      score: section.score,
+                      evidenceSnippets: section.evidenceSnippets.map((e) => ({
+                        excerpt: e.excerpt,
+                        explanation: e.explanation
+                      }))
+                    }
+                  })
+                });
+
+                if (!res.ok) {
+                  throw new Error('Failed to generate replies');
+                }
+                const data = await res.json() as { replies?: { text: string }[] };
+                const texts =
+                  Array.isArray(data.replies) && data.replies.length > 0
+                    ? data.replies
+                        .map((r) => r.text)
+                        .filter((txt) => txt && txt.trim().length > 0)
+                    : [];
+
+                if (texts.length > 0) {
+                  setGeneratedReplies(texts);
+                  setIsRepliesOpen(true);
+                }
+              } catch {
+                // swallow for now; in future we can surface a toast
+              } finally {
+                setIsGenerating(false);
+              }
+            }}
+            className="inline-flex items-center gap-1 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-60"
+            disabled={isGenerating}
+          >
+            {recommended && recommended.length > 0
+              ? isRepliesOpen
+                ? t('recommended_replies_toggle_hide')
+                : t('recommended_replies_toggle_show')
+              : isGenerating
+                ? (locale === 'ru' ? 'ИИ придумывает…' : 'AI is thinking…')
+                : (locale === 'ru'
+                    ? 'Сгенерировать «а если бы мы говорили осознанно»'
+                    : 'Generate "what if we were both conscious"')}
+            {recommended && recommended.length > 0 ? (
+              isRepliesOpen ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )
+            ) : null}
+          </button>
+          {isRepliesOpen && recommended && recommended.length > 0 && (
+            <ul className="mt-2 space-y-1.5">
+              {recommended.slice(0, visibleReplyCount).map((text, idx) => (
+                <li
+                  key={idx}
+                  className="text-xs sm:text-sm text-foreground/90 bg-muted/40 rounded-md px-2 py-1.5"
+                >
+                  {text}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function AnalysisPage() {
   const { t, locale } = useLanguage();
+  const router = useRouter();
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [activityByDay, setActivityByDay] = useState<DailyActivity[]>([]);
+  const [conversationLanguage, setConversationLanguage] =
+    useState<SupportedLocale | 'unknown'>('unknown');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [isPremiumAnalysis, setIsPremiumAnalysis] = useState<boolean>(false);
+  const dataLoadedRef = useRef(false);
+
+  // Calculate Emotional Safety Index based on all scores
+  const emotionalSafetyIndex = useMemo(() => {
+    if (!analysis) return 0;
+    
+    // Formula: combine negative factors (gaslighting, conflict) and positive factors (support, apology)
+    // Higher gaslighting/conflict = lower safety
+    // Higher support/apology = higher safety
+    const negativeImpact = (analysis.gaslightingRiskScore * 0.4) + (analysis.conflictIntensityScore * 0.3);
+    const positiveImpact = (analysis.supportivenessScore * 0.2) + (analysis.apologyFrequencyScore * 0.1);
+    
+    // Safety index: 1 - negative impact + positive impact, clamped to 0-1
+    return Math.max(0, Math.min(1, 1 - negativeImpact + positiveImpact));
+  }, [analysis]);
+
+  // Determine safety level
+  const safetyLevel = useMemo(() => {
+    if (emotionalSafetyIndex < 0.4) return 'low';
+    if (emotionalSafetyIndex < 0.7) return 'medium';
+    return 'high';
+  }, [emotionalSafetyIndex]);
+
+  const activityChartData = useMemo(() => {
+    if (!activityByDay || activityByDay.length === 0) return [];
+    return activityByDay.map((day) => ({
+      dateLabel: new Date(day.date).toLocaleDateString(
+        locale === 'ru' ? 'ru-RU' : 'en-US',
+        { month: 'short', day: 'numeric' }
+      ),
+      messageCount: day.messageCount
+    }));
+  }, [activityByDay, locale]);
+
+  // Get localized safety level text
+  const getSafetyLevelText = (level: 'low' | 'medium' | 'high'): string => {
+    if (level === 'low') return t('hero_preview_score_low');
+    if (level === 'medium') {
+      const key = 'emotional_safety_medium' as keyof typeof t;
+      return t(key) !== key ? t(key) : 'Medium';
+    }
+    const key = 'emotional_safety_high' as keyof typeof t;
+    return t(key) !== key ? t(key) : 'High';
+  };
+
+  // Get color for safety level
+  const getSafetyColor = (level: 'low' | 'medium' | 'high') => {
+    if (level === 'low') return 'text-red-600 dark:text-red-400';
+    if (level === 'medium') return 'text-amber-600 dark:text-amber-400';
+    return 'text-emerald-600 dark:text-emerald-400';
+  };
 
   // Get localized section title
   const getSectionTitle = (sectionId: string, fallbackTitle: string): string => {
@@ -35,79 +366,165 @@ export default function AnalysisPage() {
     return fallbackTitle;
   };
 
-  // Ensure we only render content after client-side hydration
+  // Load analysis data with caching optimization
   useEffect(() => {
-    // Use setTimeout to defer setState and avoid cascading renders warning
-    const timer = setTimeout(() => {
-      setMounted(true);
-    }, 0);
-    
-    const stored = sessionStorage.getItem('currentAnalysis');
-    const storedParticipants = sessionStorage.getItem('currentParticipants');
-    const storedTier = sessionStorage.getItem('currentSubscriptionTier');
-    const storedFeatures = sessionStorage.getItem('currentFeatures');
-    
-    if (stored) {
-      try {
-        setAnalysis(JSON.parse(stored));
-        setLoading(false);
-      } catch {
-        setError('Failed to parse analysis data');
-        setLoading(false);
-      }
-    } else {
-      setError('No analysis found');
-      setLoading(false);
-    }
-    
-    if (storedParticipants) {
-      try {
-        setParticipants(JSON.parse(storedParticipants));
-      } catch {
-        // Ignore participant parsing errors
-      }
-    }
+    if (dataLoadedRef.current) return;
+    dataLoadedRef.current = true;
 
-    // Derive whether this was a premium analysis from stored subscription info
-    try {
-      const tier = storedTier || 'free';
-      let features: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean } = {};
-      if (storedFeatures) {
-        features = JSON.parse(storedFeatures);
+    const loadAnalysisData = () => {
+      try {
+        const stored = sessionStorage.getItem('currentAnalysis');
+        const storedParticipants = sessionStorage.getItem('currentParticipants');
+        const storedTier = sessionStorage.getItem('currentSubscriptionTier');
+        const storedFeatures = sessionStorage.getItem('currentFeatures');
+        const storedActivity = sessionStorage.getItem('currentActivityByDay');
+        const storedConversation = sessionStorage.getItem('currentConversation');
+        
+        if (!stored) {
+          setError('No analysis found');
+          setLoading(false);
+          return;
+        }
+
+        // Try to get from cache first
+        let analysisData: AnalysisResult;
+        let participantsData: Participant[] = [];
+        let isPremium = false;
+        let activityData: DailyActivity[] = [];
+        let primaryLanguage: SupportedLocale | 'unknown' = 'unknown';
+
+        try {
+          analysisData = JSON.parse(stored);
+
+          if (storedConversation) {
+            try {
+              const conv = JSON.parse(storedConversation) as Conversation;
+              const firstLang =
+                conv.languageCodes && conv.languageCodes.length > 0
+                  ? conv.languageCodes[0]
+                  : '';
+              const shortLang = firstLang.slice(0, 2).toLowerCase();
+              if (
+                shortLang === 'en' ||
+                shortLang === 'ru' ||
+                shortLang === 'fr' ||
+                shortLang === 'de' ||
+                shortLang === 'es' ||
+                shortLang === 'pt'
+              ) {
+                primaryLanguage = shortLang as SupportedLocale;
+              }
+            } catch {
+              primaryLanguage = 'unknown';
+            }
+          }
+          
+          // Check cache
+          const cacheKey = analysisData.id || 'default';
+          const cached = analysisCache.get(cacheKey);
+          const now = Date.now();
+          
+          if (cached && (now - cached.timestamp) < CACHE_TTL) {
+            // Use cached data
+            setAnalysis(cached.analysis);
+            setParticipants(cached.participants);
+            setIsPremiumAnalysis(cached.isPremium);
+            // Activity is small and cheap to re-parse each time
+            if (storedActivity) {
+              try {
+                activityData = JSON.parse(storedActivity);
+                setActivityByDay(activityData);
+              } catch {
+                setActivityByDay([]);
+              }
+            }
+            setConversationLanguage(primaryLanguage);
+            setLoading(false);
+            return;
+          }
+
+          // Parse participants
+          if (storedParticipants) {
+            participantsData = JSON.parse(storedParticipants);
+          }
+          if (storedActivity) {
+            try {
+              activityData = JSON.parse(storedActivity);
+            } catch {
+              activityData = [];
+            }
+          }
+
+          // Derive premium status
+          const tier = storedTier || 'free';
+          let features: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean } = {};
+          if (storedFeatures) {
+            features = JSON.parse(storedFeatures);
+          }
+          isPremium =
+            tier === 'premium' ||
+            features.canAnalyzeMedia === true ||
+            features.canUseEnhancedAnalysis === true;
+
+          // Store in cache
+          analysisCache.set(cacheKey, {
+            analysis: analysisData,
+            participants: participantsData,
+            isPremium,
+            timestamp: now
+          });
+
+          // Update state synchronously to avoid pop-in
+          setAnalysis(analysisData);
+          setParticipants(participantsData);
+          setIsPremiumAnalysis(isPremium);
+          setActivityByDay(activityData);
+          setConversationLanguage(primaryLanguage);
+          setLoading(false);
+        } catch (parseError) {
+          console.error('Failed to parse analysis data:', parseError);
+          setError('Failed to parse analysis data');
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error loading analysis:', err);
+        setError('Failed to load analysis');
+        setLoading(false);
       }
-      const premium =
-        tier === 'premium' ||
-        features.canAnalyzeMedia === true ||
-        features.canUseEnhancedAnalysis === true;
-      setIsPremiumAnalysis(premium);
-    } catch {
-      // If parsing fails, default to free
-      setIsPremiumAnalysis(false);
-    }
-    
-    return () => clearTimeout(timer);
+    };
+
+    // Load immediately on mount
+    loadAnalysisData();
   }, []);
 
-  // Show consistent loading state with proper theme
-  if (!mounted || loading) {
+  if (!loading && (error || !analysis)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-foreground">{t('analyzing')}</p>
-        </div>
+        <Card className="max-w-md w-full p-6 sm:p-8 text-center space-y-4 shadow-xl border-border/40 backdrop-blur-lg" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, opacity', backfaceVisibility: 'hidden' }}>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold text-foreground">
+              {t('noAnalysisFound')}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t('noAnalysisFound_help') ?? 'Please go back and upload a conversation to generate a report.'}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            <Button onClick={() => router.push('/')}>
+              {t('backToHome')}
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
-  if (error || !analysis) {
+  // Still loading data: render a neutral shell without any "analyzing" text,
+  // so the header/layout stay stable and the content just appears when ready.
+  if (!analysis) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <p className="text-foreground">{error || t('noAnalysisFound')}</p>
-          <Button onClick={() => (window.location.href = '/')}>
-            {t('backToHome')}
-          </Button>
-        </Card>
+      <div className="min-h-screen bg-background py-12 px-6">
+        <div className="max-w-4xl mx-auto space-y-8" />
       </div>
     );
   }
@@ -126,11 +543,29 @@ export default function AnalysisPage() {
   };
 
   const generateTextReport = (): string => {
+    const isGenericFallback =
+      analysis.sections.length === 1 &&
+      analysis.sections[0].id === 'default' &&
+      (!analysis.sections[0].evidenceSnippets ||
+        analysis.sections[0].evidenceSnippets.length === 0);
+
     const dateStr = formatDate(analysis.createdAt);
     const reportTitle = t('exportReportTitle');
     const generatedBy = t('exportGeneratedBy');
-    
+
     let report = `${reportTitle} - ${dateStr}\n\n`;
+
+    // If analysis fell back to a generic/default section, явно объясняем это и не притворяемся, что есть точные проценты
+    if (isGenericFallback) {
+      report += `${t('exportOverview')}: ${t('analysisGenericWarningBody')}\n\n`;
+      report += `${t('exportPatterns')}:\n\n`;
+      report += `- ${t('analysisGenericWarningTitle')}\n`;
+      report += `  ${t('analysisGenericWarningBody')}\n\n`;
+      report += `\n${generatedBy}`;
+      return report;
+    }
+
+    // Нормальный детальный отчёт
     report += `${t('exportOverview')}: ${replaceParticipantIds(analysis.overviewSummary)}\n\n`;
     
     report += `${t('exportScores')}:\n`;
@@ -496,8 +931,9 @@ export default function AnalysisPage() {
       
       // Convert canvas to image and add to PDF
       const imgData = canvas.toDataURL('image/png', 1.0);
-      const margin = 3; // Small margins on all sides
-      const imgWidth = 210 - 2 * margin; // A4 width minus small margins
+      const margin = 15; // Increased margins for better spacing
+      const pageGap = 10; // Gap between pages when content is split
+      const imgWidth = 210 - 2 * margin; // A4 width minus margins
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       const doc = new jsPDF({
@@ -509,12 +945,14 @@ export default function AnalysisPage() {
       
       // Add image to PDF with proper page breaks and margins
       const pageHeight = doc.internal.pageSize.getHeight();
-      const usableHeight = pageHeight - 2 * margin; // Usable height per page (with top and bottom margins)
+      // Usable height per page: page height minus top margin, bottom margin, and gap (for pages that continue)
+      // The gap creates visual separation between pages
+      const usableHeight = pageHeight - margin - margin - pageGap;
       
       // Calculate how many pages we need
       const totalPages = Math.ceil(imgHeight / usableHeight);
       
-      // Split image across pages with proper margins
+      // Split image across pages with proper margins and spacing
       let sourceY = 0;
       let remainingHeight = imgHeight;
       
@@ -524,7 +962,11 @@ export default function AnalysisPage() {
         }
         
         // Calculate how much of the image to show on this page
-        const heightOnThisPage = Math.min(remainingHeight, usableHeight);
+        // For pages that aren't the last, leave space for the gap
+        const isLastPage = page === totalPages - 1;
+        const heightOnThisPage = isLastPage 
+          ? Math.min(remainingHeight, pageHeight - margin - margin) // Last page can use full height minus margins
+          : Math.min(remainingHeight, usableHeight); // Other pages leave space for gap
         const sourceHeight = (heightOnThisPage / imgHeight) * canvas.height;
         
         // Create a temporary canvas for this page slice
@@ -559,12 +1001,12 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-start justify-between gap-4">
+    <div className="min-h-screen bg-background py-6 px-4 sm:py-8 sm:px-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">{t('analysisReport')}</h1>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('analysisReport')}</h1>
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
                   isPremiumAnalysis
@@ -575,12 +1017,39 @@ export default function AnalysisPage() {
                 {isPremiumAnalysis ? t('premium_badge') : t('free_badge')}
               </span>
             </div>
-            <p className="text-muted-foreground mb-1">{analysis.overviewSummary}</p>
-            <p className="text-xs text-muted-foreground">
-              {isPremiumAnalysis ? t('premium_hint') : t('free_hint')}
-            </p>
+            <p className="text-sm text-muted-foreground mb-0.5">{analysis.overviewSummary}</p>
+            {isPremiumAnalysis ? (
+              <p className="text-xs text-muted-foreground">
+                {t('premium_hint')}
+              </p>
+            ) : (
+              <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50/90 px-3 py-2 text-amber-900 shadow-inner dark:border-amber-600 dark:bg-amber-500/10 dark:text-amber-50">
+                <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {t('free_badge')}
+                </div>
+                <p className="text-sm font-medium leading-snug">
+                  {t('free_hint')}
+                </p>
+              </div>
+            )}
+
+            {/* Generic warning only when we fell back to a single default section without evidence */}
+            {analysis.sections.length === 1 &&
+              analysis.sections[0].id === 'default' &&
+              (!analysis.sections[0].evidenceSnippets ||
+                analysis.sections[0].evidenceSnippets.length === 0) && (
+                <div className="mt-2 text-xs text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-600 rounded-md bg-amber-50/80 dark:bg-amber-950/40 px-2.5 py-1.5">
+                  <p className="font-medium mb-0.5">
+                    {t('analysisGenericWarningTitle')}
+                  </p>
+                  <p>
+                    {t('analysisGenericWarningBody')}
+                  </p>
+                </div>
+              )}
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-1.5 flex-wrap">
             <Button onClick={copySummary} variant="outline" size="sm">
               {copySuccess ? (locale === 'ru' ? 'Скопировано!' : 'Copied!') : (locale === 'ru' ? 'Копировать' : 'Copy Summary')}
             </Button>
@@ -596,91 +1065,356 @@ export default function AnalysisPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <div className="text-sm text-muted-foreground">{t('gaslightingRisk')}</div>
-            <div className="text-2xl font-bold text-foreground">
-              {(analysis.gaslightingRiskScore * 100).toFixed(0)}%
-            </div>
-          </Card>
-          <Card>
-            <div className="text-sm text-muted-foreground">{t('conflictIntensity')}</div>
-            <div className="text-2xl font-bold text-foreground">
-              {(analysis.conflictIntensityScore * 100).toFixed(0)}%
-            </div>
-          </Card>
-          <Card>
-            <div className="text-sm text-muted-foreground">{t('supportiveness')}</div>
-            <div className="text-2xl font-bold text-foreground">
-              {(analysis.supportivenessScore * 100).toFixed(0)}%
-            </div>
-          </Card>
-          <Card>
-            <div className="text-sm text-muted-foreground">{t('apologyFrequency')}</div>
-            <div className="text-2xl font-bold text-foreground">
-              {(analysis.apologyFrequencyScore * 100).toFixed(0)}%
-            </div>
-          </Card>
-        </div>
+        {/* Relationship Health Overview with inline radar chart */}
+        <CardBase className="p-3 sm:p-4">
+          <div className="mb-2">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              {t('relationship_health_title') || 'Relationship Health Overview'}
+            </h2>
+          </div>
 
-        <div className="space-y-6">
-          {analysis.sections.map((section: AnalysisSection, index: number) => (
-            <Card key={`${section.id}-${index}`}>
-              <h2 className="text-xl font-semibold text-foreground mb-2">
-                {getSectionTitle(section.id, section.title)}
-              </h2>
-              {section.score !== undefined && (
-                <div className="text-sm text-muted-foreground mb-3">
-                  {t('score')}: {(section.score * 100).toFixed(0)}%
-                </div>
-              )}
-              <div className="space-y-3 mb-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">{t('scientificAnalysis')}:</p>
-                  <p className="text-foreground">{section.summary}</p>
-                </div>
-                {section.plainSummary && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">{t('plainLanguage')}:</p>
-                    <p className="text-foreground italic">{section.plainSummary}</p>
+          <div className="md:flex md:justify-end">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 items-stretch w-full md:pl-6">
+              {/* Textual metrics in 2x2 grid */}
+              <div className="flex flex-col justify-between">
+                <div className="grid grid-cols-2 grid-rows-2 gap-1.5 sm:gap-2 h-full">
+                  {/* Gaslighting Risk */}
+                  <div className="space-y-0.5 flex flex-col justify-between">
+                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
+                      {t('gaslightingRisk')}
+                    </div>
+                    <div
+                      className={`text-sm sm:text-base font-bold ${
+                        analysis.gaslightingRiskScore >= 0.7
+                          ? 'text-red-600 dark:text-red-400'
+                          : analysis.gaslightingRiskScore >= 0.4
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-emerald-600 dark:text-emerald-400'
+                      }`}
+                    >
+                      {(analysis.gaslightingRiskScore * 100).toFixed(0)}%
+                    </div>
+                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          analysis.gaslightingRiskScore >= 0.7
+                            ? 'bg-red-500'
+                            : analysis.gaslightingRiskScore >= 0.4
+                              ? 'bg-amber-500'
+                              : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${analysis.gaslightingRiskScore * 100}%` }}
+                      />
+                    </div>
                   </div>
-                )}
-              </div>
-              {section.evidenceSnippets.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-medium text-foreground">{t('evidence')}</h3>
-                  {section.evidenceSnippets.map((evidence, idx) => {
-                    // Replace participant IDs in excerpt and explanation
-                    const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
-                    const formattedExplanation = replaceParticipantIds(evidence.explanation);
-                    
-                    // Try to extract participant name from excerpt
-                    const participantInfo = formatParticipantName(formattedExcerpt);
-                    
-                    return (
-                      <div key={idx} className="border-l-4 border-primary/50 pl-4 py-2">
-                        {participantInfo ? (
-                          <div className="mb-2">
-                            <span className="font-semibold italic text-primary text-base mr-2">
-                              {participantInfo.name}:
-                            </span>
-                            <span className="italic text-foreground/90">&ldquo;{participantInfo.remainingText}&rdquo;</span>
-                          </div>
-                        ) : (
-                          <p className="italic text-foreground/90 mb-1">&ldquo;{formattedExcerpt}&rdquo;</p>
-                        )}
-                        <p className="text-sm text-muted-foreground mt-2">{formattedExplanation}</p>
-                      </div>
-                    );
-                  })}
+
+                  {/* Conflict Intensity */}
+                  <div className="space-y-0.5 flex flex-col justify-between">
+                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
+                      {t('conflictIntensity')}
+                    </div>
+                    <div
+                      className={`text-sm sm:text-base font-bold ${
+                        analysis.conflictIntensityScore >= 0.7
+                          ? 'text-red-600 dark:text-red-400'
+                          : analysis.conflictIntensityScore >= 0.4
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-emerald-600 dark:text-emerald-400'
+                      }`}
+                    >
+                      {(analysis.conflictIntensityScore * 100).toFixed(0)}%
+                    </div>
+                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          analysis.conflictIntensityScore >= 0.7
+                            ? 'bg-red-500'
+                            : analysis.conflictIntensityScore >= 0.4
+                              ? 'bg-amber-500'
+                              : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${analysis.conflictIntensityScore * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Supportiveness */}
+                  <div className="space-y-0.5 flex flex-col justify-between">
+                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
+                      {t('supportiveness')}
+                    </div>
+                    <div
+                      className={`text-sm sm:text-base font-bold ${
+                        analysis.supportivenessScore >= 0.7
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : analysis.supportivenessScore >= 0.4
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {(analysis.supportivenessScore * 100).toFixed(0)}%
+                    </div>
+                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          analysis.supportivenessScore >= 0.7
+                            ? 'bg-emerald-500'
+                            : analysis.supportivenessScore >= 0.4
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                        style={{ width: `${analysis.supportivenessScore * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Apology Frequency */}
+                  <div className="space-y-0.5 flex flex-col justify-between">
+                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
+                      {t('apologyFrequency')}
+                    </div>
+                    <div
+                      className={`text-sm sm:text-base font-bold ${
+                        analysis.apologyFrequencyScore >= 0.7
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : analysis.apologyFrequencyScore >= 0.4
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {(analysis.apologyFrequencyScore * 100).toFixed(0)}%
+                    </div>
+                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          analysis.apologyFrequencyScore >= 0.7
+                            ? 'bg-emerald-500'
+                            : analysis.apologyFrequencyScore >= 0.4
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                        style={{ width: `${analysis.apologyFrequencyScore * 100}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
-            </Card>
-          ))}
-        </div>
+              </div>
+
+              {/* Inline radar chart */}
+              <div className="flex items-center justify-center md:justify-end">
+                <div className="w-full max-w-sm md:max-w-full h-full">
+                  <AnalysisRadarChart analysis={analysis} variant="compact" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardBase>
+
+
+        {analysis.participantProfiles && analysis.participantProfiles.length > 0 && (
+          <Card className="p-3 sm:p-4 border border-primary/30 bg-primary/5 dark:bg-primary/10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">
+                  {t('participant_profiles_title')}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {t('participant_profiles_description')}
+                </p>
+              </div>
+              <span className="text-[11px] uppercase tracking-wide text-primary font-semibold">
+                {t('premium_badge')}
+              </span>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {analysis.participantProfiles.map((profile, idx) => {
+                const matchedParticipant =
+                  participants.find(
+                    (p) => p.id === profile.participantId || p.displayName === profile.participantId
+                  );
+                const displayName = matchedParticipant?.displayName || profile.participantId;
+
+                return (
+                  <div
+                    key={`${profile.participantId}-${idx}`}
+                    className="rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-sm"
+                  >
+                    <p className="text-sm font-semibold text-foreground">{displayName}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {profile.profile}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
+
+         {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
+         {isPremiumAnalysis && analysis.importantDates && analysis.importantDates.length > 0 ? (
+           <AnalysisDashboard
+             analysis={analysis}
+             activityByDay={activityByDay}
+             importantDates={analysis.importantDates}
+             conversationLanguage={conversationLanguage}
+             locale={locale}
+             onDateSelect={(importantDate: ImportantDate) => {
+               // Try to scroll to a specific evidence snippet for this date
+               if (!analysis) return;
+               let target: HTMLElement | null = null;
+
+               if (importantDate.sectionId) {
+                 const sectionIndex = analysis.sections.findIndex(
+                   (s) => s.id === importantDate.sectionId
+                 );
+                 const section =
+                   sectionIndex >= 0 ? analysis.sections[sectionIndex] : undefined;
+
+                 if (section) {
+                   let evidenceIndex = -1;
+                   if (importantDate.excerpt && section.evidenceSnippets?.length) {
+                     evidenceIndex = section.evidenceSnippets.findIndex((e) => {
+                       const ex = e.excerpt || '';
+                       const targetEx = importantDate.excerpt || '';
+                       return (
+                         ex === targetEx ||
+                         ex.includes(targetEx) ||
+                         targetEx.includes(ex)
+                       );
+                     });
+                   }
+
+                   if (evidenceIndex >= 0) {
+                     const id = `evidence-${section.id}-${evidenceIndex}`;
+                     target = document.getElementById(id) as HTMLElement | null;
+                   }
+
+                   if (!target) {
+                     const id = `section-${section.id}-${sectionIndex >= 0 ? sectionIndex : 0}`;
+                     target = document.getElementById(id) as HTMLElement | null;
+                   }
+               }
+               }
+
+               if (!target) {
+                 const container = document.querySelector(
+                   '[data-analysis-sections="true"]'
+                 ) as HTMLElement | null;
+                 if (container) {
+                   target = container;
+                 }
+               }
+
+               if (target) {
+                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 target.classList.add('evidence-highlight');
+                 window.setTimeout(() => {
+                   target.classList.remove('evidence-highlight');
+                 }, 2200);
+               }
+             }}
+           />
+        ) : (
+          <>
+            {activityChartData.length > 1 && (
+              <Card
+                className="p-3 sm:p-4"
+                style={{
+                  willChange: 'transform, opacity',
+                  backfaceVisibility: 'hidden',
+                  transform: 'translate3d(0, 0, 0)'
+                }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">
+                      {t('activity_chart_title')}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t('activity_chart_description')}
+                    </p>
+                  </div>
+                </div>
+                <div className="h-40 sm:h-48">
+                  <ChartContainer
+                    config={{
+                      messages: {
+                        label: t('activity_chart_messages_label'),
+                        color: 'hsl(var(--primary))'
+                      }
+                    }}
+                    className="w-full h-full"
+                  >
+                    <AreaChart data={activityChartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="dateLabel"
+                        tick={{ fontSize: 10 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10 }}
+                        allowDecimals={false}
+                        width={28}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          fontSize: 11
+                        }}
+                        formatter={(value) =>
+                          [
+                            value,
+                            t('activity_chart_messages_label')
+                          ] as [string | number, string]
+                        }
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="messageCount"
+                        stroke="var(--color-messages, hsl(var(--primary)))"
+                        fill="var(--color-messages, hsl(var(--primary) / 0.2))"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                </div>
+              </Card>
+            )}
+          </>
+        )}
+
+         <div className="space-y-3 sm:space-y-4" data-analysis-sections="true">
+           {analysis.sections.map((section: AnalysisSection, index: number) => {
+             // Decide if we should even show \"what if\" replies for this section.
+             // Only for clearly problematic patterns (medium+ scores).
+             const sectionScore = section.score ?? 0;
+             const isProblematicSection =
+               section.id === 'gaslighting' || section.id === 'conflict';
+             const shouldShowReplies =
+               isPremiumAnalysis &&
+               isProblematicSection &&
+               sectionScore >= 0.35;
+
+             return (
+               <SectionCard
+                 key={`${section.id}-${index}`}
+                 section={section}
+                 t={t}
+                 locale={locale}
+                 conversationLanguage={conversationLanguage}
+                 isPremiumAnalysis={isPremiumAnalysis}
+                 index={index}
+                 shouldShowReplies={shouldShowReplies}
+                 getSectionTitle={getSectionTitle}
+                 replaceParticipantIds={replaceParticipantIds}
+                 formatParticipantName={formatParticipantName}
+               />
+             );
+           })}
+         </div>
 
         {/* Disclaimers about purpose and limitations */}
-        <div className="mt-4 text-xs text-muted-foreground space-y-1.5">
+        <div className="mt-3 text-xs text-muted-foreground space-y-1">
           <p>{t('report_disclaimer_main')}</p>
           <p>{t('report_disclaimer_safety')}</p>
         </div>
