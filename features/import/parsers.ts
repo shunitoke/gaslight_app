@@ -1,6 +1,7 @@
 import { extractMediaFromWhatsAppZip } from './mediaExtractor';
 import type { NormalizedConversation, ImportPayload } from './types';
 import { logError, logInfo } from '../../lib/telemetry';
+import { parseJsonArrayStream } from './streamingParser';
 import type {
   Conversation,
   Message,
@@ -9,27 +10,71 @@ import type {
 } from '../analysis/types';
 
 /**
+ * Simple language detection based on message text (basic heuristic).
+ * Moved to top to be available for all parsers.
+ */
+function detectLanguages(messages: Message[]): string[] {
+  const textSamples = messages
+    .filter((m) => m.text)
+    .slice(0, 100)
+    .map((m) => m.text!)
+    .join(' ');
+
+  const detected: string[] = [];
+  // Basic heuristics (can be enhanced with proper language detection library)
+  if (/[а-яё]/i.test(textSamples)) detected.push('ru');
+  if (/[àáâãäåæçèéêë]/i.test(textSamples)) detected.push('fr');
+  if (/[äöüß]/i.test(textSamples)) detected.push('de');
+  if (/[ñáéíóúü]/i.test(textSamples)) detected.push('es');
+  if (!detected.length) detected.push('en'); // Default
+
+  return detected;
+}
+
+/**
  * Parse Telegram JSON export format.
  * Expected format: { "messages": [{ "id": 1, "date": "...", "from": "...", "text": "..." }] }
+ * 
+ * Supports both regular parsing (for small files) and streaming (for large files).
  */
 export async function parseTelegramExport(
-  fileContent: string,
-  fileName: string
+  fileContent: string | ReadableStream<Uint8Array>,
+  fileName: string,
+  useStreaming: boolean = false
 ): Promise<NormalizedConversation> {
   try {
-    const data = JSON.parse(fileContent);
-    const messages = data.messages || [];
-
-    if (!Array.isArray(messages) || messages.length === 0) {
-      throw new Error('Invalid Telegram export: no messages array found');
-    }
-
     const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     const participantsMap = new Map<string, Participant>();
     const normalizedMessages: Message[] = [];
     const mediaArtifacts: MediaArtifact[] = [];
     let earliestDate: Date | null = null;
     let latestDate: Date | null = null;
+
+    let messages: any[] = [];
+    let conversationName: string | null = null;
+
+    if (useStreaming && fileContent instanceof ReadableStream) {
+      // Streaming mode for large files
+      logInfo('telegram_parse_streaming', { fileName });
+      
+      for await (const msg of parseJsonArrayStream(fileContent, 'messages')) {
+        messages.push(msg);
+      }
+      // Note: In streaming mode, we can't easily get conversation name from root object
+      // It will be null, which is acceptable for large files
+    } else {
+      // Regular mode for small files
+      const content = typeof fileContent === 'string' 
+        ? fileContent 
+        : await new Response(fileContent).text();
+      const data = JSON.parse(content);
+      messages = data.messages || [];
+      conversationName = data.name || null;
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      throw new Error('Invalid Telegram export: no messages array found');
+    }
 
     for (const msg of messages) {
       const senderName = msg.from || msg.from_id || 'Unknown';
@@ -119,7 +164,7 @@ export async function parseTelegramExport(
     const conversation: Conversation = {
       id: conversationId,
       sourcePlatform: 'telegram',
-      title: data.name || null,
+      title: conversationName,
       startedAt: earliestDate?.toISOString() || null,
       endedAt: latestDate?.toISOString() || null,
       participantIds: participants.map((p) => p.id),
@@ -143,7 +188,7 @@ export async function parseTelegramExport(
     };
   } catch (error) {
     logError('telegram_parse_error', { fileName, error: (error as Error).message });
-    throw new Error(`Failed to parse Telegram export: ${(error as Error).message}`);
+    throw new Error('INVALID_FORMAT');
   }
 }
 
@@ -370,20 +415,10 @@ export async function parseGenericTextExport(
     lastSenderId = senderId;
   });
 
-  // For generic TXT we hard-cap the number of messages to keep analysis tractable.
-  // Keep the last N messages (most recent context), which is usually most relevant.
-  const MAX_GENERIC_MESSAGES = 4000;
-  let trimmedMessages = normalizedMessages;
-  if (normalizedMessages.length > MAX_GENERIC_MESSAGES) {
-    trimmedMessages = normalizedMessages.slice(
-      normalizedMessages.length - MAX_GENERIC_MESSAGES
-    );
-    logInfo('generic_import_trimmed', {
-      fileName,
-      originalCount: normalizedMessages.length,
-      keptCount: trimmedMessages.length
-    });
-  }
+  // Note: Message limit checking is done at the API level (same as other platforms)
+  // We don't trim here - let the subscription tier limits handle it
+  // This ensures consistent behavior across all platforms
+  const trimmedMessages = normalizedMessages;
 
   const participants = Array.from(participantsMap.values());
   const conversation: Conversation = {
@@ -535,14 +570,34 @@ export async function parseSignalExport(
 /**
  * Parse Discord JSON export format.
  * Expected format: { "messages": [{ "timestamp": "...", "author": {...}, "content": "..." }] }
+ * 
+ * Supports both regular parsing (for small files) and streaming (for large files).
  */
 export async function parseDiscordExport(
-  fileContent: string,
-  fileName: string
+  fileContent: string | ReadableStream<Uint8Array>,
+  fileName: string,
+  useStreaming: boolean = false
 ): Promise<NormalizedConversation> {
   try {
-    const data = JSON.parse(fileContent);
-    const messages = data.messages || [];
+    let messages: any[] = [];
+    let data: any = {};
+
+    if (useStreaming && fileContent instanceof ReadableStream) {
+      // Streaming mode for large files
+      logInfo('discord_parse_streaming', { fileName });
+      
+      for await (const msg of parseJsonArrayStream(fileContent, 'messages')) {
+        messages.push(msg);
+      }
+      // Note: In streaming mode, we can't easily get conversation metadata from root object
+    } else {
+      // Regular mode for small files
+      const content = typeof fileContent === 'string' 
+        ? fileContent 
+        : await new Response(fileContent).text();
+      data = JSON.parse(content);
+      messages = data.messages || [];
+    }
 
     if (!Array.isArray(messages) || messages.length === 0) {
       throw new Error('Invalid Discord export: no messages array found');
@@ -628,7 +683,7 @@ export async function parseDiscordExport(
     const conversation: Conversation = {
       id: conversationId,
       sourcePlatform: 'discord',
-      title: data.guild?.name || data.channel?.name || data.title || null,
+      title: data.title || data.name || data.guild?.name || data.channel?.name || null,
       startedAt: earliestDate?.toISOString() || null,
       endedAt: latestDate?.toISOString() || null,
       participantIds: participants.map((p) => p.id),
@@ -659,14 +714,35 @@ export async function parseDiscordExport(
 /**
  * Parse Facebook Messenger JSON export format.
  * Expected format: { "messages": [{ "sender_name": "...", "timestamp_ms": ..., "content": "..." }] }
+ * 
+ * Supports both regular parsing (for small files) and streaming (for large files).
  */
 export async function parseMessengerExport(
-  fileContent: string,
-  fileName: string
+  fileContent: string | ReadableStream<Uint8Array>,
+  fileName: string,
+  useStreaming: boolean = false
 ): Promise<NormalizedConversation> {
   try {
-    const data = JSON.parse(fileContent);
-    const messages = data.messages || [];
+    let messages: any[] = [];
+    let conversationTitle: string | null = null;
+
+    if (useStreaming && fileContent instanceof ReadableStream) {
+      // Streaming mode for large files
+      logInfo('messenger_parse_streaming', { fileName });
+      
+      for await (const msg of parseJsonArrayStream(fileContent, 'messages')) {
+        messages.push(msg);
+      }
+      // Note: In streaming mode, we can't easily get conversation title from root object
+    } else {
+      // Regular mode for small files
+      const content = typeof fileContent === 'string' 
+        ? fileContent 
+        : await new Response(fileContent).text();
+      const data = JSON.parse(content);
+      messages = data.messages || [];
+      conversationTitle = data.title || data.participants?.join(', ') || null;
+    }
 
     if (!Array.isArray(messages) || messages.length === 0) {
       throw new Error('Invalid Messenger export: no messages array found');
@@ -756,7 +832,7 @@ export async function parseMessengerExport(
     const conversation: Conversation = {
       id: conversationId,
       sourcePlatform: 'messenger',
-      title: data.title || data.participants?.join(', ') || null,
+      title: conversationTitle,
       startedAt: earliestDate?.toISOString() || null,
       endedAt: latestDate?.toISOString() || null,
       participantIds: participants.map((p) => p.id),
@@ -788,22 +864,40 @@ export async function parseMessengerExport(
  * Parse iMessage/SMS export format (JSON or text).
  * JSON format: { "items": [{ "properties": { "author": [...], "content": [...], "published": [...] } }] }
  * Text format: Similar to WhatsApp
+ * 
+ * Supports both regular parsing (for small files) and streaming (for large files).
  */
 export async function parseIMessageExport(
-  fileContent: string,
-  fileName: string
+  fileContent: string | ReadableStream<Uint8Array>,
+  fileName: string,
+  useStreaming: boolean = false
 ): Promise<NormalizedConversation> {
   try {
-    // Try JSON first (h-entry format)
-    let data: any;
-    try {
-      data = JSON.parse(fileContent);
-    } catch {
-      // Fall back to text parsing (similar to WhatsApp)
-      return parseWhatsAppExport(fileContent, fileName, false);
-    }
+    let items: any[] = [];
 
-    const items = data.items || [];
+    if (useStreaming && fileContent instanceof ReadableStream) {
+      // Streaming mode for large files
+      logInfo('imessage_parse_streaming', { fileName });
+      
+      for await (const item of parseJsonArrayStream(fileContent, 'items')) {
+        items.push(item);
+      }
+    } else {
+      // Regular mode for small files
+      const content = typeof fileContent === 'string' 
+        ? fileContent 
+        : await new Response(fileContent).text();
+      
+      // Try JSON first (h-entry format)
+      let data: any;
+      try {
+        data = JSON.parse(content);
+        items = data.items || [];
+      } catch {
+        // Fall back to text parsing (similar to WhatsApp)
+        return parseWhatsAppExport(content, fileName, false);
+      }
+    }
     if (!Array.isArray(items) || items.length === 0) {
       throw new Error('Invalid iMessage export: no items array found');
     }
@@ -900,59 +994,93 @@ export async function parseViberExport(
 
 /**
  * Route to appropriate parser based on platform and file content.
+ * 
+ * For large files (>50MB), uses streaming parsing to avoid OOM.
  */
 export async function parseExport(
   payload: ImportPayload,
-  fileContent: string | ArrayBuffer
+  fileContent: string | ArrayBuffer | ReadableStream<Uint8Array>
 ): Promise<NormalizedConversation> {
-  const textContent = fileContent instanceof ArrayBuffer
-    ? new TextDecoder('utf-8').decode(fileContent)
-    : fileContent;
+  // Determine if we should use streaming (for large files)
+  const STREAMING_THRESHOLD = 50 * 1024 * 1024; // 50MB
+  const useStreaming = payload.sizeBytes > STREAMING_THRESHOLD && fileContent instanceof ReadableStream;
+
+  if (useStreaming) {
+    logInfo('parse_export_streaming', {
+      platform: payload.platform,
+      fileName: payload.fileName,
+      sizeBytes: payload.sizeBytes
+    });
+  }
 
   switch (payload.platform) {
     case 'telegram':
-      return parseTelegramExport(textContent, payload.fileName);
+      if (useStreaming && fileContent instanceof ReadableStream) {
+        return parseTelegramExport(fileContent, payload.fileName, true);
+      } else {
+        // Convert to text for non-streaming parser
+        const textContent = fileContent instanceof ArrayBuffer
+          ? new TextDecoder('utf-8').decode(fileContent)
+          : fileContent as string;
+        return parseTelegramExport(textContent, payload.fileName, false);
+      }
     case 'whatsapp': {
       const isZip = payload.fileName.toLowerCase().endsWith('.zip') ||
                     payload.contentType === 'application/zip' ||
                     payload.contentType === 'application/x-zip-compressed';
-      return parseWhatsAppExport(fileContent, payload.fileName, isZip);
+      // WhatsApp parser handles ArrayBuffer for ZIP files
+      const whatsappContent = fileContent instanceof ReadableStream
+        ? await new Response(fileContent).arrayBuffer()
+        : fileContent instanceof ArrayBuffer
+        ? fileContent
+        : fileContent as string;
+      return parseWhatsAppExport(whatsappContent, payload.fileName, isZip);
     }
-    case 'signal':
-      return parseSignalExport(textContent, payload.fileName);
     case 'discord':
-      return parseDiscordExport(textContent, payload.fileName);
+      if (useStreaming && fileContent instanceof ReadableStream) {
+        return parseDiscordExport(fileContent, payload.fileName, true);
+      } else {
+        const textContent = fileContent instanceof ArrayBuffer
+          ? new TextDecoder('utf-8').decode(fileContent)
+          : fileContent as string;
+        return parseDiscordExport(textContent, payload.fileName, false);
+      }
     case 'messenger':
-      return parseMessengerExport(textContent, payload.fileName);
+      if (useStreaming && fileContent instanceof ReadableStream) {
+        return parseMessengerExport(fileContent, payload.fileName, true);
+      } else {
+        const textContent = fileContent instanceof ArrayBuffer
+          ? new TextDecoder('utf-8').decode(fileContent)
+          : fileContent as string;
+        return parseMessengerExport(textContent, payload.fileName, false);
+      }
     case 'imessage':
-      return parseIMessageExport(textContent, payload.fileName);
-    case 'viber':
-      return parseViberExport(textContent, payload.fileName);
-    case 'generic':
-      return parseGenericTextExport(textContent, payload.fileName);
-    default:
-      throw new Error(`Unsupported platform: ${payload.platform}`);
+      if (useStreaming && fileContent instanceof ReadableStream) {
+        return parseIMessageExport(fileContent, payload.fileName, true);
+      } else {
+        const textContent = fileContent instanceof ArrayBuffer
+          ? new TextDecoder('utf-8').decode(fileContent)
+          : fileContent as string;
+        return parseIMessageExport(textContent, payload.fileName, false);
+      }
+    default: {
+      // For other platforms, convert to text
+      const textContent = fileContent instanceof ReadableStream
+        ? await new Response(fileContent).text()
+        : fileContent instanceof ArrayBuffer
+        ? new TextDecoder('utf-8').decode(fileContent)
+        : fileContent as string;
+      
+      switch (payload.platform) {
+        case 'signal':
+          return parseSignalExport(textContent, payload.fileName);
+        case 'viber':
+          return parseViberExport(textContent, payload.fileName);
+        case 'generic':
+          return parseGenericTextExport(textContent, payload.fileName);
+        default:
+          throw new Error(`Unsupported platform: ${payload.platform}`);
+      }
+    }
   }
 }
-
-/**
- * Simple language detection based on message text (basic heuristic).
- */
-function detectLanguages(messages: Message[]): string[] {
-  const textSamples = messages
-    .filter((m) => m.text)
-    .slice(0, 100)
-    .map((m) => m.text!)
-    .join(' ');
-
-  const detected: string[] = [];
-  // Basic heuristics (can be enhanced with proper language detection library)
-  if (/[а-яё]/i.test(textSamples)) detected.push('ru');
-  if (/[àáâãäåæçèéêë]/i.test(textSamples)) detected.push('fr');
-  if (/[äöüß]/i.test(textSamples)) detected.push('de');
-  if (/[ñáéíóúü]/i.test(textSamples)) detected.push('es');
-  if (!detected.length) detected.push('en'); // Default
-
-  return detected;
-}
-

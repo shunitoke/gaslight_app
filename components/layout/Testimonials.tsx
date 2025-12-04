@@ -107,8 +107,9 @@ export const TestimonialsSection: React.FC = () => {
 
     container.addEventListener('mouseenter', handleMouseEnter);
     container.addEventListener('mouseleave', handleMouseLeave);
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchend', handleTouchEnd);
+    // Mark touch events as passive to improve scroll performance
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     startAutoScroll();
 

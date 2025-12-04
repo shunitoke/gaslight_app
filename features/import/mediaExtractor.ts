@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 
 import { logError, logInfo } from '../../lib/telemetry';
+import { storeMediaInBlob } from '../../lib/blob';
 import type { MediaArtifact } from '../analysis/types';
 
 /**
@@ -15,7 +16,7 @@ export async function extractMediaFromWhatsAppZip(
 ): Promise<{
   chatText: string;
   mediaArtifacts: MediaArtifact[];
-  mediaFiles: Map<string, Blob>; // Map of media artifact ID to file blob
+  mediaFiles: Map<string, Blob>; // Deprecated: media is now in Blob, kept for backward compatibility
 }> {
   try {
     const zip = await JSZip.loadAsync(zipBuffer);
@@ -68,6 +69,9 @@ export async function extractMediaFromWhatsAppZip(
           contentType = `audio/${ext}`;
         }
 
+        // Upload media to Vercel Blob to avoid RAM issues
+        const blobUrl = await storeMediaInBlob(mediaId, blob, contentType);
+
         const artifact: MediaArtifact = {
           id: mediaId,
           conversationId,
@@ -75,13 +79,15 @@ export async function extractMediaFromWhatsAppZip(
           originalFilename: filename,
           contentType,
           sizeBytes: blob.size,
-          transientPathOrUrl: undefined, // Will be set to data URL if needed
+          blobUrl: blobUrl || undefined, // Store Blob URL instead of keeping in RAM
+          transientPathOrUrl: undefined, // Deprecated: use blobUrl instead
           labels: [],
           sentimentHint: 'unknown'
         };
 
         mediaArtifacts.push(artifact);
-        mediaFiles.set(mediaId, blob);
+        // Don't store in mediaFiles Map - media is now in Blob
+        // mediaFiles.set(mediaId, blob); // Removed to save RAM
 
         logInfo('media_extracted', {
           conversationId,

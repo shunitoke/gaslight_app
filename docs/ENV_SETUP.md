@@ -24,8 +24,20 @@ OPENROUTER_MIN_DELAY_MS=300
 
 ### Model Configuration
 ```bash
-# Text analysis model (default: x-ai/grok-4.1-fast:free)
-GASLIGHT_TEXT_MODEL=x-ai/grok-4.1-fast:free
+# Text analysis model (default: x-ai/grok-4.1-fast)
+GASLIGHT_TEXT_MODEL=x-ai/grok-4.1-fast
+
+# Fallback models for automatic switching on rate limits (comma-separated)
+# OpenRouter will automatically try the next model if the primary fails
+# IMPORTANT: OpenRouter limits models array to 3 items max (primary + 2 fallbacks)
+# 
+# For 402 errors (token limit exceeded), fallback models are tried sequentially:
+# - Free tier has a 12,545 token prompt limit regardless of model context window
+# - If you get 402, the system will try each fallback model one by one
+# - If all models fail with 402, the prompt is too large and needs to be reduced
+#
+# Default: anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free
+GASLIGHT_TEXT_MODEL_FALLBACKS=anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free
 
 # Vision/audio analysis model (default: openai/gpt-4o-mini)
 GASLIGHT_VISION_MODEL=openai/gpt-4o-mini

@@ -173,8 +173,17 @@ export function AnalysisProgress({
   });
 
   // Accordion: collapsed by default; auto-open only for errors.
-  const [accordionValue, setAccordionValue] =
-    React.useState<string | undefined>(visualStatus === 'error' ? 'details' : undefined);
+  // Always initialize with explicit value to keep it controlled from the start
+  const [accordionValue, setAccordionValue] = React.useState<string | undefined>(
+    visualStatus === 'error' ? 'details' : undefined
+  );
+
+  // Auto-open accordion when error status is detected
+  React.useEffect(() => {
+    if (visualStatus === 'error') {
+      setAccordionValue((prev) => prev !== 'details' ? 'details' : prev);
+    }
+  }, [visualStatus]);
 
   // Build detailed message
   let detailedMessage = statusMessage;

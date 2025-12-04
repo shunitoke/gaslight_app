@@ -11,9 +11,13 @@ const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
 >(({ className, ...props }, ref) => {
+  // Only apply default grid if no className is provided or if it doesn't contain layout classes
+  const hasLayoutClass = className?.includes('flex') || className?.includes('grid');
+  const defaultClassName = hasLayoutClass ? undefined : "grid gap-2";
+  
   return (
     <RadioGroupPrimitive.Root
-      className={cn("grid gap-2", className)}
+      className={cn(defaultClassName, className)}
       {...props}
       ref={ref}
     />

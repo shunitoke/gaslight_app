@@ -9,6 +9,7 @@ interface RippleProps {
   className?: string;
   position?: "center" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
   color?: "primary" | "accent" | "secondary";
+  paused?: boolean; // Пауза анимации через CSS animation-play-state
 }
 
 export function Ripple({
@@ -18,6 +19,7 @@ export function Ripple({
   className,
   position = "center",
   color = "primary",
+  paused = false,
 }: RippleProps) {
   const positionClasses = {
     center: "left-1/2 top-1/2",
@@ -62,12 +64,13 @@ export function Ripple({
               borderStyle,
               transform: "translate3d(-50%, -50%, 0)",
               boxShadow: `0 0 ${30 + i * 8}px hsl(var(${colorVar}) / ${borderOpacity * 0.5}%), 0 0 ${60 + i * 12}px hsl(var(${colorVar}) / ${borderOpacity * 0.2}%)`,
-              willChange: "transform, opacity",
+              willChange: paused ? "auto" : "transform, opacity",
               backfaceVisibility: "hidden",
               perspective: "1000px",
+              animationPlayState: paused ? "paused" : "running" as React.CSSProperties['animationPlayState'],
               // @ts-ignore
               "--i": i,
-            }}
+            } as React.CSSProperties}
           />
         );
       })}

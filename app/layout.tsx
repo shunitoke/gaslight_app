@@ -7,12 +7,13 @@ import { cookies, headers } from 'next/headers';
 
 import { Footer } from '../components/layout/Footer';
 import { Header } from '../components/layout/Header';
-import { BackgroundAnimation } from '../components/layout/BackgroundAnimation';
+import { ConditionalBackgroundAnimation } from '../components/layout/ConditionalBackgroundAnimation';
 import { PWAInstallPrompt } from '../components/PWAInstallPrompt';
 import { PWAInstaller } from '../components/PWAInstaller';
 import { LanguageProvider, LOCALE_STORAGE_KEY, supportedLocales } from '../features/i18n';
 import type { SupportedLocale } from '../features/i18n/types';
 import { ThemeProvider } from '../features/theme';
+import { AnimationProvider } from '../contexts/AnimationContext';
 
 const inter = Inter({ 
   subsets: ['latin', 'cyrillic'],
@@ -25,7 +26,8 @@ const playfair = Playfair_Display({
   variable: '--font-playfair',
   weight: ['400', '500', '600', '700'],
   display: 'swap',
-  preload: true,
+  // Only preload Inter (main font), Playfair loads when needed via variable
+  preload: false,
   fallback: ['Georgia', 'serif'],
 });
 
@@ -149,26 +151,26 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
-        {/* Resource hints for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Resource hints - Next.js handles font preconnect automatically */}
         <link rel="dns-prefetch" href="https://openrouter.ai" />
       </head>
       <body className={`${inter.className} ${playfair.variable} bg-background text-foreground`} suppressHydrationWarning>
-        <BackgroundAnimation />
-        <PWAInstaller />
-        <ThemeProvider>
-          <LanguageProvider initialLocale={initialLocale as SupportedLocale}>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1" id="main-content" tabIndex={-1}>
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <PWAInstallPrompt />
-          </LanguageProvider>
-        </ThemeProvider>
+        <AnimationProvider>
+          <ConditionalBackgroundAnimation />
+          <PWAInstaller />
+          <ThemeProvider>
+            <LanguageProvider initialLocale={initialLocale as SupportedLocale}>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1" id="main-content" tabIndex={-1}>
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <PWAInstallPrompt />
+            </LanguageProvider>
+          </ThemeProvider>
+        </AnimationProvider>
       </body>
     </html>
   );

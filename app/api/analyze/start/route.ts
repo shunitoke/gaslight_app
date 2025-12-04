@@ -10,11 +10,16 @@ import type {
 import type { SupportedLocale } from '../../../../features/i18n/types';
 import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
 import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
+import { checkRateLimit } from '../../../../lib/rateLimit';
 import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
 import { updateProgressStore, getProgressStore } from '../progress/route';
+import { computeChatHash, getCachedAnalysis, setCachedAnalysis } from '../../../../lib/cache';
+import { getConfig } from '../../../../lib/config';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // keep the start endpoint itself very short
+export const maxDuration = 60; // 1 minute - route handler returns quickly, analysis runs in background
+
+const RATE_LIMIT_MAX_REQUESTS = 3; // 3 analysis start requests per minute per IP
 
 type AnalyzeStartBody = {
   conversation: Conversation;
@@ -31,6 +36,15 @@ export async function POST(request: Request) {
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||
       'unknown';
+
+    // Rate limiting
+    if (!(await checkRateLimit(`analyze_start:${ip}`, RATE_LIMIT_MAX_REQUESTS))) {
+      logError('rate_limit_exceeded', { ip, endpoint: 'analyze_start' });
+      return NextResponse.json(
+        { error: 'Too many analysis requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
     // Basic tier check (reuse subscription logic)
     const subscriptionTier = await getSubscriptionTier(request);
@@ -53,15 +67,106 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check cache before starting analysis
+    const chatHash = computeChatHash(messages);
+    logInfo('analyze_start_cache_check', {
+      conversationId: conversation.id,
+      chatHash,
+      messageCount: messages.length,
+      enhancedAnalysis: enhancedAnalysis && features.canUseEnhancedAnalysis
+    });
+
+    const cachedResult = await getCachedAnalysis(
+      chatHash,
+      enhancedAnalysis && features.canUseEnhancedAnalysis
+    );
+    if (cachedResult) {
+      logInfo('analyze_start_cache_hit', {
+        conversationId: conversation.id,
+        chatHash
+      });
+
+      // Record metrics for cached result
+      try {
+        const { recordAnalysisStart, recordAnalysisComplete } = await import('../../../../lib/metrics');
+        await recordAnalysisStart(
+          conversation.id,
+          0, // File size not available
+          messages.length,
+          conversation.sourcePlatform || 'unknown',
+          enhancedAnalysis || false
+        );
+        await recordAnalysisComplete(conversation.id, 0, true); // cacheHit = true
+      } catch (metricsError) {
+        // Ignore metrics errors
+      }
+
+      // Return cached result immediately
+      const { aggregateDailyActivity } = await import('../../../../lib/utils');
+      const activityByDay = aggregateDailyActivity(messages);
+
+      const result = {
+        conversation,
+        analysis: cachedResult,
+        activityByDay
+      };
+
+      // Store result in job store
+      const job = await createJob(conversation.id);
+      await setJobResult(job.id, result);
+      
+      // Update progress to completed
+      await updateProgressStore(conversation.id, {
+        status: 'completed',
+        progress: 100,
+        result
+      });
+
+      return NextResponse.json({ jobId: job.id });
+    }
+
+    logInfo('analyze_start_cache_miss', {
+      conversationId: conversation.id,
+      chatHash
+    });
+
     const job = await createJob(conversation.id);
     logInfo('analyze_start_job_created', {
       jobId: job.id,
       conversationId: conversation.id
     });
 
+    // Set initial progress immediately to verify it works
+    await updateProgressStore(conversation.id, {
+      status: 'starting',
+      progress: 0
+    });
+    
+    // Verify progress was saved (critical check)
+    const verifyProgress = await getProgressStore(conversation.id);
+    if (!verifyProgress) {
+      logError('analyze_start_progress_not_saved', {
+        conversationId: conversation.id,
+        jobId: job.id
+      });
+      // Continue anyway, but log the issue
+    } else {
+      logInfo('analyze_start_progress_verified', {
+        conversationId: conversation.id,
+        jobId: job.id,
+        status: verifyProgress.status
+      });
+    }
+
     // Fire-and-forget background analysis
     (async () => {
       try {
+        logInfo('analyze_start_background_started', {
+          jobId: job.id,
+          conversationId: conversation.id,
+          messageCount: messages.length
+        });
+
         await updateJob(job.id, {
           status: 'running',
           startedAt: new Date().toISOString(),
@@ -73,8 +178,20 @@ export async function POST(request: Request) {
           progress: 0
         });
         
+        logInfo('analyze_start_progress_initialized', {
+          jobId: job.id,
+          conversationId: conversation.id
+        });
+        
         // Small delay to ensure client has started polling
         await new Promise(resolve => setTimeout(resolve, 100));
+
+        logInfo('analyze_start_calling_analyzeConversation', {
+          jobId: job.id,
+          conversationId: conversation.id,
+          messageCount: messages.length,
+          mediaCount: features.canAnalyzeMedia ? mediaArtifacts.length : 0
+        });
 
         const analysisResult = await analyzeConversation(
           conversation,
@@ -87,58 +204,23 @@ export async function POST(request: Request) {
         );
 
         // Aggregate simple daily activity for lightweight timeline/heatmap visuals
-        const activityMap = new Map<string, { date: string; messageCount: number }>();
-        for (const message of messages) {
-          const dateKey = new Date(message.sentAt).toISOString().split('T')[0];
-          const existing = activityMap.get(dateKey);
-          if (existing) {
-            existing.messageCount += 1;
-          } else {
-            activityMap.set(dateKey, {
-              date: dateKey,
-              messageCount: 1,
-            });
-          }
-        }
-        const activityByDay = Array.from(activityMap.values()).sort((a, b) =>
-          a.date.localeCompare(b.date),
-        );
+        const { aggregateDailyActivity } = await import('../../../../lib/utils');
+        const activityByDay = aggregateDailyActivity(messages);
 
         logInfo('analyze_start_setting_result', {
           jobId: job.id,
           sectionsCount: analysisResult.sections?.length || 0,
           hasOverview: !!analysisResult.overviewSummary
         });
-        await setJobResult(job.id, {
-          conversation: {
-            ...conversation,
-            status: 'completed',
-          },
-          analysis: analysisResult,
-          activityByDay,
-        });
-        const verifyJob = await getJob(job.id);
-        if (!verifyJob || !verifyJob.result) {
-          logError('analyze_start_result_not_saved', {
-            jobId: job.id,
-            jobExists: !!verifyJob,
-            hasResult: !!verifyJob?.result
-          });
-        } else {
-          logInfo('analyze_start_result_saved', {
-            jobId: job.id,
-            sectionsCount: verifyJob.result.analysis?.sections?.length || 0
-          });
-        }
-
-        await updateJob(job.id, {
-          status: 'completed',
-          finishedAt: new Date().toISOString(),
-          progress: 100,
-        });
         
-        // Also store result in progressStore as fallback (in case jobStore fails across workers)
-        // Use direct function call instead of fetch for reliability
+        // Cache the analysis result for future use
+        await setCachedAnalysis(
+          chatHash,
+          analysisResult,
+          enhancedAnalysis && features.canUseEnhancedAnalysis
+        );
+        
+        // Prepare result object
         const resultToStore = {
           conversation: {
             ...conversation,
@@ -148,22 +230,71 @@ export async function POST(request: Request) {
           activityByDay,
         };
         
-        await updateProgressStore(conversation.id, {
+        // Store result atomically in both jobStore and progressStore
+        // This ensures result is available regardless of which worker handles the request
+        const [jobResultSaved, progressResultSaved] = await Promise.allSettled([
+          setJobResult(job.id, resultToStore),
+          updateProgressStore(conversation.id, {
+            status: 'completed',
+            progress: 100,
+            result: resultToStore
+          })
+        ]);
+        
+        // Verify both saves succeeded
+        if (jobResultSaved.status === 'rejected') {
+          logError('analyze_start_job_result_save_failed', {
+            jobId: job.id,
+            error: jobResultSaved.reason?.message || 'Unknown error'
+          });
+        }
+        
+        if (progressResultSaved.status === 'rejected') {
+          logError('analyze_start_progress_result_save_failed', {
+            conversationId: conversation.id,
+            error: progressResultSaved.reason?.message || 'Unknown error'
+          });
+        }
+        
+        // Update job status
+        await updateJob(job.id, {
           status: 'completed',
+          finishedAt: new Date().toISOString(),
           progress: 100,
-          result: resultToStore
         });
         
-        // Verify it was saved
-        const verifyProgress = await getProgressStore(conversation.id);
-        logInfo('analyze_start_progress_store_updated', {
-          jobId: job.id,
-          conversationId: conversation.id,
-          sectionsCount: analysisResult.sections?.length || 0,
-          hasResult: !!verifyProgress?.result,
-          hasAnalysis: !!verifyProgress?.result?.analysis,
-          verifySectionsCount: verifyProgress?.result?.analysis?.sections?.length || 0
-        });
+        // Verify results were saved
+        const [verifyJob, verifyProgress] = await Promise.all([
+          getJob(job.id),
+          getProgressStore(conversation.id)
+        ]);
+        
+        if (!verifyJob || !verifyJob.result) {
+          logError('analyze_start_result_not_saved_job', {
+            jobId: job.id,
+            jobExists: !!verifyJob,
+            hasResult: !!verifyJob?.result
+          });
+        } else {
+          logInfo('analyze_start_result_saved_job', {
+            jobId: job.id,
+            sectionsCount: verifyJob.result.analysis?.sections?.length || 0
+          });
+        }
+        
+        if (!verifyProgress || !verifyProgress.result) {
+          logError('analyze_start_result_not_saved_progress', {
+            conversationId: conversation.id,
+            progressExists: !!verifyProgress,
+            hasResult: !!verifyProgress?.result
+          });
+        } else {
+          logInfo('analyze_start_result_saved_progress', {
+            conversationId: conversation.id,
+            sectionsCount: verifyProgress.result.analysis?.sections?.length || 0,
+            hasBlobUrl: !!verifyProgress.blobUrl
+          });
+        }
       } catch (error) {
         const message = (error as Error).message || 'Analysis failed';
         logError('analyze_start_job_error', {
@@ -176,8 +307,14 @@ export async function POST(request: Request) {
           error: message,
         });
       }
-    })().catch(() => {
-      // Swallow background errors; they are logged above
+    })().catch((error) => {
+      // Log unhandled errors in background task
+      logError('analyze_start_background_unhandled_error', {
+        jobId: job.id,
+        conversationId: conversation.id,
+        error: (error as Error).message,
+        stack: (error as Error).stack?.substring(0, 500)
+      });
     });
 
     return NextResponse.json(

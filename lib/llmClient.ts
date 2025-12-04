@@ -1,5 +1,6 @@
 import { callOpenRouter } from './openrouter';
 import { logError, logInfo, logWarn } from './telemetry';
+import { getConfig } from './config';
 
 export type LLMMessage = {
   role: 'system' | 'user' | 'assistant';
@@ -42,7 +43,31 @@ export async function callLLM(payload: LLMRequest): Promise<LLMResponse> {
   }
 
   // Fallback / default: OpenRouter
-  return callOpenRouter(payload);
+  // Use fallback models to automatically switch on rate limit errors
+  // OpenRouter limits models array to 3 items max (primary + 2 fallbacks)
+  const config = getConfig();
+  const primaryModel = payload.model;
+  
+  // Limit fallbacks to 2 (so total is 3: primary + 2 fallbacks)
+  const limitedFallbacks = config.textModelFallbacks.slice(0, 2);
+  const modelsArray = limitedFallbacks.length > 0 
+    ? [primaryModel, ...limitedFallbacks]
+    : [primaryModel];
+  
+  logInfo('llm_request_with_fallbacks', {
+    primaryModel,
+    fallbackCount: limitedFallbacks.length,
+    totalModels: modelsArray.length,
+    maxAllowed: 3
+  });
+  
+  // Use models array instead of single model for automatic fallback
+  // OpenRouter will try models in order if one fails
+  return callOpenRouter({
+    ...payload,
+    model: undefined, // Don't use single model
+    models: modelsArray // Use array for automatic fallback (max 3 items)
+  });
 }
 
 async function callYandexGPT(

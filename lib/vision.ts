@@ -139,12 +139,21 @@ export async function analyzeMediaArtifact(
   notes?: string;
 }> {
   if (artifact.type === 'image' || artifact.type === 'sticker' || artifact.type === 'gif') {
-    if (!imageDataUrl && artifact.transientPathOrUrl) {
-      // Use the transient URL if available
-      return analyzeImage(artifact.transientPathOrUrl);
-    }
     if (imageDataUrl) {
       return analyzeImage(imageDataUrl);
+    }
+    // Try to fetch from Blob URL if available
+    if (artifact.blobUrl) {
+      const { getMediaFromBlob } = await import('./blob');
+      const mediaBlob = await getMediaFromBlob(artifact.blobUrl);
+      if (mediaBlob) {
+        const dataUrl = await fileToDataUrl(mediaBlob);
+        return analyzeImage(dataUrl);
+      }
+    }
+    // Fallback to transientPathOrUrl (deprecated)
+    if (artifact.transientPathOrUrl) {
+      return analyzeImage(artifact.transientPathOrUrl);
     }
   }
 

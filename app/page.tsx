@@ -1,9 +1,11 @@
 'use client';
 
-import { Upload, FileText, Shield, Sparkles, Brain, TrendingUp, HelpCircle, X } from 'lucide-react';
+import { Upload, FileText, Shield, Sparkles, Brain, TrendingUp, HelpCircle, X, AlertCircle } from 'lucide-react';
 
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
+import { useAnimation } from '../contexts/AnimationContext';
 import { useRouter } from 'next/navigation';
+import { upload } from '@vercel/blob/client';
 
 import { cn } from '@/lib/utils';
 import { AnalysisProgress } from '../components/analysis/AnalysisProgress';
@@ -21,6 +23,7 @@ import {
 import { FileUpload } from '../components/ui/FileUpload';
 import { Separator } from '../components/ui/separator';
 import { Spinner } from '../components/ui/spinner';
+import { Progress } from '../components/ui/progress';
 import type { Conversation, Message, Participant } from '../features/analysis/types';
 import { useLanguage } from '../features/i18n';
 
@@ -121,7 +124,9 @@ function parsePastedConversation(raw: string): ParsedManualConversation {
 export default function HomePage() {
   const { t, locale } = useLanguage();
   const router = useRouter();
+  const { setProcessing } = useAnimation();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -143,6 +148,11 @@ export default function HomePage() {
     router.prefetch('/analysis');
   }, [router]);
 
+  // Отключаем анимации при загрузке/анализе для экономии ресурсов
+  useEffect(() => {
+    setProcessing(uploading || analyzing);
+  }, [uploading, analyzing, setProcessing]);
+
   // Memoize handlers to prevent unnecessary re-renders
   const handleScrollToUpload = useCallback(() => {
     const uploadCard = document.querySelector('[data-upload-card]');
@@ -159,422 +169,264 @@ export default function HomePage() {
 
   const handleFileSelect = async (
     file: File,
-    platform: 'telegram' | 'whatsapp' | 'signal' | 'viber' | 'discord' | 'imessage' | 'messenger' | 'generic'
+    platform: 'telegram' | 'whatsapp' | 'signal' | 'viber' | 'discord' | 'imessage' | 'messenger' | 'generic' | 'auto'
   ) => {
+    // Clear old analysis data from sessionStorage when starting new upload
+    sessionStorage.removeItem('currentAnalysis');
+    sessionStorage.removeItem('currentConversation');
+    sessionStorage.removeItem('currentActivityByDay');
+    sessionStorage.removeItem('currentParticipants');
+    sessionStorage.removeItem('currentConversationId');
+    
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
     let progressInterval: NodeJS.Timeout | null = null;
     let progressPollInterval: NodeJS.Timeout | null = null;
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('platform', platform);
+      // Always use Vercel Blob for file upload (avoids RAM issues and Vercel body size limits)
+      try {
+        // Use client-side upload to bypass Vercel's 4.5MB limit
+        // Upload file directly to Blob Storage (bypasses Vercel serverless function)
+        // The upload function handles getting the token automatically
+        const blob = await upload(`import-${Date.now()}-${file.name}`, file, {
+          access: 'public',
+          handleUploadUrl: '/api/upload-to-blob',
+          onUploadProgress: (progressEvent) => {
+            // Update upload progress (0-100)
+            const progress = progressEvent.percentage || 0;
+            setUploadProgress(Math.round(progress));
+          },
+        });
 
-      const importResponse = await fetch('/api/import', {
-        method: 'POST',
-        body: formData
-      });
+        const blobUrl = blob.url;
+        setUploadProgress(100); // Ensure 100% on completion
 
-      if (!importResponse.ok) {
-        // Special handling for payload too large (413) which often comes
-        // from the hosting platform before our API code runs.
-        if (importResponse.status === 413) {
-          throw new Error(
-            'Import failed: file is too large for the server.\n\n' +
-              'Try a smaller export (shorter date range or fewer chats), or split the export into parts.'
-          );
-        }
+        // Then import from Blob URL
+        const importResponse = await fetch('/api/import/blob', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blobUrl: blobUrl,
+            platform,
+            fileName: file.name,
+            contentType: file.type
+          })
+        });
 
-        // Check if response is JSON or HTML (error page)
-        const contentType = importResponse.headers.get('content-type');
-        let errorData;
-        
-        if (contentType?.includes('application/json')) {
-          errorData = await importResponse.json();
-        } else {
-          // Response is HTML (error page), try to extract error message
-          const text = await importResponse.text();
-          const statusText = importResponse.statusText || 'Unknown error';
-          throw new Error(`Import failed (${importResponse.status} ${statusText}). The server returned an error page. Please try again or contact support.`);
-        }
-        
-        if (errorData.requiresPremium) {
-          throw new Error(`${errorData.error}\n\nFeature: ${errorData.feature}`);
-        }
-        throw new Error(errorData.error || 'Import failed');
-      }
+          if (!importResponse.ok) {
+            const errorData = await importResponse.json().catch(() => ({ error: t('importFailed') }));
+            throw new Error(errorData.error || t('importFailed'));
+          }
 
-      // Verify response is JSON before parsing
-      const contentType = importResponse.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
-        const text = await importResponse.text();
-        throw new Error(`Invalid response format. Expected JSON but received ${contentType}. Please try again.`);
-      }
+          const importData = await importResponse.json();
+          // Continue with normal flow...
+          setConversation(importData.conversation);
+          setUploading(false); // Stop uploading to show success message
+          
+          // Show success message briefly before starting analysis
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+          
+          // Automatically start analysis
+          setAnalyzing(true);
+          const hasPremium = true;
 
-      const importData = await importResponse.json();
-      setConversation(importData.conversation);
+          setAnalysisProgress({
+            progress: 0,
+            status: 'starting',
+            message: 'Starting AI analysis...',
+            isPremium: hasPremium
+          });
+          
+          sessionStorage.setItem('currentSubscriptionTier', 'premium');
+          sessionStorage.setItem('currentFeatures', JSON.stringify({ canAnalyzeMedia: true, canUseEnhancedAnalysis: true }));
 
-      // Automatically start analysis
-      setAnalyzing(true);
-      // Check if user has premium features
-      // In development we temporarily treat all analyses as premium
-      // so that all advanced features are available.
-      const hasPremium = true;
+          const conversationId = importData.conversation.id;
+          let jobIdForPolling: string | null = null;
 
-      setAnalysisProgress({
-        progress: 0,
-        status: 'starting',
-        message: 'Starting AI analysis...',
-        isPremium: hasPremium
-      });
-      
-      // Persist subscription info for the analysis page
-      sessionStorage.setItem(
-        'currentSubscriptionTier',
-        'premium'
-      );
-      sessionStorage.setItem(
-        'currentFeatures',
-        JSON.stringify({ canAnalyzeMedia: true, canUseEnhancedAnalysis: true })
-      );
-
-      // Get conversation ID for progress polling
-      const conversationId = importData.conversation.id;
-      
-      // Store jobId for later use in progress polling
-      let jobIdForPolling: string | null = null;
-
-      // Start real progress polling from server (every 2 seconds)
-      progressPollInterval = setInterval(async () => {
-        try {
-          const progressResponse = await fetch(`/api/analyze/progress?conversationId=${encodeURIComponent(conversationId)}`);
-          if (progressResponse.ok) {
-            const realProgress = await progressResponse.json();
-            
-            // Debug: log progress response structure when completed
-            if (realProgress.status === 'completed' || realProgress.progress === 100) {
-              console.log('[Client] Progress response (file upload):', {
-                status: realProgress.status,
-                progress: realProgress.progress,
-                hasResult: !!realProgress.result,
-                hasAnalysis: !!realProgress.result?.analysis,
-                resultType: typeof realProgress.result,
-                resultKeys: realProgress.result ? Object.keys(realProgress.result) : [],
-                sectionsCount: realProgress.result?.analysis?.sections?.length || 0
-              });
-            }
-
-            // Check if analysis is completed
-            if (realProgress.status === 'completed' && realProgress.progress === 100) {
-              // Don't stop polling immediately - continue for a few more attempts to get result
-              // This handles worker isolation issue where GET might hit different worker
-              
-              // Check if data is already in sessionStorage
-              const storedAnalysis = sessionStorage.getItem('currentAnalysis');
-              if (storedAnalysis) {
-                console.log('[Client] Found data in sessionStorage, navigating');
-                // Stop polling
-                if (progressPollInterval) {
-                  clearInterval(progressPollInterval);
-                  progressPollInterval = null;
-                }
-                // Data is ready, navigate to analysis page
-                setAnalysisProgress({
-                  progress: 100,
-                  status: 'completed',
-                  message: 'Analysis complete!',
-                  isPremium: hasPremium
-                });
-                router.prefetch('/analysis');
-                requestAnimationFrame(() => {
-                  router.push('/analysis');
-                });
-                return;
-              }
-              
-              // Try to get result from progress response first
-              if (realProgress.result && realProgress.result.analysis) {
-                console.log('[Client] Found result in progress response, saving to sessionStorage');
-                // Stop polling
-                if (progressPollInterval) {
-                  clearInterval(progressPollInterval);
-                  progressPollInterval = null;
-                }
-                const resultData = realProgress.result;
-                // Save to sessionStorage
-                sessionStorage.setItem('currentAnalysis', JSON.stringify(resultData.analysis));
-                if (resultData.conversation) {
-                  sessionStorage.setItem('currentConversation', JSON.stringify(resultData.conversation));
-                }
-                if (resultData.activityByDay) {
-                  sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
-                }
-                sessionStorage.setItem('currentParticipants', JSON.stringify(importData.participants || []));
-                sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
-                sessionStorage.setItem('currentFeatures', JSON.stringify({
-                  canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-                  canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-                }));
+          // Start progress polling
+          progressPollInterval = setInterval(async () => {
+            try {
+              const progressResponse = await fetch(`/api/analyze/progress?conversationId=${encodeURIComponent(conversationId)}`);
+              if (progressResponse.ok) {
+                const realProgress = await progressResponse.json();
                 
-                // Navigate to analysis page
-                setAnalysisProgress({
-                  progress: 100,
-                  status: 'completed',
-                  message: 'Analysis complete!',
-                  isPremium: hasPremium
-                });
-                router.prefetch('/analysis');
-                requestAnimationFrame(() => {
-                  router.push('/analysis');
-                });
-                return;
-              }
-              
-              // Result not in progress response (worker isolation) - try result endpoint
-              // Use a counter to limit retries, but continue polling for a while
-              if (!(window as any).__resultFetchAttempts) {
-                (window as any).__resultFetchAttempts = 0;
-              }
-              (window as any).__resultFetchAttempts++;
-              
-              // Try result-by-conversation endpoint (more reliable)
-              // Continue trying for up to 20 attempts (40 seconds with 2s polling)
-              if ((window as any).__resultFetchAttempts <= 20) {
-                try {
-                  // Add small delay to allow result to be saved
-                  await new Promise(resolve => setTimeout(resolve, 100));
+                // Check for errors first
+                if (realProgress.status === 'error' || realProgress.error) {
+                  // Stop polling
+                  if (progressPollInterval) {
+                    clearInterval(progressPollInterval);
+                    progressPollInterval = null;
+                  }
                   
-                  const resultResponse = await fetch(`/api/analyze/result-by-conversation?conversationId=${encodeURIComponent(conversationId)}`);
-                  if (resultResponse.ok) {
-                    const resultData = await resultResponse.json();
-                    if (resultData.analysis) {
-                      console.log(`[Client] Got result from endpoint (attempt ${(window as any).__resultFetchAttempts})`);
-                      // Stop polling
+                  // Extract error message
+                  let errorMessage = realProgress.error || t('analysisFailed');
+                  
+                  // Check if result contains error in overviewSummary
+                  if (realProgress.result?.analysis?.overviewSummary) {
+                    const overview = realProgress.result.analysis.overviewSummary;
+                    const isError = overview.includes('Лимит запросов') ||
+                                   overview.includes('rate limit') ||
+                                   overview.includes('token limit') ||
+                                   overview.includes('Ошибка анализа') ||
+                                   overview.includes('Analysis error') ||
+                                   overview.includes('Код ошибки') ||
+                                   overview.includes('Error code');
+                    if (isError) {
+                      errorMessage = overview;
+                    }
+                  }
+                  
+                  setError(errorMessage);
+                  setAnalyzing(false);
+                  setAnalysisProgress({
+                    progress: 0,
+                    status: 'error',
+                    message: errorMessage
+                  });
+                  return;
+                }
+                
+                if (realProgress.status === 'completed' && realProgress.progress === 100) {
+                  // Check if result contains error in overviewSummary (even if status is completed)
+                  if (realProgress.result?.analysis?.overviewSummary) {
+                    const overview = realProgress.result.analysis.overviewSummary;
+                    const isError = overview.includes('Лимит запросов') ||
+                                   overview.includes('rate limit') ||
+                                   overview.includes('token limit') ||
+                                   overview.includes('Ошибка анализа') ||
+                                   overview.includes('Analysis error') ||
+                                   overview.includes('Код ошибки') ||
+                                   overview.includes('Error code') ||
+                                   (realProgress.result.analysis.sections?.length === 0 && 
+                                    (overview.includes('(Код ошибки') || overview.includes('(Error code')));
+                    
+                    if (isError) {
                       if (progressPollInterval) {
                         clearInterval(progressPollInterval);
                         progressPollInterval = null;
                       }
-                      // Save to sessionStorage
-                      sessionStorage.setItem('currentAnalysis', JSON.stringify(resultData.analysis));
-                      if (resultData.conversation) {
-                        sessionStorage.setItem('currentConversation', JSON.stringify(resultData.conversation));
-                      }
-                      if (resultData.activityByDay) {
-                        sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
-                      }
-                      sessionStorage.setItem('currentParticipants', JSON.stringify(importData.participants || []));
-                      sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
-                      sessionStorage.setItem('currentFeatures', JSON.stringify({
-                        canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-                        canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-                      }));
-                      
-                      // Navigate to analysis page
+                      setError(overview);
+                      setAnalyzing(false);
                       setAnalysisProgress({
-                        progress: 100,
-                        status: 'completed',
-                        message: 'Analysis complete!',
-                        isPremium: hasPremium
+                        progress: 0,
+                        status: 'error',
+                        message: overview
                       });
-                      router.prefetch('/analysis');
-                      requestAnimationFrame(() => {
-                        router.push('/analysis');
-                      });
-                      (window as any).__resultFetchAttempts = 0; // Reset counter
                       return;
                     }
-                  } else {
-                    console.log(`[Client] Result endpoint returned ${resultResponse.status} (attempt ${(window as any).__resultFetchAttempts})`);
                   }
-                } catch (resultError) {
-                  console.debug(`[Client] Failed to fetch result (attempt ${(window as any).__resultFetchAttempts}):`, resultError);
+                  
+                  const storedAnalysis = sessionStorage.getItem('currentAnalysis');
+                  if (storedAnalysis) {
+                    if (progressPollInterval) {
+                      clearInterval(progressPollInterval);
+                      progressPollInterval = null;
+                    }
+                    setAnalysisProgress({
+                      progress: 100,
+                      status: 'completed',
+                      message: 'Analysis complete!',
+                      isPremium: hasPremium
+                    });
+                    router.prefetch('/analysis');
+                    requestAnimationFrame(() => {
+                      router.push('/analysis');
+                    });
+                    return;
+                  }
+                  
+                  if (realProgress.result && realProgress.result.analysis) {
+                    if (progressPollInterval) {
+                      clearInterval(progressPollInterval);
+                      progressPollInterval = null;
+                    }
+                    const resultData = realProgress.result;
+                    sessionStorage.setItem('currentAnalysis', JSON.stringify(resultData.analysis));
+                    if (resultData.conversation) {
+                      sessionStorage.setItem('currentConversation', JSON.stringify(resultData.conversation));
+                    }
+                    if (resultData.activityByDay) {
+                      sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
+                    }
+                    sessionStorage.setItem('currentParticipants', JSON.stringify(importData.participants || []));
+                    sessionStorage.setItem('currentConversationId', conversationId);
+                    sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
+                    sessionStorage.setItem('currentFeatures', JSON.stringify({
+                      canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
+                      canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
+                    }));
+                    
+                    setAnalysisProgress({
+                      progress: 100,
+                      status: 'completed',
+                      message: 'Analysis complete!',
+                      isPremium: hasPremium
+                    });
+                    router.prefetch('/analysis');
+                    requestAnimationFrame(() => {
+                      router.push('/analysis');
+                    });
+                    return;
+                  }
                 }
-              } else {
-                // Max attempts reached, stop polling
-                console.warn('[Client] Max result fetch attempts reached, stopping polling');
-                if (progressPollInterval) {
-                  clearInterval(progressPollInterval);
-                  progressPollInterval = null;
+
+                if (realProgress.progress > 0 && realProgress.status !== 'starting') {
+                  setAnalysisProgress((prev) => {
+                    if (!prev) return prev;
+                    return {
+                      ...prev,
+                      progress: realProgress.progress,
+                      status: realProgress.status,
+                      message: realProgress.message || prev.message,
+                      currentChunk: realProgress.currentChunk,
+                      totalChunks: realProgress.totalChunks
+                    };
+                  });
                 }
-                (window as any).__resultFetchAttempts = 0; // Reset counter
               }
+            } catch (error) {
+              console.debug('Progress polling failed:', error);
             }
+          }, 2000);
 
-            // Only update if we got real progress data
-            if (realProgress.progress > 0 && realProgress.status !== 'starting') {
-              setAnalysisProgress((prev) => {
-                if (!prev) return prev;
-                return {
-                  ...prev,
-                  progress: realProgress.progress,
-                  status: realProgress.status,
-                  message: realProgress.message || prev.message,
-                  currentChunk: realProgress.currentChunk,
-                  totalChunks: realProgress.totalChunks
-                };
-              });
-            }
+          // Start analysis
+          const startResponse = await fetch('/api/analyze/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversation: importData.conversation,
+              messages: importData.messages || [],
+              mediaArtifacts: hasPremium ? (importData.media || []) : [],
+              enhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis,
+              participants: importData.participants || [],
+              locale: locale
+            })
+          });
+
+          if (!startResponse.ok) {
+            const errorDataStart = await startResponse.json().catch(() => ({ error: t('failedToStartAnalysis') }));
+            throw new Error(errorDataStart.error || t('failedToStartAnalysis'));
           }
-        } catch (error) {
-          // Ignore polling errors, keep last known progress
-          console.debug('Progress polling failed:', error);
-        }
-      }, 2000);
 
-      // Start background analysis job
-      const startResponse = await fetch('/api/analyze/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversation: importData.conversation,
-          messages: importData.messages || [],
-          mediaArtifacts: hasPremium ? (importData.media || []) : [],
-          enhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis,
-          participants: importData.participants || [],
-          locale: locale // Pass current locale for prompt translation
-        })
-      });
+          const { jobId } = await startResponse.json();
+          jobIdForPolling = jobId;
 
-      if (!startResponse.ok) {
-        const contentTypeStart = startResponse.headers.get('content-type');
-        let errorDataStart;
-
-        if (contentTypeStart?.includes('application/json')) {
-          errorDataStart = await startResponse.json();
-        } else {
-          const text = await startResponse.text();
-          const statusText = startResponse.statusText || 'Unknown error';
-          throw new Error(`Analysis start failed (${startResponse.status} ${statusText}). The server returned an error page. Please try again or contact support.`);
-        }
-
-        throw new Error(errorDataStart.error || 'Failed to start analysis');
-      }
-
-      const { jobId } = await startResponse.json();
-      if (!jobId) {
-        throw new Error('Failed to start analysis: jobId is missing in response.');
-      }
-      
-      // Store jobId for progress polling
-      jobIdForPolling = jobId;
-
-      // Poll for job result
-      let analyzeData: any = null;
-      const maxPollAttempts = 600; // allow long-running analyses (~10 minutes with 1s interval)
-      let attempts = 0;
-
-      while (attempts < maxPollAttempts) {
-        attempts += 1;
-
-        // Check progress first - if completed, check sessionStorage and exit
-        try {
-          const progressCheck = await fetch(`/api/analyze/progress?conversationId=${encodeURIComponent(conversationId)}`);
-          if (progressCheck.ok) {
-            const progressData = await progressCheck.json();
-            if (progressData.status === 'completed' && progressData.progress === 100) {
-              // Analysis is complete, check sessionStorage
-              const storedAnalysis = sessionStorage.getItem('currentAnalysis');
-              if (storedAnalysis) {
-                // Data is ready, break out of loop
-                analyzeData = { analysis: JSON.parse(storedAnalysis) };
-                const storedConv = sessionStorage.getItem('currentConversation');
-                if (storedConv) {
-                  analyzeData.conversation = JSON.parse(storedConv);
-                }
-                const storedActivity = sessionStorage.getItem('currentActivityByDay');
-                if (storedActivity) {
-                  analyzeData.activityByDay = JSON.parse(storedActivity);
-                }
-                break;
-              }
-            }
+          setUploading(false);
+          setUploadProgress(0);
+          return;
+        } catch (blobError) {
+          const errorMessage = (blobError as Error).message || '';
+          // Check if it's a format error
+          if (errorMessage.includes('INVALID_FORMAT') || errorMessage.includes('Failed to parse')) {
+            throw new Error('INVALID_FORMAT');
           }
-        } catch {
-          // Ignore progress check errors
+          throw new Error(
+            `${t('failedToUploadFile')}: ${errorMessage}\n\n` +
+            (locale === 'ru' ? 'Пожалуйста, проверьте соединение и попробуйте снова.' : 'Please check your connection and try again.')
+          );
         }
-
-        const resultResponse = await fetch(`/api/analyze/result?jobId=${encodeURIComponent(jobId)}`, {
-          method: 'GET'
-        });
-
-        if (resultResponse.status === 404) {
-          // Job not found - check if analysis is completed via progress
-          // If not completed yet, wait and retry
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
-        }
-
-        const contentTypeResult = resultResponse.headers.get('content-type');
-        const isJson = contentTypeResult?.includes('application/json');
-        const payload = isJson ? await resultResponse.json() : null;
-
-        if (resultResponse.status === 202) {
-          // Job still running or queued – update simulated progress lightly if needed
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
-        }
-
-        if (!resultResponse.ok) {
-          const message =
-            payload?.error ||
-            (resultResponse.status === 500
-              ? locale === 'ru'
-                ? 'Анализ завершился с ошибкой на сервере. Попробуйте ещё раз позже.'
-                : 'Analysis failed on the server. Please try again later.'
-              : `Analysis failed (${resultResponse.status}).`);
-          throw new Error(message);
-        }
-
-        // 200 OK with result
-        analyzeData = payload;
-        break;
-      }
-
-      if (!analyzeData) {
-        throw new Error(
-          locale === 'ru'
-            ? 'Анализ занял слишком много времени. Попробуйте разделить переписку на части и проанализировать по очереди.'
-            : 'Analysis took too long. Please try splitting the conversation into parts and analyzing them separately.'
-        );
-      }
-
-      // Clear both progress intervals
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-      }
-      if (progressPollInterval) {
-        clearInterval(progressPollInterval);
-        progressPollInterval = null;
-      }
-      
-      // Update progress: completed
-      setAnalysisProgress({
-        progress: 100,
-        status: 'completed',
-        message: 'Analysis complete!'
-      });
-      
-      // Store in session for the analysis page
-      sessionStorage.setItem('currentAnalysis', JSON.stringify(analyzeData.analysis));
-      sessionStorage.setItem('currentConversation', JSON.stringify(analyzeData.conversation));
-      if (analyzeData.activityByDay) {
-        sessionStorage.setItem('currentActivityByDay', JSON.stringify(analyzeData.activityByDay));
-      }
-      sessionStorage.setItem('currentParticipants', JSON.stringify(importData.participants || []));
-      sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
-      sessionStorage.setItem('currentFeatures', JSON.stringify({
-        canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-        canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-      }));
-      
-      // Prefetch and navigate to analysis page - data is already in sessionStorage
-      router.prefetch('/analysis');
-      // Small delay to ensure sessionStorage is written
-      requestAnimationFrame(() => {
-        router.push('/analysis');
-      });
     } catch (err) {
       // Clear both progress intervals
       if (progressInterval) {
@@ -585,13 +437,15 @@ export default function HomePage() {
         clearInterval(progressPollInterval);
         progressPollInterval = null;
       }
-      const message = (err as Error).message || 'An error occurred';
+      const message = (err as Error).message || t('errorOccurred');
       // Normalize generic network error into a more helpful message
       const normalized =
         message === 'Failed to fetch'
           ? locale === 'ru'
             ? 'Сервер не ответил вовремя или соединение было прервано. Попробуйте ещё раз чуть позже.'
             : 'The server did not respond in time or the connection was interrupted. Please try again in a moment.'
+          : message === 'INVALID_FORMAT' || message.includes('INVALID_FORMAT') || message.includes('Failed to parse')
+          ? t('error_invalid_format')
           : message;
       setError(normalized);
       setUploading(false);
@@ -599,9 +453,30 @@ export default function HomePage() {
       setAnalysisProgress({
         progress: 0,
         status: 'error',
-        message: (err as Error).message || 'Analysis failed'
+        message: (err as Error).message || t('analysisFailed')
       });
     }
+  };
+
+  // Simple local heuristic to avoid running analysis on obvious keyboard mash / non-conversation noise
+  const looksLikeConversationExcerpt = (text: string): boolean => {
+    const normalized = text.replace(/\s+/g, ' ').trim();
+    if (normalized.length < 30) return false;
+
+    const alphaMatches = normalized.match(/[A-Za-zА-Яа-яЁё]{2,}/g) || [];
+    if (alphaMatches.join('').length < 10) return false;
+
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    const speakerLike = new Set(
+      lines
+        .slice(0, 20)
+        .map((l) => l.trim())
+        .filter((l) => l.includes(':') || l.includes('—') || l.includes('- '))
+    );
+    if (speakerLike.size >= 1) return true;
+
+    const wordCount = normalized.split(' ').filter((w) => w.length > 1).length;
+    return wordCount >= 6;
   };
 
   const handlePasteAnalyze = async () => {
@@ -617,6 +492,19 @@ export default function HomePage() {
       );
       return;
     }
+    if (!looksLikeConversationExcerpt(text)) {
+      setError(
+        t('paste_error_not_conversation') ??
+          'This text does not look like a conversation excerpt. Please paste a real chat fragment.'
+      );
+      return;
+    }
+
+    // Clear old analysis data from sessionStorage when starting new analysis
+    sessionStorage.removeItem('currentAnalysis');
+    sessionStorage.removeItem('currentConversation');
+    sessionStorage.removeItem('currentActivityByDay');
+    sessionStorage.removeItem('currentParticipants');
 
     setError(null);
     setConversation(null);
@@ -647,17 +535,55 @@ export default function HomePage() {
             
             // Debug: log progress response structure when completed
             if (realProgress.status === 'completed' || realProgress.progress === 100) {
-              console.log('[Client] Progress response (paste text):', {
-                status: realProgress.status,
-                progress: realProgress.progress,
-                hasResult: !!realProgress.result,
-                hasAnalysis: !!realProgress.result?.analysis,
-                resultType: typeof realProgress.result,
-                resultKeys: realProgress.result ? Object.keys(realProgress.result) : [],
-                sectionsCount: realProgress.result?.analysis?.sections?.length || 0
-              });
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[Client] Progress response (paste text):', {
+                  status: realProgress.status,
+                  progress: realProgress.progress,
+                  hasResult: !!realProgress.result,
+                  hasAnalysis: !!realProgress.result?.analysis,
+                  resultType: typeof realProgress.result,
+                  resultKeys: realProgress.result ? Object.keys(realProgress.result) : [],
+                  sectionsCount: realProgress.result?.analysis?.sections?.length || 0
+                });
+              }
             }
 
+            // Check for errors first
+            if (realProgress.status === 'error' || realProgress.error) {
+              // Stop polling
+              if (progressPollInterval) {
+                clearInterval(progressPollInterval);
+                progressPollInterval = null;
+              }
+              
+              // Extract error message
+              let errorMessage = realProgress.error || 'Analysis failed';
+              
+              // Check if result contains error in overviewSummary
+              if (realProgress.result?.analysis?.overviewSummary) {
+                const overview = realProgress.result.analysis.overviewSummary;
+                const isError = overview.includes('Лимит запросов') ||
+                               overview.includes('rate limit') ||
+                               overview.includes('token limit') ||
+                               overview.includes('Ошибка анализа') ||
+                               overview.includes('Analysis error') ||
+                               overview.includes('Код ошибки') ||
+                               overview.includes('Error code');
+                if (isError) {
+                  errorMessage = overview;
+                }
+              }
+              
+              setError(errorMessage);
+              setAnalyzing(false);
+              setAnalysisProgress({
+                progress: 0,
+                status: 'error',
+                message: errorMessage
+              });
+              return;
+            }
+            
             // Check if analysis is completed
             if (realProgress.status === 'completed' && realProgress.progress === 100) {
               // Stop polling
@@ -666,10 +592,37 @@ export default function HomePage() {
                 progressPollInterval = null;
               }
               
+              // Check if result contains error in overviewSummary (even if status is completed)
+              if (realProgress.result?.analysis?.overviewSummary) {
+                const overview = realProgress.result.analysis.overviewSummary;
+                const isError = overview.includes('Лимит запросов') ||
+                               overview.includes('rate limit') ||
+                               overview.includes('token limit') ||
+                               overview.includes('Ошибка анализа') ||
+                               overview.includes('Analysis error') ||
+                               overview.includes('Код ошибки') ||
+                               overview.includes('Error code') ||
+                               (realProgress.result.analysis.sections?.length === 0 && 
+                                (overview.includes('(Код ошибки') || overview.includes('(Error code')));
+                
+                if (isError) {
+                  setError(overview);
+                  setAnalyzing(false);
+                  setAnalysisProgress({
+                    progress: 0,
+                    status: 'error',
+                    message: overview
+                  });
+                  return;
+                }
+              }
+              
               // Check if data is already in sessionStorage
               const storedAnalysis = sessionStorage.getItem('currentAnalysis');
               if (storedAnalysis) {
-                console.log('[Client] Found data in sessionStorage (paste), navigating');
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('[Client] Found data in sessionStorage (paste), navigating');
+                }
                 // Data is ready, navigate to analysis page
                 setAnalysisProgress({
                   progress: 100,
@@ -686,7 +639,9 @@ export default function HomePage() {
               
               // Try to get result from progress response
               if (realProgress.result && realProgress.result.analysis) {
-                console.log('[Client] Found result in progress response (paste), saving to sessionStorage');
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('[Client] Found result in progress response (paste), saving to sessionStorage');
+                }
                 // Stop polling
                 if (progressPollInterval) {
                   clearInterval(progressPollInterval);
@@ -702,6 +657,7 @@ export default function HomePage() {
                   sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
                 }
                 sessionStorage.setItem('currentParticipants', JSON.stringify(participants || []));
+                sessionStorage.setItem('currentConversationId', conversationId);
                 sessionStorage.setItem('currentSubscriptionTier', 'premium');
                 sessionStorage.setItem('currentFeatures', JSON.stringify({
                   canAnalyzeMedia: true,
@@ -736,7 +692,40 @@ export default function HomePage() {
                   if (resultResponse.ok) {
                     const resultData = await resultResponse.json();
                     if (resultData.analysis) {
-                      console.log(`[Client] Got result from endpoint (paste, attempt ${(window as any).__resultFetchAttemptsPaste})`);
+                      // Check if analysis contains error in overviewSummary
+                      if (resultData.analysis.overviewSummary) {
+                        const overview = resultData.analysis.overviewSummary;
+                        const isError = overview.includes('Лимит запросов') ||
+                                       overview.includes('rate limit') ||
+                                       overview.includes('token limit') ||
+                                       overview.includes('Ошибка анализа') ||
+                                       overview.includes('Analysis error') ||
+                                       overview.includes('Код ошибки') ||
+                                       overview.includes('Error code') ||
+                                       (resultData.analysis.sections?.length === 0 && 
+                                        (overview.includes('(Код ошибки') || overview.includes('(Error code')));
+                        
+                        if (isError) {
+                          // Stop polling
+                          if (progressPollInterval) {
+                            clearInterval(progressPollInterval);
+                            progressPollInterval = null;
+                          }
+                          setError(overview);
+                          setAnalyzing(false);
+                          setAnalysisProgress({
+                            progress: 0,
+                            status: 'error',
+                            message: overview
+                          });
+                          (window as any).__resultFetchAttemptsPaste = 0; // Reset counter
+                          return;
+                        }
+                      }
+                      
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log(`[Client] Got result from endpoint (paste, attempt ${(window as any).__resultFetchAttemptsPaste})`);
+                      }
                       // Stop polling
                       if (progressPollInterval) {
                         clearInterval(progressPollInterval);
@@ -751,6 +740,7 @@ export default function HomePage() {
                         sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
                       }
                       sessionStorage.setItem('currentParticipants', JSON.stringify(participants || []));
+                      sessionStorage.setItem('currentConversationId', conversationId);
                       sessionStorage.setItem('currentSubscriptionTier', 'premium');
                       sessionStorage.setItem('currentFeatures', JSON.stringify({
                         canAnalyzeMedia: true,
@@ -907,8 +897,8 @@ export default function HomePage() {
             (resultResponse.status === 500
               ? locale === 'ru'
                 ? 'Анализ завершился с ошибкой на сервере. Попробуйте ещё раз позже.'
-                : 'Analysis failed on the server. Please try again later.'
-              : `Analysis failed (${resultResponse.status}).`);
+                : t('analysisFailed') + ' on the server. Please try again later.'
+              : `${t('analysisFailed')} (${resultResponse.status}).`);
           throw new Error(message);
         }
 
@@ -947,6 +937,7 @@ export default function HomePage() {
         sessionStorage.setItem('currentActivityByDay', JSON.stringify(analyzeData.activityByDay));
       }
       sessionStorage.setItem('currentParticipants', JSON.stringify(participants));
+      sessionStorage.setItem('currentConversationId', conversationId);
       sessionStorage.setItem('currentSubscriptionTier', 'premium');
       sessionStorage.setItem(
         'currentFeatures',
@@ -969,7 +960,7 @@ export default function HomePage() {
         clearInterval(progressPollInterval);
         progressPollInterval = null;
       }
-      const message = (err as Error).message || 'An error occurred';
+      const message = (err as Error).message || t('errorOccurred');
       const normalized =
         message === 'Failed to fetch'
           ? locale === 'ru'
@@ -981,7 +972,7 @@ export default function HomePage() {
       setAnalysisProgress({
         progress: 0,
         status: 'error',
-        message: (err as Error).message || 'Analysis failed',
+        message: (err as Error).message || t('analysisFailed'),
         isPremium: false
       });
     }
@@ -1136,7 +1127,7 @@ export default function HomePage() {
                   {t('hero_preview_subtitle')}
                 </CardDescription>
               </div>
-              <Badge variant="outline" className="border-white/20 bg-white/10 text-[10px] uppercase tracking-wide text-white/90 backdrop-blur-sm">
+              <Badge variant="outline" className="border-white/20 bg-white/10 text-[10px] uppercase tracking-wide text-black dark:text-white/90 backdrop-blur-sm">
                 <Sparkles className="mr-1 h-3 w-3" />
                 {t('hero_preview_live')}
               </Badge>
@@ -1241,6 +1232,7 @@ export default function HomePage() {
           backfaceVisibility: 'hidden', 
           '--card-bg': 'hsl(var(--card) / 0.85)',
           transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: 'translate3d(0px, 0px, 0px)',
         } as React.CSSProperties} 
         data-upload-card
       >
@@ -1312,134 +1304,132 @@ export default function HomePage() {
         <Separator className="mb-4" />
 
         <CardContent 
-          className="space-y-4 flex flex-col items-center relative" 
+          className="flex flex-col items-center justify-center relative" 
           style={{ 
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            minHeight: '200px',
-            willChange: 'height, min-height, padding'
+            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+            height: '500px',
+            minHeight: '500px',
+            willChange: 'opacity, transform',
+            overflow: 'hidden'
           }}
         >
-          {error && (
-            <Alert variant="destructive" className="border-destructive/50 w-full max-w-lg animate-in fade-in slide-in-from-top-2">
-              <Shield className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+          {error ? (
+            <Alert variant="destructive" className="border-red-500/60 dark:border-red-400/60 bg-red-50/90 dark:bg-red-950/40 w-full max-w-lg animate-in fade-in zoom-in-95 duration-500 shadow-lg">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="font-semibold">
+                {locale === 'ru' ? 'Ошибка анализа' : 'Analysis Error'}
+              </AlertTitle>
+              <AlertDescription className="text-sm leading-relaxed mt-1">
+                {error}
+              </AlertDescription>
             </Alert>
-          )}
-
-           {analyzing ? (
-             <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
-               <div className="flex flex-col items-center justify-center py-8 space-y-4 w-full">
+          ) : analyzing ? (
+             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-600">
+               <div className="flex flex-col items-center justify-center space-y-4 w-full max-w-lg">
                  {analysisProgress ? (
                    <>
                      {typeof analysisProgress.isPremium === 'boolean' && (
-                       <div className="mb-2 w-full max-w-lg text-center text-[11px] sm:text-xs text-muted-foreground">
+                       <div className="mb-2 w-full text-center text-[11px] sm:text-xs text-muted-foreground animate-in fade-in duration-300">
                          {analysisProgress.isPremium
                            ? t('premium_progress_hint')
                            : t('free_progress_hint')}
                        </div>
                      )}
-                     <AnalysisProgress
-                       progress={analysisProgress.progress}
-                       status={analysisProgress.status}
-                       currentChunk={analysisProgress.currentChunk}
-                       totalChunks={analysisProgress.totalChunks}
-                       message={analysisProgress.message}
-                       isPremium={analysisProgress.isPremium}
-                     />
+                     <div className="w-full animate-in fade-in zoom-in-95 duration-500">
+                       <AnalysisProgress
+                         progress={analysisProgress.progress}
+                         status={analysisProgress.status}
+                         currentChunk={analysisProgress.currentChunk}
+                         totalChunks={analysisProgress.totalChunks}
+                         message={analysisProgress.message}
+                         isPremium={analysisProgress.isPremium}
+                       />
+                     </div>
                    </>
                  ) : (
-                   <>
+                   <div className="flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-500">
                      <Spinner className="h-8 w-8 text-primary" />
                      <p className="text-lg font-medium text-foreground">{t('analyzing')}</p>
                      <p className="text-sm text-muted-foreground">AI is analyzing your conversation...</p>
-                   </>
+                   </div>
                  )}
                </div>
               <div
                 role="alert"
-                className="border-primary/30 bg-primary/5 mt-2 w-full max-w-lg rounded-lg border px-4 py-3 text-xs text-foreground flex items-center gap-2"
+                className="border-amber-500 dark:border-amber-400 bg-amber-100/95 dark:bg-amber-900/60 mt-4 w-full max-w-lg rounded-lg border-2 px-4 py-3 text-sm font-bold text-amber-900 dark:text-amber-100 flex items-center gap-2.5 shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500"
               >
-                <Shield className="h-4 w-4 text-primary flex-shrink-0" />
+                <Shield className="h-5 w-5 text-amber-700 dark:text-amber-300 flex-shrink-0 animate-pulse" />
                 <span className="leading-relaxed">
                   {t('progress_disclaimer')}
                 </span>
               </div>
              </div>
            ) : (
-            <div className="w-full flex flex-col items-center space-y-4">
-              <div className="flex justify-center w-full">
-                <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('file')}
-                    className={cn(
-                      'px-3 py-1 rounded-full transition-all duration-300',
-                      inputMode === 'file'
-                        ? 'bg-background text-foreground shadow-sm scale-105'
-                        : 'text-muted-foreground hover:text-foreground hover:scale-105'
-                    )}
-                  >
-                    {t('inputMode_upload')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('paste')}
-                    className={cn(
-                      'px-3 py-1 rounded-full transition-all duration-300',
-                      inputMode === 'paste'
-                        ? 'bg-background text-foreground shadow-sm scale-105'
-                        : 'text-muted-foreground hover:text-foreground hover:scale-105'
-                    )}
-                  >
-                    {t('inputMode_paste')}
-                  </button>
-                </div>
-              </div>
-
-              <div 
-                className="w-full max-w-lg relative" 
-                style={{ 
-                  transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                  minHeight: '420px',
-                  willChange: 'height, min-height'
-                }}
-              >
-                {inputMode === 'file' ? (
-                  <div 
-                    className="w-full flex flex-col items-center h-full" 
-                    style={{
-                      animation: 'fadeInSlideRight 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                      transition: 'opacity 0.3s ease-in-out, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minHeight: '420px'
-                    }}
-                  >
-                    <div className="w-full space-y-6 flex flex-col h-full">
-                      <FileUpload
-                        onFileSelect={handleFileSelect}
-                        disabled={uploading}
-                      />
-                      
-                      {conversation && (
-                        <Alert className="border-primary/30 bg-primary/5 w-full mt-4 animate-in fade-in slide-in-from-bottom-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <AlertTitle className="text-primary">Import Successful</AlertTitle>
-                          <AlertDescription>
-                            {t('imported')}: <strong>{conversation.messageCount}</strong> {t('messages')}
-                          </AlertDescription>
-                        </Alert>
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              {!uploading && !analyzing && !error && (
+                <div className="flex justify-center w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setInputMode('file')}
+                      className={cn(
+                        'px-3 py-1 rounded-full transition-all duration-300',
+                        inputMode === 'file'
+                          ? 'bg-background text-foreground shadow-sm scale-105'
+                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
                       )}
-                    </div>
+                    >
+                      {t('inputMode_upload')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputMode('paste')}
+                      className={cn(
+                        'px-3 py-1 rounded-full transition-all duration-300',
+                        inputMode === 'paste'
+                          ? 'bg-background text-foreground shadow-sm scale-105'
+                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                      )}
+                    >
+                      {t('inputMode_paste')}
+                    </button>
                   </div>
-                ) : (
-                  <div 
-                    className="space-y-6 w-full h-full flex flex-col" 
-                    style={{
-                      animation: 'fadeInSlideLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                      transition: 'opacity 0.3s ease-in-out, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minHeight: '420px'
-                    }}
-                  >
+                </div>
+              )}
+
+              {!error && (
+                <div 
+                  className="w-full max-w-lg relative h-full flex items-center justify-center" 
+                  style={{ 
+                    transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    willChange: 'opacity, transform'
+                  }}
+                >
+                  {inputMode === 'file' ? (
+                    <div 
+                      className="w-full flex flex-col items-center justify-center h-full animate-in fade-in duration-500" 
+                      style={{
+                        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      <div className="w-full flex flex-col h-full justify-center">
+                        <FileUpload
+                          onFileSelect={handleFileSelect}
+                          disabled={uploading}
+                          uploading={uploading}
+                          uploadProgress={uploadProgress}
+                          importSuccessful={!!conversation && !analyzing && !error}
+                          messageCount={conversation?.messageCount || 0}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in duration-500" 
+                      style={{
+                        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-foreground text-center block">
                         {t('pasteLabel')}
@@ -1472,10 +1462,11 @@ export default function HomePage() {
                       {t('pasteHelp')}
                     </p>
                   </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+           )}
         </CardContent>
       </Card>
 

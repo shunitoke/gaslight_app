@@ -82,7 +82,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://openrouter.ai",
+              "connect-src 'self' https://openrouter.ai https://vercel.com https://*.vercel.com https://*.vercel.app https://blob.vercel-storage.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'"

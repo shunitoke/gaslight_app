@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertCircle, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Button } from '../../components/ui/Button';
 import { Card, CardBase } from '../../components/ui/card';
 import { ChartContainer } from '../../components/ui/chart';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../../components/ui/accordion';
+import { Separator } from '../../components/ui/separator';
+import { Badge } from '../../components/ui/badge';
+import { Progress } from '../../components/ui/progress';
 import type {
   AnalysisResult,
   AnalysisSection,
@@ -54,6 +59,7 @@ type SectionCardProps = {
   formatParticipantName: (
     text: string
   ) => { name: string; remainingText: string } | null;
+  getParticipantColor: (participantName: string) => string;
 };
 
 function SectionCard({
@@ -66,7 +72,8 @@ function SectionCard({
   shouldShowReplies,
   getSectionTitle,
   replaceParticipantIds,
-  formatParticipantName
+  formatParticipantName,
+  getParticipantColor
 }: SectionCardProps) {
   const [isRepliesOpen, setIsRepliesOpen] = React.useState(false);
   const [generatedReplies, setGeneratedReplies] = React.useState<string[] | null>(null);
@@ -116,7 +123,7 @@ function SectionCard({
 
   return (
     <Card
-      id={`section-${section.id}-${index}`}
+      id={`section-${section.id}`}
       className="p-3 sm:p-4"
       style={{
         willChange: 'transform, opacity',
@@ -151,8 +158,8 @@ function SectionCard({
         )}
       </div>
       {section.evidenceSnippets.length > 0 && (
-        <div className="space-y-2 mb-3">
-          <h3 className="text-sm font-medium text-foreground">
+        <div className="space-y-3 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">
             {t('evidence')}
           </h3>
           {section.evidenceSnippets.map((evidence, idx) => {
@@ -166,23 +173,23 @@ function SectionCard({
               <div
                 id={`evidence-${section.id}-${idx}`}
                 key={idx}
-                className="border-l-4 border-primary/50 pl-3 py-1.5"
+                className="border-l-4 border-primary/50 pl-4 py-2.5 bg-muted/30 rounded-r-md"
               >
                 {participantInfo ? (
-                  <div className="mb-1">
-                    <span className="font-semibold italic text-primary text-sm sm:text-base mr-2">
+                  <div className="mb-2">
+                    <span className={`font-bold not-italic ${getParticipantColor(participantInfo.name)} text-sm sm:text-base mr-2 tracking-tight`}>
                       {participantInfo.name}:
                     </span>
-                    <span className="italic text-sm text-foreground/90">
+                    <span className="italic text-sm sm:text-base text-foreground/95 leading-relaxed">
                       &ldquo;{participantInfo.remainingText}&rdquo;
                     </span>
                   </div>
                 ) : (
-                  <p className="italic text-sm text-foreground/90 mb-0.5">
+                  <p className="italic text-sm sm:text-base text-foreground/95 leading-relaxed mb-1">
                     &ldquo;{formattedExcerpt}&rdquo;
                   </p>
                 )}
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
                   {formattedExplanation}
                 </p>
               </div>
@@ -302,20 +309,33 @@ export default function AnalysisPage() {
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isPremiumAnalysis, setIsPremiumAnalysis] = useState<boolean>(false);
+  const [selectedDateQuotes, setSelectedDateQuotes] = useState<{
+    date: ImportantDate;
+    quotes: Array<{ excerpt: string; explanation: string; sectionTitle: string }>;
+  } | null>(null);
   const dataLoadedRef = useRef(false);
 
   // Calculate Emotional Safety Index based on all scores
+  // Formula: Safety = (1 - negative factors) * positive factors
+  // This ensures that high negative factors (gaslighting, conflict) reduce safety,
+  // while positive factors (support, resolution) increase it, but can't exceed what negative factors allow
   const emotionalSafetyIndex = useMemo(() => {
     if (!analysis) return 0;
     
-    // Formula: combine negative factors (gaslighting, conflict) and positive factors (support, apology)
-    // Higher gaslighting/conflict = lower safety
-    // Higher support/apology = higher safety
-    const negativeImpact = (analysis.gaslightingRiskScore * 0.4) + (analysis.conflictIntensityScore * 0.3);
-    const positiveImpact = (analysis.supportivenessScore * 0.2) + (analysis.apologyFrequencyScore * 0.1);
+    // Negative factors reduce safety (0-1 scale, higher = worse)
+    const negativeImpact = (analysis.gaslightingRiskScore * 0.5) + (analysis.conflictIntensityScore * 0.5);
     
-    // Safety index: 1 - negative impact + positive impact, clamped to 0-1
-    return Math.max(0, Math.min(1, 1 - negativeImpact + positiveImpact));
+    // Use resolutionRate if available, otherwise fallback to supportiveness
+    const resolutionRate = analysis.communicationStats?.resolutionRate !== undefined 
+      ? analysis.communicationStats.resolutionRate / 100 
+      : analysis.supportivenessScore;
+    
+    // Positive factors (0-1 scale, higher = better)
+    const positiveImpact = (analysis.supportivenessScore * 0.5) + (resolutionRate * 0.5);
+    
+    // Safety index: (1 - negative) * positive, clamped to 0-1
+    // This ensures that even with high positive factors, high negative factors will reduce safety
+    return Math.max(0, Math.min(1, (1 - negativeImpact) * positiveImpact));
   }, [analysis]);
 
   // Determine safety level
@@ -349,9 +369,34 @@ export default function AnalysisPage() {
 
   // Get color for safety level
   const getSafetyColor = (level: 'low' | 'medium' | 'high') => {
-    if (level === 'low') return 'text-red-600 dark:text-red-400';
-    if (level === 'medium') return 'text-amber-600 dark:text-amber-400';
-    return 'text-emerald-600 dark:text-emerald-400';
+    if (level === 'low') return 'text-red-600 dark:text-red-500';
+    if (level === 'medium') return 'text-yellow-600 dark:text-yellow-500';
+    return 'text-green-600 dark:text-green-500';
+  };
+
+  // Get progress bar color based on percentage (for negative metrics - higher = worse)
+  const getNegativeProgressColor = (percentage: number): string => {
+    // Match the color logic used for percentage text: >= 70% red, >= 40% orange/yellow, < 40% green
+    // For negative metrics: higher = worse = redder
+    if (percentage >= 70) {
+      return 'bg-red-600 dark:bg-red-500';
+    } else if (percentage >= 40) {
+      return 'bg-orange-600 dark:bg-orange-500';
+    } else {
+      return 'bg-green-600 dark:bg-green-500';
+    }
+  };
+
+  // Get progress bar color based on percentage (for positive metrics - higher = better)
+  const getPositiveProgressColor = (percentage: number): string => {
+    // Match the color logic used for percentage text: >= 70% green, >= 40% yellow, < 40% red
+    if (percentage >= 70) {
+      return 'bg-green-600 dark:bg-green-500';
+    } else if (percentage >= 40) {
+      return 'bg-yellow-600 dark:bg-yellow-500';
+    } else {
+      return 'bg-red-600 dark:bg-red-500';
+    }
   };
 
   // Get localized section title
@@ -373,12 +418,42 @@ export default function AnalysisPage() {
 
     const loadAnalysisData = () => {
       try {
+        // Check if stored analysis matches current conversation
+        const storedConversationId = sessionStorage.getItem('currentConversationId');
         const stored = sessionStorage.getItem('currentAnalysis');
+        const storedConversation = sessionStorage.getItem('currentConversation');
+        
+        // Get current conversationId from stored conversation or use storedConversationId
+        let currentConversationId: string | null = null;
+        if (storedConversation) {
+          try {
+            const conv = JSON.parse(storedConversation) as Conversation;
+            currentConversationId = conv.id;
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+        if (!currentConversationId && storedConversationId) {
+          currentConversationId = storedConversationId;
+        }
+        
+        // If conversationId doesn't match, clear old data
+        if (storedConversationId && currentConversationId && storedConversationId !== currentConversationId) {
+          console.log('[Analysis] Conversation ID mismatch, clearing old data:', {
+            stored: storedConversationId,
+            current: currentConversationId
+          });
+          sessionStorage.removeItem('currentAnalysis');
+          sessionStorage.removeItem('currentConversation');
+          sessionStorage.removeItem('currentActivityByDay');
+          sessionStorage.removeItem('currentParticipants');
+          sessionStorage.removeItem('currentConversationId');
+          // Continue to fetch from server
+        }
         const storedParticipants = sessionStorage.getItem('currentParticipants');
         const storedTier = sessionStorage.getItem('currentSubscriptionTier');
         const storedFeatures = sessionStorage.getItem('currentFeatures');
         const storedActivity = sessionStorage.getItem('currentActivityByDay');
-        const storedConversation = sessionStorage.getItem('currentConversation');
         
         if (!stored) {
           setError('No analysis found');
@@ -395,6 +470,33 @@ export default function AnalysisPage() {
 
         try {
           analysisData = JSON.parse(stored);
+          
+          // Fix overviewSummary if it's a JSON string instead of plain text
+          if (analysisData.overviewSummary && typeof analysisData.overviewSummary === 'string') {
+            const overviewStr = analysisData.overviewSummary.trim();
+            // If it looks like JSON, try to extract the actual text
+            if (overviewStr.startsWith('{') && overviewStr.includes('"overviewSummary"')) {
+              try {
+                const parsed = JSON.parse(overviewStr);
+                if (parsed && typeof parsed === 'object' && 'overviewSummary' in parsed) {
+                  if (typeof parsed.overviewSummary === 'string') {
+                    analysisData.overviewSummary = parsed.overviewSummary;
+                  }
+                }
+              } catch {
+                // If JSON parsing fails, try regex extraction
+                const regex = /"overviewSummary"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"/;
+                const match = overviewStr.match(regex);
+                if (match && match[1]) {
+                  analysisData.overviewSummary = match[1]
+                    .replace(/\\"/g, '"')
+                    .replace(/\\n/g, '\n')
+                    .replace(/\\t/g, '\t')
+                    .replace(/\\\\/g, '\\');
+                }
+              }
+            }
+          }
 
           if (storedConversation) {
             try {
@@ -566,13 +668,22 @@ export default function AnalysisPage() {
     }
 
     // Нормальный детальный отчёт
-    report += `${t('exportOverview')}: ${replaceParticipantIds(analysis.overviewSummary)}\n\n`;
+    report += `${t('exportOverview')}: ${replaceParticipantIds(getOverviewSummaryText())}\n\n`;
     
     report += `${t('exportScores')}:\n`;
     report += `- ${t('gaslightingRisk')}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%\n`;
     report += `- ${t('conflictIntensity')}: ${(analysis.conflictIntensityScore * 100).toFixed(0)}%\n`;
     report += `- ${t('supportiveness')}: ${(analysis.supportivenessScore * 100).toFixed(0)}%\n`;
-    report += `- ${t('apologyFrequency')}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%\n\n`;
+    const resolutionLabel =
+      locale === 'ru'
+        ? 'Процент разрешённых конфликтов'
+        : t('apologyFrequency');
+    const resolutionValue = analysis.communicationStats?.resolutionRate ?? null;
+    if (resolutionValue !== null) {
+      report += `- ${resolutionLabel}: ${resolutionValue.toFixed(0)}%\n\n`;
+    } else {
+      report += '\n';
+    }
     
     report += `${t('exportPatterns')}:\n`;
     analysis.sections.forEach((section) => {
@@ -628,6 +739,113 @@ export default function AnalysisPage() {
   };
 
   /**
+   * Safely extract overview summary as a string
+   * Handles cases where overviewSummary might be an object instead of a string
+   */
+  const getOverviewSummaryText = (): string => {
+    if (!analysis || !analysis.overviewSummary) return '';
+    
+    const summary = analysis.overviewSummary;
+    
+    // If it's already a string, check if it's a JSON string that needs parsing
+    if (typeof summary === 'string') {
+      const trimmed = summary.trim();
+      
+      // First, try to extract using regex if it looks like JSON with overviewSummary
+      if (trimmed.includes('"overviewSummary"') || trimmed.includes("'overviewSummary'")) {
+        // Try to extract the value using regex (handles both complete and incomplete JSON)
+        const regex = /"overviewSummary"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"/;
+        const match = trimmed.match(regex);
+        if (match && match[1]) {
+          // Unescape the string
+          let extracted = match[1]
+            .replace(/\\"/g, '"')
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t')
+            .replace(/\\\\/g, '\\');
+          return extracted;
+        }
+      }
+      
+      // Check if the string looks like a JSON object (starts with {)
+      if (trimmed.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          // If it's a JSON object with overviewSummary property, extract it
+          if (parsed && typeof parsed === 'object' && parsed !== null) {
+            if ('overviewSummary' in parsed) {
+              const extracted = parsed.overviewSummary;
+              // Recursively extract if it's nested
+              if (typeof extracted === 'string') {
+                // Check if the extracted string is also a JSON object
+                const extractedTrimmed = extracted.trim();
+                if (extractedTrimmed.startsWith('{') && extractedTrimmed.includes('overviewSummary')) {
+                  try {
+                    const nestedParsed = JSON.parse(extractedTrimmed);
+                    if (nestedParsed && typeof nestedParsed === 'object' && 'overviewSummary' in nestedParsed) {
+                      const nestedExtracted = nestedParsed.overviewSummary;
+                      if (typeof nestedExtracted === 'string') {
+                        return nestedExtracted;
+                      }
+                    }
+                  } catch {
+                    // If nested parsing fails, try regex extraction
+                    const nestedRegex = /"overviewSummary"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"/;
+                    const nestedMatch = extractedTrimmed.match(nestedRegex);
+                    if (nestedMatch && nestedMatch[1]) {
+                      return nestedMatch[1]
+                        .replace(/\\"/g, '"')
+                        .replace(/\\n/g, '\n')
+                        .replace(/\\t/g, '\t')
+                        .replace(/\\\\/g, '\\');
+                    }
+                  }
+                }
+                return extracted;
+              }
+            }
+          }
+        } catch {
+          // If parsing fails, try regex extraction as fallback
+          if (trimmed.includes('"overviewSummary"')) {
+            const regex = /"overviewSummary"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"/;
+            const match = trimmed.match(regex);
+            if (match && match[1]) {
+              return match[1]
+                .replace(/\\"/g, '"')
+                .replace(/\\n/g, '\n')
+                .replace(/\\t/g, '\t')
+                .replace(/\\\\/g, '\\');
+            }
+          }
+        }
+      }
+      // If it's a normal string (not JSON), return it
+      return summary;
+    }
+    
+    // If it's an object, try to extract the string value
+    if (typeof summary === 'object' && summary !== null) {
+      // Check if it has an overviewSummary property
+      if ('overviewSummary' in summary) {
+        const extracted = (summary as any).overviewSummary;
+        if (typeof extracted === 'string') {
+          return extracted;
+        }
+        // If it's nested, recursively call this logic
+        if (typeof extracted === 'object' && extracted !== null && 'overviewSummary' in extracted) {
+          const nestedExtracted = (extracted as any).overviewSummary;
+          if (typeof nestedExtracted === 'string') {
+            return nestedExtracted;
+          }
+        }
+      }
+    }
+    
+    return '';
+  };
+
+  /**
    * Replace participant IDs in text with display names
    * Simple replacement - assumes AI follows format: "Name: \"text\""
    */
@@ -652,6 +870,47 @@ export default function AnalysisPage() {
     });
     
     return result;
+  };
+
+  /**
+   * Get color for participant based on their index
+   * Uses a consistent color palette for visual distinction
+   */
+  const getParticipantColor = (participantName: string): string => {
+    const participantIndex = participants.findIndex(
+      p => p.displayName.toLowerCase() === participantName.toLowerCase() || 
+           p.id.toLowerCase().includes(participantName.toLowerCase().replace(/\s+/g, '_'))
+    );
+    
+    if (participantIndex === -1) {
+      // Try to find by matching name
+      const found = participants.find(p => 
+        p.displayName.toLowerCase() === participantName.toLowerCase()
+      );
+      if (found) {
+        const idx = participants.indexOf(found);
+        const colors = [
+          'text-blue-600 dark:text-blue-400',      // First participant - blue
+          'text-purple-600 dark:text-purple-400',   // Second participant - purple
+          'text-cyan-600 dark:text-cyan-400',       // Third participant - cyan
+          'text-pink-600 dark:text-pink-400',       // Fourth participant - pink
+          'text-indigo-600 dark:text-indigo-400',   // Fifth participant - indigo
+          'text-teal-600 dark:text-teal-400',       // Sixth participant - teal
+        ];
+        return colors[idx % colors.length] || 'text-primary';
+      }
+      return 'text-primary';
+    }
+    
+    const colors = [
+      'text-blue-600 dark:text-blue-400',      // First participant - blue
+      'text-purple-600 dark:text-purple-400',   // Second participant - purple
+      'text-cyan-600 dark:text-cyan-400',       // Third participant - cyan
+      'text-pink-600 dark:text-pink-400',       // Fourth participant - pink
+      'text-indigo-600 dark:text-indigo-400',   // Fifth participant - indigo
+      'text-teal-600 dark:text-teal-400',       // Sixth participant - teal
+    ];
+    return colors[participantIndex % colors.length] || 'text-primary';
   };
 
   /**
@@ -727,12 +986,13 @@ export default function AnalysisPage() {
       analysisId: analysis.id,
       createdAt: analysis.createdAt,
       locale: locale,
-      overview: analysis.overviewSummary,
+      overview: getOverviewSummaryText(),
       scores: {
         gaslightingRisk: analysis.gaslightingRiskScore,
         conflictIntensity: analysis.conflictIntensityScore,
         supportiveness: analysis.supportivenessScore,
-        apologyFrequency: analysis.apologyFrequencyScore
+        // Use resolution rate (0–100) as the fourth headline metric instead of apology frequency
+        conflictResolutionRate: analysis.communicationStats?.resolutionRate ?? null
       },
       sections: analysis.sections.map((s) => ({
         id: s.id,
@@ -795,57 +1055,60 @@ export default function AnalysisPage() {
       const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
       container.style.transform = `translateX(${viewportWidth + 200}px)`;
       
-      // Build HTML content
+      // Import escapeHtml for XSS protection
+      const { escapeHtml } = await import('../../lib/utils');
+      
+      // Build HTML content with escaped user data to prevent XSS
       let html = `
         <div style="margin-bottom: 8px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 4px; color: #000;">${t('exportReportTitle')}</h1>
-          <p style="font-size: 9px; color: #666; margin: 0;">${formatDate(analysis.createdAt)}</p>
+          <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportReportTitle'))}</h1>
+          <p style="font-size: 9px; color: #666; margin: 0;">${escapeHtml(formatDate(analysis.createdAt))}</p>
         </div>
         
         <div style="margin-bottom: 8px;">
-          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${t('exportOverview')}</h2>
-          <p style="margin: 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${replaceParticipantIds(analysis.overviewSummary)}</p>
+          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportOverview'))}</h2>
+          <p style="margin: 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(replaceParticipantIds(getOverviewSummaryText()))}</p>
         </div>
         
         <div style="margin-bottom: 8px;">
-          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${t('exportScores')}</h2>
+          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportScores'))}</h2>
           <ul style="margin: 0; padding-left: 12px;">
-            <li style="margin-bottom: 2px; font-size: 10px;">${t('gaslightingRisk')}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%</li>
-            <li style="margin-bottom: 2px; font-size: 10px;">${t('conflictIntensity')}: ${(analysis.conflictIntensityScore * 100).toFixed(0)}%</li>
-            <li style="margin-bottom: 2px; font-size: 10px;">${t('supportiveness')}: ${(analysis.supportivenessScore * 100).toFixed(0)}%</li>
-            <li style="margin-bottom: 2px; font-size: 10px;">${t('apologyFrequency')}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%</li>
+            <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('gaslightingRisk'))}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%</li>
+            <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('conflictIntensity'))}: ${(analysis.conflictIntensityScore * 100).toFixed(0)}%</li>
+            <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('supportiveness'))}: ${(analysis.supportivenessScore * 100).toFixed(0)}%</li>
+            <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('apologyFrequency'))}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%</li>
           </ul>
         </div>
         
         <div style="margin-bottom: 8px;">
-          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${t('exportPatterns')}</h2>
+          <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportPatterns'))}</h2>
       `;
 
       analysis.sections.forEach((section) => {
         const title = formatSectionTitle(section);
         html += `
           <div style="margin-bottom: 8px; page-break-inside: avoid;">
-            <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 3px; color: #000;">${title}</h3>
+            <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 3px; color: #000;">${escapeHtml(title)}</h3>
         `;
         
         if (section.score !== undefined) {
-          html += `<p style="font-size: 9px; color: #666; margin: 0 0 4px 0;">${t('score')}: ${(section.score * 100).toFixed(0)}%</p>`;
+          html += `<p style="font-size: 9px; color: #666; margin: 0 0 4px 0;">${escapeHtml(t('score'))}: ${(section.score * 100).toFixed(0)}%</p>`;
         }
         
         html += `
-            <p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${t('scientificAnalysis')}:</p>
-            <p style="margin: 0 0 4px 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${replaceParticipantIds(section.summary)}</p>
+            <p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${escapeHtml(t('scientificAnalysis'))}:</p>
+            <p style="margin: 0 0 4px 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(replaceParticipantIds(section.summary))}</p>
         `;
         
         if (section.plainSummary) {
           html += `
-            <p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${t('plainLanguage')}:</p>
-            <p style="margin: 0 0 4px 0; font-style: italic; color: #333; text-align: justify; word-wrap: break-word; font-size: 10px;">${replaceParticipantIds(section.plainSummary)}</p>
+            <p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${escapeHtml(t('plainLanguage'))}:</p>
+            <p style="margin: 0 0 4px 0; font-style: italic; color: #333; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(replaceParticipantIds(section.plainSummary))}</p>
           `;
         }
         
         if (section.evidenceSnippets.length > 0) {
-          html += `<p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${t('exportEvidence')}:</p>`;
+          html += `<p style="font-size: 10px; font-weight: bold; margin: 4px 0 2px 0; color: #000;">${escapeHtml(t('exportEvidence'))}:</p>`;
           section.evidenceSnippets.forEach((evidence) => {
             const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
             const formattedExplanation = replaceParticipantIds(evidence.explanation);
@@ -858,19 +1121,19 @@ export default function AnalysisPage() {
             if (participantInfo) {
               html += `
                 <p style="margin: 0 0 2px 0; font-weight: bold; font-style: italic; color: #22c55e; word-wrap: break-word; font-size: 9px;">
-                  ${participantInfo.name}: "${participantInfo.remainingText}"
+                  ${escapeHtml(participantInfo.name)}: "${escapeHtml(participantInfo.remainingText)}"
                 </p>
               `;
             } else {
               html += `
                 <p style="margin: 0 0 2px 0; font-style: italic; color: #22c55e; word-wrap: break-word; font-size: 9px;">
-                  "${formattedExcerpt}"
+                  "${escapeHtml(formattedExcerpt)}"
                 </p>
               `;
             }
             
             html += `
-                <p style="margin: 0; font-size: 9px; color: #666; word-wrap: break-word;">${formattedExplanation}</p>
+                <p style="margin: 0; font-size: 9px; color: #666; word-wrap: break-word;">${escapeHtml(formattedExplanation)}</p>
               </div>
             `;
           });
@@ -882,7 +1145,7 @@ export default function AnalysisPage() {
       html += `
         </div>
         <div style="margin-top: 8px; padding-top: 4px; border-top: 1px solid #ddd;">
-          <p style="font-size: 7px; color: #999; margin: 0; text-align: center;">${t('exportGeneratedBy')}</p>
+          <p style="font-size: 7px; color: #999; margin: 0; text-align: center;">${escapeHtml(t('exportGeneratedBy'))}</p>
         </div>
       `;
 
@@ -1017,14 +1280,14 @@ export default function AnalysisPage() {
                 {isPremiumAnalysis ? t('premium_badge') : t('free_badge')}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mb-0.5">{analysis.overviewSummary}</p>
+            <p className="text-base sm:text-lg text-muted-foreground mb-2 leading-relaxed">{replaceParticipantIds(getOverviewSummaryText())}</p>
             {isPremiumAnalysis ? (
               <p className="text-xs text-muted-foreground">
                 {t('premium_hint')}
               </p>
             ) : (
               <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50/90 px-3 py-2 text-amber-900 shadow-inner dark:border-amber-600 dark:bg-amber-500/10 dark:text-amber-50">
-                <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide">
+                <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide">
                   <AlertCircle className="h-3.5 w-3.5" />
                   {t('free_badge')}
                 </div>
@@ -1065,145 +1328,273 @@ export default function AnalysisPage() {
           </div>
         </div>
 
-        {/* Relationship Health Overview with inline radar chart */}
-        <CardBase className="p-3 sm:p-4">
-          <div className="mb-2">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+        {/* Main Report Content with Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="overview">
+              {locale === 'ru' ? 'Обзор' : 'Overview'}
+            </TabsTrigger>
+            <TabsTrigger value="patterns">
+              {locale === 'ru' ? 'Паттерны' : 'Patterns'}
+            </TabsTrigger>
+            <TabsTrigger value="statistics">
+              {locale === 'ru' ? 'Статистика' : 'Statistics'}
+            </TabsTrigger>
+            <TabsTrigger value="insights">
+              {locale === 'ru' ? 'Инсайты' : 'Insights'}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* OVERVIEW TAB */}
+          <TabsContent value="overview" className="space-y-4 sm:space-y-5">
+            {/* Relationship Health Overview with inline radar chart */}
+            <CardBase className="p-4 sm:p-5">
+          <div className="mb-4 sm:mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
               {t('relationship_health_title') || 'Relationship Health Overview'}
             </h2>
+            {analysis && (
+              <div className="flex items-center gap-2">
+                <div className={`text-lg sm:text-xl font-bold ${getSafetyColor(safetyLevel)}`}>
+                  {(emotionalSafetyIndex * 100).toFixed(0)}%
+                </div>
+                <Badge
+                  className={`text-xs px-2 py-0.5 border ${
+                    emotionalSafetyIndex >= 0.7
+                      ? 'bg-green-600 text-white border-green-600'
+                      : emotionalSafetyIndex >= 0.4
+                        ? 'bg-yellow-600 text-white border-yellow-600'
+                        : 'bg-red-600 text-white border-red-600'
+                  }`}
+                >
+                  {getSafetyLevelText(safetyLevel)}
+                </Badge>
+              </div>
+            )}
           </div>
 
-          <div className="md:flex md:justify-end">
-            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 items-stretch w-full md:pl-6">
+          <div className="md:flex md:justify-end md:items-start">
+            <div className="grid gap-4 sm:gap-5 md:grid-cols-2 items-stretch w-full md:pl-6">
               {/* Textual metrics in 2x2 grid */}
               <div className="flex flex-col justify-between">
-                <div className="grid grid-cols-2 grid-rows-2 gap-1.5 sm:gap-2 h-full">
+                <div className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3 h-full">
                   {/* Gaslighting Risk */}
-                  <div className="space-y-0.5 flex flex-col justify-between">
-                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
-                      {t('gaslightingRisk')}
-                    </div>
-                    <div
-                      className={`text-sm sm:text-base font-bold ${
-                        analysis.gaslightingRiskScore >= 0.7
-                          ? 'text-red-600 dark:text-red-400'
-                          : analysis.gaslightingRiskScore >= 0.4
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-emerald-600 dark:text-emerald-400'
-                      }`}
-                    >
-                      {(analysis.gaslightingRiskScore * 100).toFixed(0)}%
-                    </div>
-                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
+                  <CardBase 
+                    className="p-3 sm:p-4 h-full"
+                    style={{
+                      backgroundColor: 'hsl(var(--card) / 0.95)',
+                    }}
+                  >
+                    <div className="flex flex-col justify-between gap-1.5 h-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`text-lg sm:text-xl font-bold ${
+                            analysis.gaslightingRiskScore >= 0.7
+                              ? 'text-red-600 dark:text-red-500'
+                              : analysis.gaslightingRiskScore >= 0.4
+                                ? 'text-orange-600 dark:text-orange-500'
+                                : 'text-green-600 dark:text-green-500'
+                          }`}
+                        >
+                          {(analysis.gaslightingRiskScore * 100).toFixed(0)}%
+                        </div>
+                      <Badge
+                        className={`text-xs px-1.5 py-0 border ${
                           analysis.gaslightingRiskScore >= 0.7
-                            ? 'bg-red-500'
+                            ? 'bg-red-600 text-white border-red-600'
                             : analysis.gaslightingRiskScore >= 0.4
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
+                              ? 'bg-orange-600 text-white border-orange-600'
+                              : 'bg-green-600 text-white border-green-600'
                         }`}
-                        style={{ width: `${analysis.gaslightingRiskScore * 100}%` }}
-                      />
+                      >
+                          {analysis.gaslightingRiskScore >= 0.7
+                            ? (locale === 'ru' ? 'Высокий' : 'High')
+                            : analysis.gaslightingRiskScore >= 0.4
+                              ? (locale === 'ru' ? 'Средний' : 'Medium')
+                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-0">
+                        <div className="text-xs text-muted-foreground">
+                          {t('gaslightingRisk')}
+                        </div>
+                        <Progress
+                          value={analysis.gaslightingRiskScore * 100}
+                          className="h-1.5 sm:h-2"
+                          indicatorClassName={getNegativeProgressColor(analysis.gaslightingRiskScore * 100)}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </CardBase>
 
                   {/* Conflict Intensity */}
-                  <div className="space-y-0.5 flex flex-col justify-between">
-                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
-                      {t('conflictIntensity')}
-                    </div>
-                    <div
-                      className={`text-sm sm:text-base font-bold ${
-                        analysis.conflictIntensityScore >= 0.7
-                          ? 'text-red-600 dark:text-red-400'
-                          : analysis.conflictIntensityScore >= 0.4
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-emerald-600 dark:text-emerald-400'
-                      }`}
-                    >
-                      {(analysis.conflictIntensityScore * 100).toFixed(0)}%
-                    </div>
-                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
+                  <CardBase 
+                    className="p-3 sm:p-4 h-full"
+                    style={{
+                      backgroundColor: 'hsl(var(--card) / 0.95)',
+                    }}
+                  >
+                    <div className="flex flex-col justify-between gap-1.5 h-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`text-lg sm:text-xl font-bold ${
+                            analysis.conflictIntensityScore >= 0.7
+                              ? 'text-red-600 dark:text-red-500'
+                              : analysis.conflictIntensityScore >= 0.4
+                                ? 'text-orange-600 dark:text-orange-500'
+                                : 'text-green-600 dark:text-green-500'
+                          }`}
+                        >
+                          {(analysis.conflictIntensityScore * 100).toFixed(0)}%
+                        </div>
+                      <Badge
+                        className={`text-xs px-1.5 py-0 border ${
                           analysis.conflictIntensityScore >= 0.7
-                            ? 'bg-red-500'
+                            ? 'bg-red-600 text-white border-red-600'
                             : analysis.conflictIntensityScore >= 0.4
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
+                              ? 'bg-orange-600 text-white border-orange-600'
+                              : 'bg-green-600 text-white border-green-600'
                         }`}
-                        style={{ width: `${analysis.conflictIntensityScore * 100}%` }}
-                      />
+                      >
+                          {analysis.conflictIntensityScore >= 0.7
+                            ? (locale === 'ru' ? 'Высокий' : 'High')
+                            : analysis.conflictIntensityScore >= 0.4
+                              ? (locale === 'ru' ? 'Средний' : 'Medium')
+                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-0">
+                        <div className="text-xs text-muted-foreground">
+                          {t('conflictIntensity')}
+                        </div>
+                        <Progress
+                          value={analysis.conflictIntensityScore * 100}
+                          className="h-1.5 sm:h-2"
+                          indicatorClassName={getNegativeProgressColor(analysis.conflictIntensityScore * 100)}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </CardBase>
 
                   {/* Supportiveness */}
-                  <div className="space-y-0.5 flex flex-col justify-between">
-                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
-                      {t('supportiveness')}
-                    </div>
-                    <div
-                      className={`text-sm sm:text-base font-bold ${
-                        analysis.supportivenessScore >= 0.7
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : analysis.supportivenessScore >= 0.4
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {(analysis.supportivenessScore * 100).toFixed(0)}%
-                    </div>
-                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
+                  <CardBase 
+                    className="p-3 sm:p-4 h-full"
+                    style={{
+                      backgroundColor: 'hsl(var(--card) / 0.95)',
+                    }}
+                  >
+                    <div className="flex flex-col justify-between gap-1.5 h-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`text-lg sm:text-xl font-bold ${
+                            analysis.supportivenessScore >= 0.7
+                              ? 'text-green-600 dark:text-green-500'
+                              : analysis.supportivenessScore >= 0.4
+                                ? 'text-yellow-600 dark:text-yellow-500'
+                                : 'text-red-600 dark:text-red-500'
+                          }`}
+                        >
+                          {(analysis.supportivenessScore * 100).toFixed(0)}%
+                        </div>
+                      <Badge
+                        className={`text-xs px-1.5 py-0 border ${
                           analysis.supportivenessScore >= 0.7
-                            ? 'bg-emerald-500'
+                            ? 'bg-green-600 text-white border-green-600'
                             : analysis.supportivenessScore >= 0.4
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
+                              ? 'bg-yellow-600 text-white border-yellow-600'
+                              : 'bg-red-600 text-white border-red-600'
                         }`}
-                        style={{ width: `${analysis.supportivenessScore * 100}%` }}
-                      />
+                      >
+                          {analysis.supportivenessScore >= 0.7
+                            ? (locale === 'ru' ? 'Высокий' : 'High')
+                            : analysis.supportivenessScore >= 0.4
+                              ? (locale === 'ru' ? 'Средний' : 'Medium')
+                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-0">
+                        <div className="text-xs text-muted-foreground">
+                          {t('supportiveness')}
+                        </div>
+                        <Progress
+                          value={analysis.supportivenessScore * 100}
+                          className="h-1.5 sm:h-2"
+                          indicatorClassName={getPositiveProgressColor(analysis.supportivenessScore * 100)}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </CardBase>
 
-                  {/* Apology Frequency */}
-                  <div className="space-y-0.5 flex flex-col justify-between">
-                    <div className="text-[9px] sm:text-[10px] text-muted-foreground">
-                      {t('apologyFrequency')}
-                    </div>
-                    <div
-                      className={`text-sm sm:text-base font-bold ${
-                        analysis.apologyFrequencyScore >= 0.7
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : analysis.apologyFrequencyScore >= 0.4
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {(analysis.apologyFrequencyScore * 100).toFixed(0)}%
-                    </div>
-                    <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
-                          analysis.apologyFrequencyScore >= 0.7
-                            ? 'bg-emerald-500'
-                            : analysis.apologyFrequencyScore >= 0.4
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
+                  {/* Conflict Resolution */}
+                  <CardBase 
+                    className="p-3 sm:p-4 h-full"
+                    style={{
+                      backgroundColor: 'hsl(var(--card) / 0.95)',
+                    }}
+                  >
+                    <div className="flex flex-col justify-between gap-1.5 h-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`text-lg sm:text-xl font-bold ${
+                            (analysis.communicationStats?.resolutionRate ?? 0) >= 70
+                              ? 'text-green-600 dark:text-green-500'
+                              : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
+                                ? 'text-yellow-600 dark:text-yellow-500'
+                                : 'text-red-600 dark:text-red-500'
+                          }`}
+                        >
+                          {(analysis.communicationStats?.resolutionRate ?? 0).toFixed(0)}%
+                        </div>
+                      <Badge
+                        className={`text-xs px-1.5 py-0 border ${
+                          (analysis.communicationStats?.resolutionRate ?? 0) >= 70
+                            ? 'bg-green-600 text-white border-green-600'
+                            : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
+                              ? 'bg-yellow-600 text-white border-yellow-600'
+                              : 'bg-red-600 text-white border-red-600'
                         }`}
-                        style={{ width: `${analysis.apologyFrequencyScore * 100}%` }}
-                      />
+                      >
+                          {(analysis.communicationStats?.resolutionRate ?? 0) >= 70
+                            ? (locale === 'ru' ? 'Высокий' : 'High')
+                            : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
+                              ? (locale === 'ru' ? 'Средний' : 'Medium')
+                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-0">
+                        <div className="text-xs text-muted-foreground">
+                          {locale === 'ru' ? 'Разрешение конфликтов' : 'Conflict Resolution'}
+                        </div>
+                        <Progress
+                          value={analysis.communicationStats?.resolutionRate ?? 0}
+                          className="h-1.5 sm:h-2"
+                          indicatorClassName={getPositiveProgressColor(analysis.communicationStats?.resolutionRate ?? 0)}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </CardBase>
                 </div>
               </div>
 
               {/* Inline radar chart */}
-              <div className="flex items-center justify-center md:justify-end">
-                <div className="w-full max-w-sm md:max-w-full h-full">
-                  <AnalysisRadarChart analysis={analysis} variant="compact" />
+              <div className="flex items-center justify-center md:justify-end md:items-start">
+                <div className="w-full max-w-md md:max-w-full h-full">
+                  <AnalysisRadarChart 
+                    analysis={analysis} 
+                    variant="compact"
+                    primaryMetricColor={(() => {
+                      // Use emotionalSafetyIndex color to match the top-right indicator
+                      // Match safetyLevel logic: < 0.4 = red (low), < 0.7 = yellow (medium), >= 0.7 = green (high)
+                      if (emotionalSafetyIndex >= 0.7) {
+                        return 'hsl(142 71% 45%)'; // green-600 (High = green)
+                      } else if (emotionalSafetyIndex >= 0.4) {
+                        return 'hsl(45 93% 47%)'; // yellow-600 (Medium = yellow)
+                      } else {
+                        // < 0.4 = red (Low, matches "40% Низкий" indicator)
+                        return 'hsl(0 72% 51%)'; // red-600
+                      }
+                    })()}
+                  />
                 </div>
               </div>
             </div>
@@ -1211,8 +1602,8 @@ export default function AnalysisPage() {
         </CardBase>
 
 
-        {analysis.participantProfiles && analysis.participantProfiles.length > 0 && (
-          <Card className="p-3 sm:p-4 border border-primary/30 bg-primary/5 dark:bg-primary/10">
+            {analysis.participantProfiles && analysis.participantProfiles.length > 0 && (
+              <CardBase className="p-3 sm:p-4 border border-primary/30 bg-primary/5 dark:bg-primary/10">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -1222,7 +1613,7 @@ export default function AnalysisPage() {
                   {t('participant_profiles_description')}
                 </p>
               </div>
-              <span className="text-[11px] uppercase tracking-wide text-primary font-semibold">
+              <span className="text-xs uppercase tracking-wide text-primary font-semibold">
                 {t('premium_badge')}
               </span>
             </div>
@@ -1246,11 +1637,11 @@ export default function AnalysisPage() {
                   </div>
                 );
               })}
-            </div>
-          </Card>
-        )}
+              </div>
+            </CardBase>
+            )}
 
-         {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
+            {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
          {isPremiumAnalysis && analysis.importantDates && analysis.importantDates.length > 0 ? (
            <AnalysisDashboard
              analysis={analysis}
@@ -1259,62 +1650,70 @@ export default function AnalysisPage() {
              conversationLanguage={conversationLanguage}
              locale={locale}
              onDateSelect={(importantDate: ImportantDate) => {
-               // Try to scroll to a specific evidence snippet for this date
+               // Collect quotes that are specifically related to this date
+               // Only show quotes that match the excerpt from importantDate
                if (!analysis) return;
-               let target: HTMLElement | null = null;
-
-               if (importantDate.sectionId) {
-                 const sectionIndex = analysis.sections.findIndex(
-                   (s) => s.id === importantDate.sectionId
-                 );
-                 const section =
-                   sectionIndex >= 0 ? analysis.sections[sectionIndex] : undefined;
-
-                 if (section) {
-                   let evidenceIndex = -1;
-                   if (importantDate.excerpt && section.evidenceSnippets?.length) {
-                     evidenceIndex = section.evidenceSnippets.findIndex((e) => {
-                       const ex = e.excerpt || '';
-                       const targetEx = importantDate.excerpt || '';
-                       return (
-                         ex === targetEx ||
-                         ex.includes(targetEx) ||
-                         targetEx.includes(ex)
+               
+               const quotes: Array<{ excerpt: string; explanation: string; sectionTitle: string }> = [];
+               
+               // If there's a specific excerpt, use it to find matching quotes
+               if (importantDate.excerpt) {
+                 const targetExcerpt = importantDate.excerpt.trim();
+                 
+                 // Search in the specified section first, then all sections
+                 const sectionsToSearch = importantDate.sectionId
+                   ? [analysis.sections.find((s) => s.id === importantDate.sectionId)].filter(Boolean)
+                   : analysis.sections;
+                 
+                 sectionsToSearch.forEach((section) => {
+                   if (!section || !section.evidenceSnippets) return;
+                   
+                   const sectionTitle = getSectionTitle(section.id, section.title);
+                   
+                   section.evidenceSnippets.forEach((evidence) => {
+                     const evidenceExcerpt = evidence.excerpt?.trim() || '';
+                     
+                     // Try to match: exact match, or excerpt is contained in evidence, or evidence is contained in excerpt
+                     // Also check if the quotes are similar (normalize for whitespace and quotes)
+                     const normalizedTarget = targetExcerpt.replace(/[""]/g, '"').replace(/\s+/g, ' ').trim();
+                     const normalizedEvidence = evidenceExcerpt.replace(/[""]/g, '"').replace(/\s+/g, ' ').trim();
+                     
+                     const isMatch =
+                       normalizedEvidence === normalizedTarget ||
+                       normalizedEvidence.includes(normalizedTarget) ||
+                       normalizedTarget.includes(normalizedEvidence) ||
+                       // Check if the core quote text (after participant name) matches
+                       (normalizedEvidence.includes(':') && normalizedTarget.includes(':') &&
+                        normalizedEvidence.split(':').slice(1).join(':').trim() === normalizedTarget.split(':').slice(1).join(':').trim());
+                     
+                     if (isMatch) {
+                       // Avoid duplicates
+                       const alreadyAdded = quotes.some(
+                         (q) => q.excerpt.trim() === evidenceExcerpt
                        );
-                     });
-                   }
-
-                   if (evidenceIndex >= 0) {
-                     const id = `evidence-${section.id}-${evidenceIndex}`;
-                     target = document.getElementById(id) as HTMLElement | null;
-                   }
-
-                   if (!target) {
-                     const id = `section-${section.id}-${sectionIndex >= 0 ? sectionIndex : 0}`;
-                     target = document.getElementById(id) as HTMLElement | null;
-                   }
+                       if (!alreadyAdded) {
+                         quotes.push({
+                           excerpt: replaceParticipantIds(evidence.excerpt),
+                           explanation: replaceParticipantIds(evidence.explanation),
+                           sectionTitle
+                         });
+                       }
+                     }
+                   });
+                 });
                }
-               }
-
-               if (!target) {
-                 const container = document.querySelector(
-                   '[data-analysis-sections="true"]'
-                 ) as HTMLElement | null;
-                 if (container) {
-                   target = container;
-                 }
-               }
-
-               if (target) {
-                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                 target.classList.add('evidence-highlight');
-                 window.setTimeout(() => {
-                   target.classList.remove('evidence-highlight');
-                 }, 2200);
+               
+               // Only show modal if we found matching quotes
+               // Don't show all quotes from a section - only those specifically related to this date
+               if (quotes.length > 0) {
+                 setSelectedDateQuotes({
+                   date: importantDate,
+                   quotes
+                 });
                }
              }}
-           />
-        ) : (
+            />
+            ) : (
           <>
             {activityChartData.length > 1 && (
               <Card
@@ -1327,7 +1726,7 @@ export default function AnalysisPage() {
               >
                 <div className="mb-2 flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">
                       {t('activity_chart_title')}
                     </h3>
                     <p className="text-xs text-muted-foreground">
@@ -1380,38 +1779,796 @@ export default function AnalysisPage() {
                 </div>
               </Card>
             )}
-          </>
-        )}
+            </>
+            )}
+          </TabsContent>
 
-         <div className="space-y-3 sm:space-y-4" data-analysis-sections="true">
-           {analysis.sections.map((section: AnalysisSection, index: number) => {
-             // Decide if we should even show \"what if\" replies for this section.
-             // Only for clearly problematic patterns (medium+ scores).
-             const sectionScore = section.score ?? 0;
-             const isProblematicSection =
-               section.id === 'gaslighting' || section.id === 'conflict';
-             const shouldShowReplies =
-               isPremiumAnalysis &&
-               isProblematicSection &&
-               sectionScore >= 0.35;
+          {/* PATTERNS TAB */}
+          <TabsContent value="patterns" className="space-y-4 sm:space-y-5">
+            <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
+              {analysis.sections.map((section: AnalysisSection, index: number) => {
+                const sectionScore = section.score ?? 0;
+                const isProblematicSection =
+                  section.id === 'gaslighting' || section.id === 'conflict';
+                const shouldShowReplies =
+                  isPremiumAnalysis &&
+                  isProblematicSection &&
+                  sectionScore >= 0.35;
 
-             return (
-               <SectionCard
-                 key={`${section.id}-${index}`}
-                 section={section}
-                 t={t}
-                 locale={locale}
-                 conversationLanguage={conversationLanguage}
-                 isPremiumAnalysis={isPremiumAnalysis}
-                 index={index}
-                 shouldShowReplies={shouldShowReplies}
-                 getSectionTitle={getSectionTitle}
-                 replaceParticipantIds={replaceParticipantIds}
-                 formatParticipantName={formatParticipantName}
-               />
-             );
-           })}
-         </div>
+                return (
+                  <AccordionItem key={section.id} value={`section-${section.id}`} className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg sm:text-xl font-bold text-foreground text-left tracking-tight">
+                            {getSectionTitle(section.id, section.title)}
+                          </h3>
+                          {section.score !== undefined && (
+                            <Badge 
+                              className={`text-xs border ${
+                                // For problematic sections (gaslighting, conflict): higher = worse = redder
+                                isProblematicSection
+                                  ? (section.score >= 0.7
+                                      ? 'bg-red-600 text-white border-red-600'
+                                      : section.score >= 0.4
+                                        ? 'bg-orange-600 text-white border-orange-600'
+                                        : 'bg-green-600 text-white border-green-600')
+                                  : // For positive sections: higher = better = greener
+                                    (section.score >= 0.7
+                                      ? 'bg-green-600 text-white border-green-600'
+                                      : section.score >= 0.4
+                                        ? 'bg-yellow-600 text-white border-yellow-600'
+                                        : 'bg-red-600 text-white border-red-600')
+                              }`}
+                            >
+                              {(section.score * 100).toFixed(0)}%
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4 pb-4">
+                      <div className="space-y-4">
+                        <Separator />
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
+                              {t('scientificAnalysis')}
+                            </p>
+                            <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                              {section.summary && section.summary.trim()
+                                ? section.summary
+                                : t('analysisEmptySummary')}
+                            </p>
+                          </div>
+                          {section.plainSummary && (
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
+                                {t('plainLanguage')}
+                              </p>
+                              <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
+                                {section.plainSummary}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        {section.evidenceSnippets.length > 0 && (
+                          <div className="space-y-3">
+                            <Separator />
+                            <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
+                              {t('evidence')}
+                            </h3>
+                            {section.evidenceSnippets.map((evidence, idx) => {
+                              const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
+                              const formattedExplanation = replaceParticipantIds(evidence.explanation);
+                              const participantInfo = formatParticipantName(formattedExcerpt);
+
+                              return (
+                                <div
+                                  id={`evidence-${section.id}-${idx}`}
+                                  key={idx}
+                                  className="border-l-4 border-primary/50 pl-4 py-2.5 bg-muted/30 rounded-r-md"
+                                >
+                                  {participantInfo ? (
+                                    <div className="mb-2">
+                                      <span className={`font-bold not-italic ${getParticipantColor(participantInfo.name)} text-sm sm:text-base mr-2 tracking-tight`}>
+                                        {participantInfo.name}:
+                                      </span>
+                                      <span className="italic text-sm sm:text-base text-foreground/95 leading-relaxed">
+                                        &ldquo;{participantInfo.remainingText}&rdquo;
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <p className="italic text-sm sm:text-base text-foreground/95 leading-relaxed mb-1">
+                                      &ldquo;{formattedExcerpt}&rdquo;
+                                    </p>
+                                  )}
+                                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
+                                    {formattedExplanation}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </TabsContent>
+
+          {/* STATISTICS TAB */}
+          <TabsContent value="statistics" className="space-y-4 sm:space-y-5">
+            {/* PART 2: STATISTICAL BREAKDOWN */}
+        {analysis.communicationStats && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
+              {locale === 'ru' ? 'Статистика коммуникации' : 'Communication Statistics'}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {analysis.communicationStats.initiatorBalance && (
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                    {locale === 'ru' ? 'Кто инициирует разговоры' : 'Who initiates conversations'}
+                  </p>
+                  <div className="space-y-1">
+                    {Object.entries(analysis.communicationStats.initiatorBalance).map(([participant, percentage]) => (
+                      <div key={participant} className="flex justify-between items-center text-sm sm:text-base py-1">
+                        <span className={`font-medium ${getParticipantColor(replaceParticipantIds(participant))}`}>
+                          {replaceParticipantIds(participant)}
+                        </span>
+                        <span className="font-bold text-foreground">{percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {analysis.communicationStats.apologyCount && (
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                    {locale === 'ru' ? 'Кто извиняется' : 'Who apologizes'}
+                  </p>
+                  <div className="space-y-1">
+                    {Object.entries(analysis.communicationStats.apologyCount).map(([participant, count]) => (
+                      <div key={participant} className="flex justify-between items-center text-sm sm:text-base py-1">
+                        <span className={`font-medium ${getParticipantColor(replaceParticipantIds(participant))}`}>
+                          {replaceParticipantIds(participant)}
+                        </span>
+                        <span className="font-bold text-foreground">{count} {locale === 'ru' ? 'раз' : 'times'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {analysis.communicationStats.conflictFrequency && (
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                    {locale === 'ru' ? 'Частота конфликтов' : 'Conflict frequency'}
+                  </p>
+                  <p className="text-sm sm:text-base leading-relaxed">{analysis.communicationStats.conflictFrequency}</p>
+                </div>
+              )}
+              {analysis.communicationStats.resolutionRate !== undefined && (
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                    {locale === 'ru' ? 'Процент разрешенных конфликтов' : 'Resolution rate'}
+                  </p>
+                  <p className="text-lg sm:text-xl font-bold">{analysis.communicationStats.resolutionRate}%</p>
+                </div>
+              )}
+            </div>
+            {analysis.promiseTracking && (
+              <div className="mt-4 pt-4 border-t border-border/60">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 tracking-tight">
+                  {locale === 'ru' ? 'Отслеживание обещаний' : 'Promise Tracking'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(analysis.promiseTracking).map(([participant, data]) => (
+                    <div key={participant}>
+                      <p className={`text-sm sm:text-base font-semibold mb-3 ${getParticipantColor(replaceParticipantIds(participant))}`}>
+                        {replaceParticipantIds(participant)}
+                      </p>
+                      <div className="space-y-1.5 text-sm sm:text-base">
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-muted-foreground">{locale === 'ru' ? 'Дано' : 'Made'}</span>
+                          <span className="font-semibold">{data.made}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-muted-foreground">{locale === 'ru' ? 'Выполнено' : 'Kept'}</span>
+                          <span className="font-semibold">{data.kept}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5 font-bold border-t border-border/40 pt-1.5 mt-1.5">
+                          <span>{locale === 'ru' ? 'Процент' : 'Percentage'}</span>
+                          <span className="text-foreground">{data.percentage}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analysis.redFlagCounts && (
+              <div className="mt-4 pt-4 border-t border-border/60">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+                  {locale === 'ru' ? 'Красные флаги' : 'Red Flags'}
+                </h3>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🟡</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
+                      <p className="text-sm font-semibold">{analysis.redFlagCounts.yellow}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🟠</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
+                      <p className="text-sm font-semibold">{analysis.redFlagCounts.orange}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🔴</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
+                      <p className="text-sm font-semibold">{analysis.redFlagCounts.red}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardBase>
+            )}
+
+            {/* PART 3: PATTERN ANALYSIS (extended) */}
+            {(analysis.emotionalCycle || analysis.timePatterns) && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+              {locale === 'ru' ? 'Анализ паттернов' : 'Pattern Analysis'}
+            </h2>
+            {analysis.emotionalCycle && (
+              <div className="mb-4">
+                <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  {locale === 'ru' ? 'Эмоциональный цикл' : 'Emotional Cycle'}
+                </p>
+                <p className="text-sm sm:text-base leading-relaxed">{analysis.emotionalCycle}</p>
+              </div>
+            )}
+            {analysis.timePatterns && (
+              <div>
+                {analysis.timePatterns.conflictTimes && (
+                  <div className="mb-2">
+                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                      {locale === 'ru' ? 'Когда происходят конфликты' : 'When conflicts happen'}
+                    </p>
+                    <p className="text-sm sm:text-base leading-relaxed">{analysis.timePatterns.conflictTimes}</p>
+                  </div>
+                )}
+                {analysis.timePatterns.triggers && analysis.timePatterns.triggers.length > 0 && (
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                      {locale === 'ru' ? 'Обычно провоцируется' : 'Usually triggered by'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.timePatterns.triggers.map((trigger, idx) => (
+                        <span key={idx} className="text-xs px-2 py-1 rounded-full bg-muted text-foreground">
+                          {trigger}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            </CardBase>
+            )}
+
+            {/* PART 4: CONTRADICTION TRACKER */}
+            {analysis.contradictions && analysis.contradictions.length > 0 && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
+              {locale === 'ru' ? 'Трекер противоречий' : 'Contradiction Tracker'}
+            </h2>
+            <div className="space-y-4">
+              {analysis.contradictions.map((contradiction, idx) => (
+                <div key={idx} className="border-l-4 border-amber-500/50 pl-4 py-3 bg-amber-50/30 dark:bg-amber-950/20 rounded-r-md">
+                  <div className="flex items-start gap-2 mb-2">
+                    <span className="text-base">📅</span>
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 font-medium">
+                        {formatDate(contradiction.date)}
+                      </p>
+                      <p className="text-sm sm:text-base mb-2 leading-relaxed">
+                        <span className="font-semibold">{locale === 'ru' ? 'Сказано:' : 'Said:'}</span> <span className="italic">"{contradiction.originalStatement}"</span>
+                      </p>
+                      <p className="text-sm sm:text-base mb-3 leading-relaxed">
+                        <span className="font-semibold">{locale === 'ru' ? 'Позже отрицалось:' : 'Later denied:'}</span> <span className="italic">"{contradiction.denialStatement}"</span>
+                      </p>
+                      <div className="flex items-center gap-3 text-xs sm:text-sm">
+                        <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/50">
+                          ⚠️ {locale === 'ru' ? 'Тип:' : 'Type:'} {contradiction.type === 'promise_denial' ? (locale === 'ru' ? 'Отрицание обещания' : 'Promise denial') : contradiction.type === 'reality_denial' ? (locale === 'ru' ? 'Отрицание реальности' : 'Reality denial') : (locale === 'ru' ? 'Отрицание утверждения' : 'Claim denial')}
+                        </Badge>
+                        <Badge variant="outline" className="text-muted-foreground">
+                          🎯 {locale === 'ru' ? 'Серьезность:' : 'Severity:'} {(contradiction.severity * 10).toFixed(1)}/10
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            </CardBase>
+            )}
+
+            {/* PART 5: REALITY CHECK */}
+            {analysis.realityCheck && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+              {locale === 'ru' ? 'Проверка реальности' : 'Reality Check'}
+            </h2>
+            {analysis.realityCheck.whatParticipantWasRightAbout && analysis.realityCheck.whatParticipantWasRightAbout.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                  {locale === 'ru' ? 'В чем участники были правы' : 'What participants were right about'}
+                </h3>
+                <div className="space-y-2">
+                  {analysis.realityCheck.whatParticipantWasRightAbout.map((item, idx) => (
+                    <div key={idx} className="border-l-4 border-emerald-500/50 pl-4 py-2.5 bg-emerald-50/30 dark:bg-emerald-950/20 rounded-r-md">
+                      {item.participant && (
+                        <p className={`text-sm sm:text-base font-bold mb-1.5 ${getParticipantColor(replaceParticipantIds(item.participant))}`}>
+                          {replaceParticipantIds(item.participant)}
+                        </p>
+                      )}
+                      <p className="text-sm sm:text-base font-semibold mb-1.5 leading-relaxed">
+                        <span className="text-muted-foreground">{locale === 'ru' ? 'Думали:' : 'Thought:'}</span> <span className="italic">"{item.thought}"</span>
+                      </p>
+                      <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{locale === 'ru' ? 'Были ПРАВЫ. Доказательство:' : 'Were RIGHT. Proof:'}</span> {item.evidence}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analysis.realityCheck.whatParticipantWasWrongAbout && analysis.realityCheck.whatParticipantWasWrongAbout.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                  {locale === 'ru' ? 'В чем участники ошибались' : 'What participants were wrong about'}
+                </h3>
+                <div className="space-y-2">
+                  {analysis.realityCheck.whatParticipantWasWrongAbout.map((item, idx) => (
+                    <div key={idx} className="border-l-4 border-amber-500/50 pl-4 py-2.5 bg-amber-50/30 dark:bg-amber-950/20 rounded-r-md">
+                      {item.participant && (
+                        <p className={`text-sm sm:text-base font-bold mb-1.5 ${getParticipantColor(replaceParticipantIds(item.participant))}`}>
+                          {replaceParticipantIds(item.participant)}
+                        </p>
+                      )}
+                      <p className="text-sm sm:text-base font-semibold mb-1.5 leading-relaxed">
+                        <span className="text-muted-foreground">{locale === 'ru' ? 'Обвинение:' : 'Accusation:'}</span> <span className="italic">"{item.accusation}"</span>
+                      </p>
+                      <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                        <span className="font-semibold">{locale === 'ru' ? 'Реальность:' : 'Reality:'}</span> {item.reality}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analysis.realityCheck.whosePerceptionWasAccurate && (
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                  {locale === 'ru' ? 'Чье восприятие было точным' : 'Whose perception was accurate'}
+                </h3>
+                <p className="text-sm">{analysis.realityCheck.whosePerceptionWasAccurate}</p>
+              </div>
+            )}
+            </CardBase>
+            )}
+          </TabsContent>
+
+          {/* INSIGHTS TAB */}
+          <TabsContent value="insights" className="space-y-4 sm:space-y-5">
+            {/* PART 6: FRAMEWORK DIAGNOSIS */}
+            {analysis.frameworkDiagnosis && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+              {locale === 'ru' ? 'Диагностика по фреймворкам' : 'Framework Diagnosis'}
+            </h2>
+            <div className="space-y-4">
+              {analysis.frameworkDiagnosis.nvc && (
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">
+                    {locale === 'ru' ? 'ННО (Ненасильственное общение)' : 
+                     locale === 'fr' ? 'CNV (Communication Non Violente)' :
+                     locale === 'de' ? 'GFK (Gewaltfreie Kommunikation)' :
+                     locale === 'es' ? 'CNV (Comunicación No Violenta)' :
+                     locale === 'pt' ? 'CNV (Comunicação Não Violenta)' :
+                     'NVC (Nonviolent Communication)'}
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    {analysis.frameworkDiagnosis.nvc.participantUnmetNeeds ? (
+                      Object.entries(analysis.frameworkDiagnosis.nvc.participantUnmetNeeds).map(([participant, needs]) => (
+                        <div key={participant}>
+                          <p className="font-semibold mb-2 text-sm">
+                            <span className={getParticipantColor(replaceParticipantIds(participant))}>
+                              {replaceParticipantIds(participant)}
+                            </span>
+                            <span className="text-muted-foreground"> {locale === 'ru' ? 'неудовлетворенные потребности:' : 'unmet needs:'}</span>
+                          </p>
+                          <ul className="list-disc list-inside ml-3 space-y-1 text-sm leading-relaxed text-muted-foreground">
+                            {needs.map((need, idx) => (
+                              <li key={idx}>{need}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {analysis.frameworkDiagnosis.nvc.participant1UnmetNeeds && (
+                          <div>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 1 неудовлетворенные потребности:' : 'Participant 1 unmet needs:'}</p>
+                            <ul className="list-disc list-inside ml-2 text-sm text-muted-foreground">
+                              {analysis.frameworkDiagnosis.nvc.participant1UnmetNeeds.map((need, idx) => (
+                                <li key={idx}>{need}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {analysis.frameworkDiagnosis.nvc.participant2UnmetNeeds && (
+                          <div>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 2 неудовлетворенные потребности:' : 'Participant 2 unmet needs:'}</p>
+                            <ul className="list-disc list-inside ml-2 text-sm text-muted-foreground">
+                              {analysis.frameworkDiagnosis.nvc.participant2UnmetNeeds.map((need, idx) => (
+                                <li key={idx}>{need}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span>{locale === 'ru' ? 'Потребности прямо озвучены:' : 'Needs directly stated:'} {analysis.frameworkDiagnosis.nvc.needsDirectlyStated ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}</span>
+                      <span>{locale === 'ru' ? 'Могло быть разрешено:' : 'Could be resolved:'} {analysis.frameworkDiagnosis.nvc.couldBeResolved ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {analysis.frameworkDiagnosis.cbt && (
+                <div className="pt-4 border-t border-border/60">
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">
+                    {locale === 'ru' ? 'КПТ (Когнитивно-поведенческая терапия)' :
+                     locale === 'fr' ? 'TCC (Thérapie Cognitive et Comportementale)' :
+                     locale === 'de' ? 'KVT (Kognitive Verhaltenstherapie)' :
+                     locale === 'es' ? 'TCC (Terapia Cognitivo Conductual)' :
+                     locale === 'pt' ? 'TCC (Terapia Cognitivo-Comportamental)' :
+                     'CBT (Cognitive Behavioral Therapy)'}
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    {analysis.frameworkDiagnosis.cbt.participantDistortions ? (
+                      Object.entries(analysis.frameworkDiagnosis.cbt.participantDistortions).map(([participant, distortions]) => (
+                        <div key={participant}>
+                          <p className="font-semibold mb-2 text-sm">
+                            <span className={getParticipantColor(replaceParticipantIds(participant))}>
+                              {replaceParticipantIds(participant)}
+                            </span>
+                            <span className="text-muted-foreground"> {locale === 'ru' ? 'искажения:' : 'distortions:'}</span>
+                          </p>
+                          <ul className="space-y-1.5 ml-3 text-sm leading-relaxed text-muted-foreground">
+                            {distortions.map((dist, idx) => (
+                              <li key={idx}>
+                                <span className="font-semibold text-foreground">🧠 {dist.type}:</span> <span className="italic">"{dist.example}"</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {analysis.frameworkDiagnosis.cbt.participant1Distortions && analysis.frameworkDiagnosis.cbt.participant1Distortions.length > 0 && (
+                          <div>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 1 искажения:' : 'Participant 1 distortions:'}</p>
+                            <ul className="space-y-1 ml-2 text-sm text-muted-foreground">
+                              {analysis.frameworkDiagnosis.cbt.participant1Distortions.map((dist, idx) => (
+                                <li key={idx}>
+                                  <span className="font-medium text-foreground">🧠 {dist.type}:</span> "{dist.example}"
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {analysis.frameworkDiagnosis.cbt.participant2Distortions && analysis.frameworkDiagnosis.cbt.participant2Distortions.length > 0 && (
+                          <div>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 2 искажения:' : 'Participant 2 distortions:'}</p>
+                            <ul className="space-y-1 ml-2 text-sm text-muted-foreground">
+                              {analysis.frameworkDiagnosis.cbt.participant2Distortions.map((dist, idx) => (
+                                <li key={idx}>
+                                  <span className="font-medium text-foreground">🧠 {dist.type}:</span> "{dist.example}"
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      {locale === 'ru' ? 'Чье мышление было более искаженным:' : 'Whose thinking was more distorted:'} {analysis.frameworkDiagnosis.cbt.whoseMoreDistorted}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {analysis.frameworkDiagnosis.attachment && (
+                <div className="pt-4 border-t border-border/60">
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">{locale === 'ru' ? 'Теория привязанности' : 'Attachment Theory'}</h3>
+                  <div className="space-y-2 text-sm">
+                    {analysis.frameworkDiagnosis.attachment.participantStyles ? (
+                      Object.entries(analysis.frameworkDiagnosis.attachment.participantStyles).map(([participant, style]) => (
+                        <div key={participant} className="flex items-center gap-3 py-1">
+                          <span className={`font-semibold text-sm ${getParticipantColor(replaceParticipantIds(participant))}`}>
+                            {replaceParticipantIds(participant)}
+                          </span>
+                          <span className="text-muted-foreground text-sm">{locale === 'ru' ? 'стиль:' : 'style:'}</span>
+                          <span className="font-medium text-sm text-muted-foreground">{style}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {analysis.frameworkDiagnosis.attachment.participant1Style && (
+                          <div className="flex gap-4 text-sm">
+                            <span className="text-muted-foreground">{locale === 'ru' ? 'Участник 1 стиль:' : 'Participant 1 style:'}</span>
+                            <span className="font-medium text-muted-foreground">{analysis.frameworkDiagnosis.attachment.participant1Style}</span>
+                          </div>
+                        )}
+                        {analysis.frameworkDiagnosis.attachment.participant2Style && (
+                          <div className="flex gap-4 text-sm">
+                            <span className="text-muted-foreground">{locale === 'ru' ? 'Участник 2 стиль:' : 'Participant 2 style:'}</span>
+                            <span className="font-medium text-muted-foreground">{analysis.frameworkDiagnosis.attachment.participant2Style}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div>
+                      <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Паттерн взаимодействия:' : 'Dance pattern:'}</p>
+                      <p className="text-sm text-muted-foreground">{analysis.frameworkDiagnosis.attachment.dancePattern}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {analysis.frameworkDiagnosis.transactional && (
+                <div className="pt-4 border-t border-border/60">
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">{locale === 'ru' ? 'Транзакционный анализ' : 'Transactional Analysis'}</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Доминирующая транзакция:' : 'Dominant transaction:'}</p>
+                      <p className="text-sm text-muted-foreground">{analysis.frameworkDiagnosis.transactional.dominantTransaction}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Самые здоровые моменты:' : 'Healthiest moments:'}</p>
+                      <p className="text-sm text-muted-foreground">{analysis.frameworkDiagnosis.transactional.healthiestMoments}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Самые токсичные моменты:' : 'Most toxic moments:'}</p>
+                      <p className="text-sm text-muted-foreground">{analysis.frameworkDiagnosis.transactional.mostToxicMoments}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            </CardBase>
+            )}
+
+            {/* PART 7: THE HARD TRUTH */}
+            {analysis.hardTruth && (
+          <CardBase className="p-3 sm:p-4 border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+              {locale === 'ru' ? 'Жесткая правда' : 'The Hard Truth'}
+            </h2>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                  analysis.hardTruth.verdict === 'abusive' ? 'bg-red-500/20 text-red-700 dark:text-red-400' :
+                  analysis.hardTruth.verdict === 'toxic' ? 'bg-orange-500/20 text-orange-700 dark:text-orange-400' :
+                  analysis.hardTruth.verdict === 'problematic' ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400' :
+                  analysis.hardTruth.verdict === 'needs_work' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
+                  'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                }`}>
+                  {analysis.hardTruth.verdict === 'abusive' ? (locale === 'ru' ? 'Абьюзивные' : 'Abusive') :
+                   analysis.hardTruth.verdict === 'toxic' ? (locale === 'ru' ? 'Токсичные' : 'Toxic') :
+                   analysis.hardTruth.verdict === 'problematic' ? (locale === 'ru' ? 'Проблемные' : 'Problematic') :
+                   analysis.hardTruth.verdict === 'needs_work' ? (locale === 'ru' ? 'Требует работы' : 'Needs work') :
+                   (locale === 'ru' ? 'Здоровые' : 'Healthy')}
+                </span>
+              </div>
+              <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">{replaceParticipantIds(analysis.hardTruth.message)}</p>
+              {analysis.hardTruth.abusiveBehaviors && analysis.hardTruth.abusiveBehaviors.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/60">
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2">
+                    {locale === 'ru' ? 'Абьюзивное поведение:' : 'Abusive behaviors:'}
+                  </p>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.hardTruth.abusiveBehaviors.map((behavior, idx) => (
+                      <li key={idx}>{replaceParticipantIds(behavior)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            </CardBase>
+            )}
+
+            {/* PART 8: WHAT YOU SHOULD KNOW */}
+            {analysis.whatYouShouldKnow && (
+          <CardBase className="p-3 sm:p-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
+              {locale === 'ru' ? 'Что вам нужно знать' : 'What You Should Know'}
+            </h2>
+            <div className="space-y-4">
+              {analysis.whatYouShouldKnow.couldHaveDoneDifferently && analysis.whatYouShouldKnow.couldHaveDoneDifferently.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Что можно было сделать по-другому' : 'What could have been done differently'}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.whatYouShouldKnow.couldHaveDoneDifferently.map((item, idx) => (
+                      <li key={idx}>{replaceParticipantIds(item)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.communicationTools && analysis.whatYouShouldKnow.communicationTools.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Инструменты коммуникации' : 'Communication tools'}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.whatYouShouldKnow.communicationTools.map((tool, idx) => (
+                      <li key={idx}>{replaceParticipantIds(tool)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.couldHaveBeenSaved !== undefined && (
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">{locale === 'ru' ? 'Могло ли это быть спасено:' : 'Could this have been saved:'}</span>{' '}
+                    {analysis.whatYouShouldKnow.couldHaveBeenSaved ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}
+                  </p>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.whyNotFault && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Почему это не ваша вина' : "Why it wasn't your fault"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.whatYouShouldKnow.whyNotFault)}</p>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.whatMadeVulnerable && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Что сделало вас уязвимым' : 'What made you vulnerable'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.whatYouShouldKnow.whatMadeVulnerable)}</p>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.patternsToWatch && analysis.whatYouShouldKnow.patternsToWatch.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Паттерны для наблюдения' : 'Patterns to watch for'}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.whatYouShouldKnow.patternsToWatch.map((pattern, idx) => (
+                      <li key={idx}>{replaceParticipantIds(pattern)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.resources && analysis.whatYouShouldKnow.resources.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Ресурсы' : 'Resources'}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.whatYouShouldKnow.resources.map((resource, idx) => (
+                      <li key={idx}>{replaceParticipantIds(resource)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatYouShouldKnow.redFlagsForNextTime && analysis.whatYouShouldKnow.redFlagsForNextTime.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {locale === 'ru' ? 'Красные флаги на будущее' : 'Red flags for next time'}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                    {analysis.whatYouShouldKnow.redFlagsForNextTime.map((flag, idx) => (
+                      <li key={idx}>{replaceParticipantIds(flag)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            </CardBase>
+            )}
+
+            {/* PART 9: CLOSURE STATEMENTS */}
+            {analysis.closure && (
+          <CardBase className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 dark:bg-primary/10">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
+              {locale === 'ru' ? 'Замыкающие утверждения' : 'Closure Statements'}
+            </h2>
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-1">
+                  {locale === 'ru' ? 'В чем были правы:' : 'What was right about:'}
+                </p>
+                <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasRightAbout)}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-foreground mb-1">
+                  {locale === 'ru' ? 'Участники заслуживали:' : 'Participants deserved:'}
+                </p>
+                <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasDeserved)}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-foreground mb-1">
+                  {locale === 'ru' ? 'Участники получили:' : 'Participants got:'}
+                </p>
+                <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasGot)}</p>
+              </div>
+              <div className="pt-2 border-t border-border/60">
+                <p className="font-semibold text-sm text-foreground mb-1">
+                  {locale === 'ru' ? 'Разрешение двигаться дальше:' : 'Permission to move on:'}
+                </p>
+                <p className="text-sm whitespace-pre-line text-muted-foreground">{replaceParticipantIds(analysis.closure.permissionToMoveOn)}</p>
+              </div>
+              <div className="pt-2 border-t border-border/60">
+                <p className="font-semibold text-sm text-primary mb-1">
+                  {locale === 'ru' ? 'Финальное утверждение:' : 'End statement:'}
+                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{replaceParticipantIds(analysis.closure.endStatement)}</p>
+              </div>
+            </div>
+            </CardBase>
+            )}
+
+            {/* SAFETY CONCERN */}
+            {analysis.safetyConcern && analysis.safetyConcern.isPresent && (
+          <CardBase className="p-3 sm:p-4 border-2 border-red-500/50 bg-red-50/90 dark:bg-red-950/40">
+            <div className="flex items-start gap-2 mb-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <h2 className="text-base sm:text-lg font-semibold text-red-900 dark:text-red-100">
+                {locale === 'ru' ? '⚠️ ПРОБЛЕМА БЕЗОПАСНОСТИ' : '⚠️ SAFETY CONCERN'}
+              </h2>
+            </div>
+            <p className="text-sm text-red-900 dark:text-red-100 mb-3">
+              {locale === 'ru' ? 'То, что я вижу, выходит за рамки токсичного в опасное:' : "What I'm seeing goes beyond toxic into dangerous:"}
+            </p>
+            <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-red-900 dark:text-red-100 mb-3">
+              {analysis.safetyConcern.behaviors.map((behavior, idx) => (
+                <li key={idx}>{replaceParticipantIds(behavior)}</li>
+              ))}
+            </ul>
+            {analysis.safetyConcern.resources && analysis.safetyConcern.resources.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-red-900 dark:text-red-100 mb-2">
+                  {locale === 'ru' ? 'Ресурсы:' : 'Resources:'}
+                </p>
+                <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-red-900 dark:text-red-100">
+                  {analysis.safetyConcern.resources.map((resource, idx) => (
+                    <li key={idx}>{replaceParticipantIds(resource)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="text-sm font-semibold text-red-900 dark:text-red-100 mt-3">
+              {locale === 'ru' ? 'Пожалуйста, обратитесь к профессионалам. Ваша безопасность важнее понимания того, что произошло.' : 'Please reach out to professionals. Your safety > understanding what happened.'}
+            </p>
+            </CardBase>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Disclaimers about purpose and limitations */}
         <div className="mt-3 text-xs text-muted-foreground space-y-1">
@@ -1419,6 +2576,89 @@ export default function AnalysisPage() {
           <p>{t('report_disclaimer_safety')}</p>
         </div>
       </div>
+
+      {/* Modal for date quotes */}
+      {selectedDateQuotes && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setSelectedDateQuotes(null)}
+        >
+          <Card
+            className="max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
+                    {new Date(selectedDateQuotes.date.date).toLocaleDateString(
+                      locale === 'ru' ? 'ru-RU' : 'en-US',
+                      { 
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }
+                    )}
+                  </h2>
+                  {selectedDateQuotes.date.reason && (
+                    <p className="text-sm text-muted-foreground">
+                      {selectedDateQuotes.date.reason}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDateQuotes(null)}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                  aria-label={locale === 'ru' ? 'Закрыть' : 'Close'}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                  {locale === 'ru' ? 'Важные цитаты этого дня' : 'Important quotes from this day'}
+                </h3>
+                {selectedDateQuotes.quotes.map((quote, idx) => {
+                  const participantInfo = formatParticipantName(quote.excerpt);
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="border-l-4 border-primary/50 pl-3 py-2"
+                    >
+                      <div className="mb-1">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {quote.sectionTitle}
+                        </span>
+                      </div>
+                      {participantInfo ? (
+                        <div className="mb-1.5">
+                          <span className={`font-semibold not-italic ${getParticipantColor(participantInfo.name)} text-sm sm:text-base mr-2 tracking-tight`}>
+                            {participantInfo.name}:
+                          </span>
+                          <span className="italic text-sm sm:text-base text-foreground/95 leading-relaxed">
+                            &ldquo;{participantInfo.remainingText}&rdquo;
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="italic text-sm sm:text-base text-foreground/95 leading-relaxed mb-1">
+                          &ldquo;{quote.excerpt}&rdquo;
+                        </p>
+                      )}
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {quote.explanation}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -57,32 +57,51 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).catch((err) => {
-          console.log('Fetch failed for:', event.request.url, err);
-          // If both fail, return offline page for document requests
-          if (event.request.destination === 'document') {
-            return caches.match('/');
+  // Don't intercept requests to Vercel Blob or other external services
+  if (url.hostname.includes('vercel.com') || 
+      url.hostname.includes('vercel-storage.com') ||
+      url.hostname.includes('openrouter.ai')) {
+    return;
+  }
+
+  // Use respondWith with proper error handling to prevent message channel errors
+  try {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          // Return cached version or fetch from network
+          if (response) {
+            return response;
           }
-          // For other requests, return a basic error response
-          return new Response('Network error', { status: 408 });
-        });
-      })
-      .catch(() => {
-        // If cache match fails, try network
-        return fetch(event.request).catch(() => {
-          if (event.request.destination === 'document') {
-            return caches.match('/');
-          }
-          return new Response('Network error', { status: 408 });
-        });
-      })
-  );
+          return fetch(event.request).catch((err) => {
+            console.log('Fetch failed for:', event.request.url, err);
+            // If both fail, return offline page for document requests
+            if (event.request.destination === 'document') {
+              return caches.match('/').catch(() => {
+                return new Response('Offline', { status: 503 });
+              });
+            }
+            // For other requests, return a basic error response
+            return new Response('Network error', { status: 408 });
+          });
+        })
+        .catch(() => {
+          // If cache match fails, try network
+          return fetch(event.request).catch(() => {
+            if (event.request.destination === 'document') {
+              return caches.match('/').catch(() => {
+                return new Response('Offline', { status: 503 });
+              });
+            }
+            return new Response('Network error', { status: 408 });
+          });
+        })
+    );
+  } catch (error) {
+    // If respondWith fails (e.g., event already handled), just return
+    // This prevents the "message channel closed" error
+    console.log('Service Worker fetch handler error:', error);
+    return;
+  }
 });
 

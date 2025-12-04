@@ -89,48 +89,60 @@ export async function updateProgressStore(
  * GET endpoint for progress polling (simpler than SSE)
  */
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const conversationId = url.searchParams.get('conversationId');
+  try {
+    const url = new URL(request.url);
+    const conversationId = url.searchParams.get('conversationId');
 
-  if (!conversationId) {
-    return NextResponse.json({ error: 'conversationId required' }, { status: 400 });
-  }
+    if (!conversationId) {
+      return NextResponse.json({ error: 'conversationId required' }, { status: 400 });
+    }
 
-  const progress = await getProgressStore(conversationId);
-  
-  if (!progress) {
-    return NextResponse.json({
+    const progress = await getProgressStore(conversationId);
+    
+    if (!progress) {
+      return NextResponse.json({
+        conversationId,
+        status: 'starting',
+        progress: 0
+      });
+    }
+
+    // Always log progress state for debugging
+    const resultSize = progress.result ? JSON.stringify(progress.result).length : 0;
+    logInfo('progress_get', {
       conversationId,
-      status: 'starting',
-      progress: 0
-    });
-  }
-
-  // Always log progress state for debugging
-  const resultSize = progress.result ? JSON.stringify(progress.result).length : 0;
-  logInfo('progress_get', {
-    conversationId,
-    status: progress.status,
-    progress: progress.progress,
-    hasResult: !!progress.result,
-    hasAnalysis: !!progress.result?.analysis,
-    sectionsCount: progress.result?.analysis?.sections?.length || 0,
-    resultKeys: progress.result ? Object.keys(progress.result) : [],
-    resultSizeBytes: resultSize
-  });
-
-  // Return progress with result included
-  const response = NextResponse.json(progress);
-  // Ensure result is included in response
-  if (progress.result) {
-    logInfo('progress_get_returning_result', {
-      conversationId,
+      status: progress.status,
+      progress: progress.progress,
+      hasResult: !!progress.result,
+      hasAnalysis: !!progress.result?.analysis,
+      sectionsCount: progress.result?.analysis?.sections?.length || 0,
+      resultKeys: progress.result ? Object.keys(progress.result) : [],
       resultSizeBytes: resultSize,
-      hasAnalysis: !!progress.result.analysis,
-      sectionsCount: progress.result.analysis?.sections?.length || 0
+      usingKv: isKvAvailable()
     });
+
+    // Return progress with result included
+    const response = NextResponse.json(progress);
+    // Ensure result is included in response
+    if (progress.result) {
+      logInfo('progress_get_returning_result', {
+        conversationId,
+        resultSizeBytes: resultSize,
+        hasAnalysis: !!progress.result.analysis,
+        sectionsCount: progress.result.analysis?.sections?.length || 0
+      });
+    }
+    return response;
+  } catch (error) {
+    logWarn('progress_get_error', {
+      error: (error as Error).message,
+      stack: (error as Error).stack?.substring(0, 200)
+    });
+    return NextResponse.json(
+      { error: 'Failed to get progress' },
+      { status: 500 }
+    );
   }
-  return response;
 }
 
 /**
