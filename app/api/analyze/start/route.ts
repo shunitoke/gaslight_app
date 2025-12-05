@@ -301,6 +301,11 @@ export async function POST(request: Request) {
           ip,
           error: message,
         });
+        await updateProgressStore(conversation.id, {
+          status: 'error',
+          progress: 100,
+          error: message,
+        });
         await updateJob(job.id, {
           status: 'failed',
           finishedAt: new Date().toISOString(),
@@ -315,6 +320,11 @@ export async function POST(request: Request) {
         error: (error as Error).message,
         stack: (error as Error).stack?.substring(0, 500)
       });
+      updateProgressStore(conversation.id, {
+        status: 'error',
+        progress: 100,
+        error: (error as Error).message || 'Background task failed'
+      }).catch(() => {});
     });
 
     return NextResponse.json(
