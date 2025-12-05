@@ -257,8 +257,9 @@ export async function setProgressInKv(
       const serialized = JSON.stringify(progress.result);
       const sizeBytes = Buffer.byteLength(serialized, 'utf8');
       
-      // If result is large, store in Blob
-      if (sizeBytes > 1024 * 1024) { // 1MB threshold
+      // Offload only when extremely large; keep inline otherwise to avoid missing results
+      const BLOB_THRESHOLD_BYTES = 50 * 1024 * 1024; // 50MB
+      if (sizeBytes > BLOB_THRESHOLD_BYTES) {
         try {
           const { storeResultInBlob } = await import('./blob');
           const blobUrl = await storeResultInBlob(conversationId, progress.result);

@@ -68,7 +68,14 @@ export async function updateProgressStore(
   
   // Try KV first, fallback to in-memory
   if (isKvAvailable()) {
-    await setProgressInKv(conversationId, newProgress);
+    const ok = await setProgressInKv(conversationId, newProgress);
+    // Always mirror to in-memory to avoid "result lost" if KV write fails
+    if (!ok) {
+      logWarn('updateProgressStore_kv_failed_fallback_memory', { conversationId });
+      progressStore.set(conversationId, newProgress);
+    } else {
+      progressStore.set(conversationId, newProgress);
+    }
   } else {
     progressStore.set(conversationId, newProgress);
   }

@@ -6,7 +6,8 @@ import type {
   MediaArtifact,
   Participant,
   ParticipantProfile,
-  ImportantDate
+  ImportantDate,
+  Contradiction
 } from './types';
 import type { SupportedLocale } from '../i18n/types';
 import { getConfig } from '../../lib/config';
@@ -198,11 +199,21 @@ function chunkMessages(
   messages: Message[],
   // Larger defaults to leverage long-context models (e.g., Grok 2M)
   maxChunkSize: number = 4000,
-  maxChunks: number = 80
+  maxChunks: number = 80,
+  // Overlap helps catch cross-chunk contradictions (claims vs denials)
+  overlap: number = 300
 ): Message[][] {
   const rawChunks: Message[][] = [];
-  for (let i = 0; i < messages.length; i += maxChunkSize) {
-    rawChunks.push(messages.slice(i, i + maxChunkSize));
+  const safeChunkSize = Math.max(1, maxChunkSize);
+  const safeOverlap = Math.min(Math.max(0, overlap), safeChunkSize - 1);
+  const step = Math.max(1, safeChunkSize - safeOverlap);
+
+  for (let start = 0; start < messages.length; start += step) {
+    const end = start + safeChunkSize;
+    rawChunks.push(messages.slice(start, end));
+    if (end >= messages.length) {
+      break;
+    }
   }
 
   if (rawChunks.length <= maxChunks) {
@@ -213,9 +224,9 @@ function chunkMessages(
   // distributed across the entire timeline. This keeps analysis tractable
   // and within rate limits while still capturing patterns over time.
   const sampledChunks: Message[][] = [];
-  const step = rawChunks.length / maxChunks;
+  const stepSample = rawChunks.length / maxChunks;
   for (let i = 0; i < maxChunks; i++) {
-    const index = Math.floor(i * step);
+    const index = Math.floor(i * stepSample);
     sampledChunks.push(rawChunks[index]);
   }
 
@@ -260,6 +271,83 @@ function formatMessagesForLLM(
       return `[${date}] ${senderName}: ${text}`;
     })
     .join('\n');
+}
+
+/**
+ * Cross-chunk contradiction sweep: examines merged section summaries/evidence
+ * to spot claim-vs-denial patterns that may span distant chunks.
+ */
+async function detectCrossChunkContradictions(
+  sections: AnalysisSection[],
+  overview: string | undefined,
+  locale: SupportedLocale
+): Promise<Contradiction[]> {
+  if (!sections || sections.length === 0) return [];
+
+  const sectionSummaries = sections
+    .slice(0, 20) // keep prompt small
+    .map((s, idx) => {
+      const evidence = (s.evidenceSnippets || [])
+        .slice(0, 2)
+        .map(e => e.excerpt?.substring(0, 200) || '')
+        .filter(Boolean);
+      return `#${idx + 1} ${s.title}\nSummary: ${s.summary}\nEvidence: ${evidence.join(' | ')}`;
+    })
+    .join('\n\n');
+
+  const prompt = `You will see merged section summaries from one long conversation. Find statements that contradict each other across time (claims vs denials, promises vs later reversal).
+
+Return ONLY JSON in this shape:
+{
+  "contradictions": [
+    {
+      "date": "unknown",
+      "originalStatement": "quote or paraphrase of the earlier claim",
+      "denialStatement": "quote or paraphrase of the later conflicting claim",
+      "type": "promise_denial" | "reality_denial" | "claim_denial",
+      "severity": 0.0-1.0
+    }
+  ]
+}
+
+Rules:
+- At most 5 items.
+- Use the conversation language (${getLanguageInstruction(locale)}).
+- Be concise and specific; avoid generic observations.
+- If unsure, return an empty array.
+
+SECTIONS:
+${sectionSummaries}
+
+OVERVIEW:
+${overview || 'n/a'}`;
+
+  try {
+    const response = await callLLM({
+      model: getConfig().textModel,
+      messages: [
+        { role: 'system', content: getSystemPrompt(locale, false) },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 600,
+      temperature: 0.3
+    });
+
+    const content = response?.choices?.[0]?.message?.content || '';
+    if (!content) return [];
+
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
+    const jsonContent = jsonMatch ? jsonMatch[1] : content;
+
+    const parsed = JSON.parse(jsonContent);
+    if (parsed && Array.isArray(parsed.contradictions)) {
+      return parsed.contradictions as Contradiction[];
+    }
+  } catch (error) {
+    logWarn('contradiction_sweep_failed', { error: (error as Error).message });
+  }
+
+  return [];
 }
 
 /**
@@ -932,6 +1020,7 @@ export async function analyzeConversation(
     const allImportantDates = new Map<string, import('./types').ImportantDate>();
     const allOverviewSummaries: string[] = []; // Collect overview summaries from all chunks
     // Aggregate scores with proper weighting by chunk size (message count)
+    const seenMessages = new Set<string>(); // avoid double-counting overlapped messages
     let gaslightingScore = 0;
     let conflictScore = 0;
     let supportScore = 0;
@@ -948,7 +1037,7 @@ export async function analyzeConversation(
     let aggregatedRedFlagCounts: any = undefined;
     let aggregatedEmotionalCycle: string | undefined = undefined;
     let aggregatedTimePatterns: any = undefined;
-    let aggregatedContradictions: any[] = [];
+    let aggregatedContradictions: Contradiction[] = [];
     let aggregatedRealityCheck: any = undefined;
     let aggregatedFrameworkDiagnosis: any = undefined;
     let aggregatedHardTruth: any = undefined;
@@ -999,12 +1088,23 @@ export async function analyzeConversation(
         const chunkIndex = batchStart + batchIndex;
 
       // Aggregate scores with weighting by chunk size (message count)
-      const chunkSize = chunks[chunkIndex]?.length ?? 0;
-      if (chunkSize > 0) {
-        gaslightingScore += (parsed.gaslightingRiskScore || 0) * chunkSize;
-        conflictScore += (parsed.conflictIntensityScore || 0) * chunkSize;
-        supportScore += (parsed.supportivenessScore || 0) * chunkSize;
-        totalMessagesForScores += chunkSize;
+      const chunkMessagesArr = chunks[chunkIndex] || [];
+      let effectiveChunkSize = 0;
+      for (const m of chunkMessagesArr) {
+        if (m?.id && !seenMessages.has(m.id)) {
+          seenMessages.add(m.id);
+          effectiveChunkSize++;
+        }
+      }
+      // Fallback to raw length if IDs are missing
+      if (effectiveChunkSize === 0) {
+        effectiveChunkSize = chunkMessagesArr.length;
+      }
+      if (effectiveChunkSize > 0) {
+        gaslightingScore += (parsed.gaslightingRiskScore || 0) * effectiveChunkSize;
+        conflictScore += (parsed.conflictIntensityScore || 0) * effectiveChunkSize;
+        supportScore += (parsed.supportivenessScore || 0) * effectiveChunkSize;
+        totalMessagesForScores += effectiveChunkSize;
       }
 
       // Collect new analysis parts (aggregate for all chunks, regardless of enhanced flag)
@@ -1110,7 +1210,15 @@ export async function analyzeConversation(
       
       // contradictions - already correctly aggregated via push
       if (parsed.contradictions && Array.isArray(parsed.contradictions)) {
-        aggregatedContradictions.push(...parsed.contradictions);
+        aggregatedContradictions.push(
+          ...parsed.contradictions.map(c => ({
+            date: c.date ?? 'unknown',
+            originalStatement: c.originalStatement || '',
+            denialStatement: c.denialStatement || '',
+            type: c.type || 'claim_denial',
+            severity: typeof c.severity === 'number' ? c.severity : 0.5
+          }))
+        );
       }
       
       // realityCheck, frameworkDiagnosis, hardTruth, whatYouShouldKnow, closure, safetyConcern
@@ -1248,7 +1356,9 @@ export async function analyzeConversation(
 
     // Average scores across conversation using message-weighted aggregation
     const chunkCount = chunks.length;
-    const totalMessagesForAverages = totalMessagesForScores > 0 ? totalMessagesForScores : messages.length;
+    const totalMessagesForAverages = totalMessagesForScores > 0
+      ? totalMessagesForScores
+      : Math.max(messages.length, seenMessages.size);
     const defaultMsgs = getDefaultMessages(locale);
     
     // Deduplicate sections by normalized id - merge evidence snippets from all versions
@@ -1411,7 +1521,44 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
         // Continue with original overview if final analysis fails
       }
     }
-    
+
+    // Cross-chunk contradiction sweep after sections are merged
+    let finalContradictions: Contradiction[] = [...aggregatedContradictions];
+    try {
+      const sweepContradictions = await detectCrossChunkContradictions(
+        deduplicatedSections,
+        finalOverviewSummary || bestOverview,
+        locale
+      );
+      if (sweepContradictions.length > 0) {
+        finalContradictions.push(...sweepContradictions);
+      }
+    } catch (contradictionError) {
+      logWarn('contradiction_sweep_error', {
+        conversationId: conversation.id,
+        error: (contradictionError as Error).message
+      });
+    }
+
+    // Deduplicate contradictions to avoid overlap-driven duplicates
+    const contradictionMap = new Map<string, Contradiction>();
+    for (const c of finalContradictions) {
+      if (!c) continue;
+      const key = `${c.originalStatement || ''}||${c.denialStatement || ''}`;
+      if (!contradictionMap.has(key)) {
+        contradictionMap.set(key, {
+          date: c.date || 'unknown',
+          originalStatement: c.originalStatement || '',
+          denialStatement: c.denialStatement || '',
+          type: c.type || 'claim_denial',
+          severity: typeof c.severity === 'number'
+            ? Math.max(0, Math.min(1, c.severity))
+            : 0.5
+        });
+      }
+    }
+    finalContradictions = Array.from(contradictionMap.values()).slice(0, 10);
+
     await updateProgress(progressId, {
       status: 'finalizing',
       progress: 95
@@ -1465,7 +1612,8 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       redFlagCounts: aggregatedRedFlagCounts,
       emotionalCycle: aggregatedEmotionalCycle,
       timePatterns: aggregatedTimePatterns,
-      contradictions: aggregatedContradictions.length > 0 ? aggregatedContradictions : undefined,
+      // Use cross-chunk sweep + aggregated contradictions
+      contradictions: finalContradictions.length > 0 ? finalContradictions : undefined,
       realityCheck: aggregatedRealityCheck,
       frameworkDiagnosis: aggregatedFrameworkDiagnosis,
       hardTruth: aggregatedHardTruth,
