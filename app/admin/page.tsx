@@ -89,6 +89,7 @@ export default function AdminDashboard() {
   const [logSize, setLogSize] = useState<{ bytes: number; mb: string } | null>(null);
   const [clearingCache, setClearingCache] = useState(false);
   const [cacheClearMessage, setCacheClearMessage] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   useEffect(() => {
     if (authenticated && autoRefresh) {
@@ -674,6 +675,39 @@ export default function AdminDashboard() {
                   <FileText className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                 </div>
               </div>
+
+              {/* OpenRouter test */}
+              <div className="flex items-center gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setTestResult('Running...');
+                    try {
+                      const res = await fetch('/api/admin/openrouter-test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret || '' },
+                        body: JSON.stringify({ prompt: 'ping' })
+                      });
+                      const data = await res.json();
+                      if (!res.ok || !data.ok) {
+                        setTestResult(`Fail (${res.status}): ${data.error || 'unknown'}`);
+                      } else {
+                        setTestResult(`OK: ${data.text || 'no text'}`);
+                      }
+                    } catch (e: any) {
+                      setTestResult(`Error: ${e.message}`);
+                    }
+                  }}
+                  className="text-sm px-3 py-2 rounded-md border border-border bg-muted hover:bg-muted/70 transition"
+                  disabled={!authenticated || !secret}
+                >
+                  Test OpenRouter
+                </button>
+                {testResult && (
+                  <span className="text-xs text-muted-foreground">{testResult}</span>
+                )}
+              </div>
+
               {selectedConversationId && (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {llmActivity.length === 0 ? (
