@@ -5,10 +5,61 @@
  * Small results are still stored in Redis for fast access.
  */
 
-import { put } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 import { logInfo, logWarn, logError } from './telemetry';
 
 const BLOB_STORAGE_THRESHOLD = 1024 * 1024; // 1MB - use blob for results larger than this
+const BLOB_TOTAL_BUDGET_BYTES = 1000 * 1024 * 1024; // ~1000MB safety cap
+
+/**
+ * Keep blob usage under a budget by deleting oldest matching blobs first.
+ * Safe best-effort; failures do not throw.
+ */
+async function enforceBlobBudget(prefixes: string[] = ['analysis-', 'media-'], budgetBytes = BLOB_TOTAL_BUDGET_BYTES) {
+  try {
+    const { blobs } = await list();
+    const candidates = blobs.filter((b: any) =>
+      prefixes.some((p) => b.pathname?.startsWith(p) || b.url?.includes(`/${p}`))
+    );
+
+    const totalBytes = candidates.reduce((sum, b: any) => sum + (b.size ?? 0), 0);
+    if (totalBytes <= budgetBytes) return;
+
+    // Oldest first
+    const sorted = candidates.sort(
+      (a: any, b: any) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime()
+    );
+
+    let current = totalBytes;
+    const toDelete: any[] = [];
+    for (const blob of sorted) {
+      if (current <= budgetBytes) break;
+      current -= blob.size ?? 0;
+      toDelete.push(blob);
+    }
+
+    for (const blob of toDelete) {
+      try {
+        await del(blob.url || blob.pathname);
+        logInfo('blob_budget_deleted', {
+          url: blob.url,
+          pathname: blob.pathname,
+          sizeBytes: blob.size,
+          uploadedAt: blob.uploadedAt,
+          budgetBytes,
+        });
+      } catch (deleteError) {
+        logWarn('blob_budget_delete_failed', {
+          url: blob.url,
+          pathname: blob.pathname,
+          error: (deleteError as Error).message,
+        });
+      }
+    }
+  } catch (budgetError) {
+    logWarn('blob_budget_enforce_failed', { error: (budgetError as Error).message });
+  }
+}
 
 /**
  * Store large result in Vercel Blob
@@ -40,6 +91,9 @@ export async function storeResultInBlob(
       url: blob.url,
       sizeBytes,
     });
+
+    // Best-effort cleanup to stay under budget
+    enforceBlobBudget();
 
     return blob.url;
   } catch (error) {
@@ -124,6 +178,9 @@ export async function storeMediaInBlob(
       sizeBytes: blob.size,
       contentType: contentType || blob.type,
     });
+
+    // Best-effort cleanup to stay under budget
+    enforceBlobBudget();
 
     return blobResult.url;
   } catch (error) {
