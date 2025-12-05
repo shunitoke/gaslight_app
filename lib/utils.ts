@@ -15,7 +15,10 @@ export function aggregateDailyActivity(
   const activityMap = new Map<string, { date: string; messageCount: number }>();
   
   for (const message of messages) {
-    const dateKey = new Date(message.sentAt).toISOString().split('T')[0];
+    if (!message.sentAt) continue;
+    const d = new Date(message.sentAt);
+    if (Number.isNaN(d.getTime())) continue;
+    const dateKey = d.toISOString().split('T')[0];
     const existing = activityMap.get(dateKey);
     if (existing) {
       existing.messageCount += 1;
