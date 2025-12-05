@@ -447,33 +447,11 @@ html, body {
   border-color: hsl(var(--primary) / 0.3);
 }
 
-/* Disable animations on mobile and for users who prefer reduced motion */
-@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+/* Disable animations only when user explicitly prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
   .animate-blob,
   .animate-ripple {
     animation: none !important;
-  }
-  
-  /* Reduce backdrop blur on mobile for better performance */
-  [data-card="true"],
-  [class*="backdrop-blur"] {
-    backdrop-filter: blur(4px) saturate(120%) !important;
-    -webkit-backdrop-filter: blur(4px) saturate(120%) !important;
-  }
-  
-  /* Disable hover transforms on mobile */
-  [data-upload-card].group\/upload-card:hover {
-    transform: none !important;
-  }
-  
-  /* Fix badge text color on mobile dark theme */
-  .dark [class*="bg-primary/10"],
-  .dark [class*="bg-secondary/20"],
-  .dark [class*="bg-emerald-500/15"],
-  [data-color-scheme='dark'] [class*="bg-primary/10"],
-  [data-color-scheme='dark'] [class*="bg-secondary/20"],
-  [data-color-scheme='dark'] [class*="bg-emerald-500/15"] {
-    color: white !important;
   }
 }
 
