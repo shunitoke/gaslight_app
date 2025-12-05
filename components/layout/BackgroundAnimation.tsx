@@ -5,7 +5,10 @@ import { Ripple } from '../ui/ripple';
 import { useAnimation } from '../../contexts/AnimationContext';
 
 export const BackgroundAnimation = memo(() => {
-  const { animationsEnabled } = useAnimation();
+  const { animationsEnabled, isPageVisible, prefersReducedMotion } = useAnimation();
+
+  // For blobs we want them alive while tab is visible (desktop), even during processing.
+  const blobAnimationEnabled = isPageVisible && !prefersReducedMotion;
 
   // Если анимации отключены, не рендерим ripple вообще (экономия памяти)
   // Blob анимации будут паузиться через CSS
@@ -65,10 +68,10 @@ export const BackgroundAnimation = memo(() => {
         style={{
           background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
           transform: 'translate3d(0,0,0)',
-          willChange: animationsEnabled ? 'transform, opacity' : 'auto',
+          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
           backfaceVisibility: 'hidden',
           perspective: '1000px',
-          animationPlayState: animationsEnabled ? 'running' : 'paused',
+          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
         } as React.CSSProperties}
       />
       <div 
@@ -76,10 +79,10 @@ export const BackgroundAnimation = memo(() => {
         style={{
           background: 'radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)',
           transform: 'translate3d(0,0,0)',
-          willChange: animationsEnabled ? 'transform, opacity' : 'auto',
+          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
           backfaceVisibility: 'hidden',
           perspective: '1000px',
-          animationPlayState: animationsEnabled ? 'running' : 'paused',
+          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
         } as React.CSSProperties}
       />
       {/* Third blob - hidden on mobile for performance */}
@@ -88,10 +91,10 @@ export const BackgroundAnimation = memo(() => {
         style={{
           background: 'radial-gradient(circle, hsl(var(--secondary)) 0%, transparent 70%)',
           transform: 'translate3d(0,0,0)',
-          willChange: animationsEnabled ? 'transform, opacity' : 'auto',
+          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
           backfaceVisibility: 'hidden',
           perspective: '1000px',
-          animationPlayState: animationsEnabled ? 'running' : 'paused',
+          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
         } as React.CSSProperties}
       />
     </div>
