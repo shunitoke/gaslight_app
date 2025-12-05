@@ -161,10 +161,14 @@ const normalizeSafetyConcern = (value: unknown): SafetyConcern | undefined => {
   if (!isPlainObject(value)) return undefined;
   const isPresent = typeof (value as any).isPresent === 'boolean' ? (value as any).isPresent : false;
   const behaviors = Array.isArray((value as any).behaviors)
-    ? (value as any).behaviors.map((b) => cleanString(b, '')).filter((b) => b.length > 0)
+    ? (value as any).behaviors
+        .map((b: unknown) => cleanString(b, ''))
+        .filter((b: string) => b.length > 0)
     : [];
   const resources = Array.isArray((value as any).resources)
-    ? (value as any).resources.map((r) => cleanString(r, '')).filter((r) => r.length > 0)
+    ? (value as any).resources
+        .map((r: unknown) => cleanString(r, ''))
+        .filter((r: string) => r.length > 0)
     : undefined;
 
   if (!isPresent && behaviors.length === 0 && !resources) return undefined;
