@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import type { Message } from "../features/analysis/types"
 
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs)
+  return clsx(...inputs)
 }
 
 /**
@@ -57,6 +57,9 @@ export function escapeHtml(text: string): string {
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
+
+// Explicit exports to help bundlers statically detect names
+export { cn as cnFn };
 
 
 

@@ -1097,6 +1097,9 @@ export default function HomePage() {
           {/* Short, low-weight supporting text */}
           <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">
             {t('hero_copy')}
+            <span className="block text-[12px] sm:text-xs text-muted-foreground/80 mt-1">
+              {t('hero_confidential')}
+            </span>
           </p>
 
           {/* Badges - moved under description */}

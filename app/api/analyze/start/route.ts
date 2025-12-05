@@ -12,7 +12,7 @@ import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../featur
 import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
 import { checkRateLimit } from '../../../../lib/rateLimit';
 import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
-import { updateProgressStore, getProgressStore } from '../progress/route';
+import { updateProgressStore } from '../progress/route';
 import { computeChatHash, getCachedAnalysis, setCachedAnalysis } from '../../../../lib/cache';
 import { getConfig } from '../../../../lib/config';
 
@@ -136,27 +136,11 @@ export async function POST(request: Request) {
       conversationId: conversation.id
     });
 
-    // Set initial progress immediately to verify it works
+    // Set initial progress once; analysisService will handle staged updates
     await updateProgressStore(conversation.id, {
       status: 'starting',
       progress: 0
     });
-    
-    // Verify progress was saved (critical check)
-    const verifyProgress = await getProgressStore(conversation.id);
-    if (!verifyProgress) {
-      logError('analyze_start_progress_not_saved', {
-        conversationId: conversation.id,
-        jobId: job.id
-      });
-      // Continue anyway, but log the issue
-    } else {
-      logInfo('analyze_start_progress_verified', {
-        conversationId: conversation.id,
-        jobId: job.id,
-        status: verifyProgress.status
-      });
-    }
 
     // Run analysis inline (blocking) to ensure logs and progress are flushed on Vercel
     try {
@@ -170,20 +154,6 @@ export async function POST(request: Request) {
           status: 'running',
           startedAt: new Date().toISOString(),
         });
-
-        // Set initial progress status: starting (give client time to start polling)
-        await updateProgressStore(conversation.id, {
-          status: 'starting',
-          progress: 0
-        });
-        
-        logInfo('analyze_start_progress_initialized', {
-          jobId: job.id,
-          conversationId: conversation.id
-        });
-        
-        // Small delay to ensure client has started polling
-        await new Promise(resolve => setTimeout(resolve, 100));
 
         logInfo('analyze_start_calling_analyzeConversation', {
           jobId: job.id,
@@ -230,9 +200,8 @@ export async function POST(request: Request) {
           activityByDay,
         };
         
-        // Store result atomically in both jobStore and progressStore
-        // This ensures result is available regardless of which worker handles the request
-        const [jobResultSaved, progressResultSaved] = await Promise.allSettled([
+        // Store result in both jobStore and progressStore
+        await Promise.all([
           setJobResult(job.id, resultToStore),
           updateProgressStore(conversation.id, {
             status: 'completed',
@@ -240,61 +209,13 @@ export async function POST(request: Request) {
             result: resultToStore
           })
         ]);
-        
-        // Verify both saves succeeded
-        if (jobResultSaved.status === 'rejected') {
-          logError('analyze_start_job_result_save_failed', {
-            jobId: job.id,
-            error: jobResultSaved.reason?.message || 'Unknown error'
-          });
-        }
-        
-        if (progressResultSaved.status === 'rejected') {
-          logError('analyze_start_progress_result_save_failed', {
-            conversationId: conversation.id,
-            error: progressResultSaved.reason?.message || 'Unknown error'
-          });
-        }
-        
+
         // Update job status
         await updateJob(job.id, {
           status: 'completed',
           finishedAt: new Date().toISOString(),
           progress: 100,
         });
-        
-        // Verify results were saved
-        const [verifyJob, verifyProgress] = await Promise.all([
-          getJob(job.id),
-          getProgressStore(conversation.id)
-        ]);
-        
-        if (!verifyJob || !verifyJob.result) {
-          logError('analyze_start_result_not_saved_job', {
-            jobId: job.id,
-            jobExists: !!verifyJob,
-            hasResult: !!verifyJob?.result
-          });
-        } else {
-          logInfo('analyze_start_result_saved_job', {
-            jobId: job.id,
-            sectionsCount: verifyJob.result.analysis?.sections?.length || 0
-          });
-        }
-        
-        if (!verifyProgress || !verifyProgress.result) {
-          logError('analyze_start_result_not_saved_progress', {
-            conversationId: conversation.id,
-            progressExists: !!verifyProgress,
-            hasResult: !!verifyProgress?.result
-          });
-        } else {
-          logInfo('analyze_start_result_saved_progress', {
-            conversationId: conversation.id,
-            sectionsCount: verifyProgress.result.analysis?.sections?.length || 0,
-            hasBlobUrl: !!verifyProgress.blobUrl
-          });
-        }
     } catch (error) {
       const message = (error as Error).message || 'Analysis failed';
       logError('analyze_start_job_error', {

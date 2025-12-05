@@ -290,6 +290,27 @@ html, body {
     background-color: rgb(37, 99, 235) !important; /* blue-600 */
     color: rgb(255, 255, 255) !important; /* white */
   }
+
+/* Prevent calendar selected days from changing row height; draw frame inward */
+.rdp-day[data-selected="true"],
+.rdp-day[data-range-start="true"],
+.rdp-day[data-range-end="true"],
+.rdp-day[data-range-middle="true"] {
+  border-width: 0 !important;
+  box-shadow: inset 0 0 0 2px hsl(var(--primary));
+}
+
+/* Lock calendar cell sizing so borders/rings do not shift rows */
+[data-slot="calendar"] .rdp-day {
+  height: var(--cell-size);
+  min-height: var(--cell-size);
+  max-height: var(--cell-size);
+}
+
+[data-slot="calendar"] .rdp-day > button {
+  width: 100%;
+  height: 100%;
+}
 }
 
 /* Tagline animation - GPU accelerated */

@@ -727,6 +727,19 @@ export default function AnalysisPage() {
     });
   };
 
+  const getIsoDateForFileName = (dateString: string): string => {
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return 'unknown-date';
+    return d.toISOString().slice(0, 10);
+  };
+
+  const getSafeIdForFileName = (id: string): string => {
+    if (!id) return 'unknown';
+    const cleaned = id.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!cleaned) return 'unknown';
+    return cleaned.slice(-12);
+  };
+
   const formatSectionTitle = (section: AnalysisSection): string => {
     return getSectionTitle(section.id, section.title);
   };
@@ -801,7 +814,117 @@ export default function AnalysisPage() {
         });
       }
     });
-    
+
+    if (analysis.safetyConcern?.isPresent) {
+      report += `\n${t('pdf_safety_concern_title')}:\n`;
+      if (analysis.safetyConcern.behaviors?.length) {
+        analysis.safetyConcern.behaviors.forEach((b) => {
+          report += `- ${replaceParticipantIds(b)}\n`;
+        });
+      }
+      if (analysis.safetyConcern.resources?.length) {
+        report += `${t('pdf_safety_resources')}:\n`;
+        analysis.safetyConcern.resources.forEach((r) => {
+          report += `  - ${replaceParticipantIds(r)}\n`;
+        });
+      }
+      report += '\n';
+    }
+
+    if (analysis.importantDates && analysis.importantDates.length > 0) {
+      report += `${t('important_dates_label')}:\n`;
+      analysis.importantDates.forEach((d) => {
+        const dateStr = formatDate(d.date);
+        const severity = d.severity !== undefined ? ` (${(d.severity * 100).toFixed(0)}%)` : '';
+        report += `- ${dateStr}${severity}: ${replaceParticipantIds(d.reason)}\n`;
+        if (d.excerpt) {
+          report += `  "${replaceParticipantIds(d.excerpt)}"\n`;
+        }
+      });
+      report += '\n';
+    }
+
+    if (analysis.participantProfiles && analysis.participantProfiles.length > 0) {
+      report += `${t('participant_profiles_title')}:\n`;
+      analysis.participantProfiles.forEach((p) => {
+        const matchedParticipant =
+          participants.find(
+            (pt) => pt.id === p.participantId || pt.displayName === p.participantId
+          );
+        const displayName = matchedParticipant?.displayName || p.participantId;
+        report += `- ${displayName}: ${replaceParticipantIds(p.profile)}\n`;
+      });
+      report += '\n';
+    }
+
+    if (analysis.realityCheck) {
+      report += `${t('reality_check_title') ?? 'Reality check'}:\n`;
+      if (analysis.realityCheck.whatParticipantWasRightAbout?.length) {
+        report += `${t('reality_check_right') ?? 'What was right'}:\n`;
+        analysis.realityCheck.whatParticipantWasRightAbout.forEach((item) => {
+          report += `- ${replaceParticipantIds(item.participant)}: ${replaceParticipantIds(item.thought)} (evidence: ${replaceParticipantIds(item.evidence)})\n`;
+        });
+      }
+      if (analysis.realityCheck.whatParticipantWasWrongAbout?.length) {
+        report += `${t('reality_check_wrong') ?? 'What was wrong'}:\n`;
+        analysis.realityCheck.whatParticipantWasWrongAbout.forEach((item) => {
+          report += `- ${replaceParticipantIds(item.participant)}: ${replaceParticipantIds(item.accusation)} → ${replaceParticipantIds(item.reality)}\n`;
+        });
+      }
+      if (analysis.realityCheck.whosePerceptionWasAccurate) {
+        report += `${t('reality_check_whose') ?? 'Whose perception was accurate'}: ${replaceParticipantIds(analysis.realityCheck.whosePerceptionWasAccurate)}\n`;
+      }
+      report += '\n';
+    }
+
+    if (analysis.hardTruth) {
+      report += `${t('hard_truth_title') ?? 'Hard truth'}:\n`;
+      report += `- ${t('hard_truth_verdict') ?? 'Verdict'}: ${analysis.hardTruth.verdict}\n`;
+      report += `- ${replaceParticipantIds(analysis.hardTruth.message)}\n`;
+      if (analysis.hardTruth.abusiveBehaviors?.length) {
+        report += `${t('hard_truth_abusive') ?? 'Abusive behaviors'}:\n`;
+        analysis.hardTruth.abusiveBehaviors.forEach((b) => {
+          report += `  - ${replaceParticipantIds(b)}\n`;
+        });
+      }
+      report += '\n';
+    }
+
+    if (analysis.whatYouShouldKnow) {
+      report += `${t('what_you_should_know_title') ?? 'What you should know'}:\n`;
+      const pushList = (label: string, arr?: string[]) => {
+        if (arr && arr.length) {
+          report += `${label}:\n`;
+          arr.forEach((item) => (report += `- ${replaceParticipantIds(item)}\n`));
+        }
+      };
+      pushList(t('wysk_could_have_done') ?? 'Could have done differently', analysis.whatYouShouldKnow.couldHaveDoneDifferently);
+      pushList(t('wysk_comm_tools') ?? 'Communication tools', analysis.whatYouShouldKnow.communicationTools);
+      if (analysis.whatYouShouldKnow.couldHaveBeenSaved !== undefined) {
+        report += `${t('wysk_could_be_saved') ?? 'Could the relationship be saved'}: ${analysis.whatYouShouldKnow.couldHaveBeenSaved ? 'Yes' : 'No'}\n`;
+      }
+      if (analysis.whatYouShouldKnow.whyNotFault) {
+        report += `${t('wysk_why_not_fault') ?? 'Why it is not your fault'}: ${replaceParticipantIds(analysis.whatYouShouldKnow.whyNotFault)}\n`;
+      }
+      if (analysis.whatYouShouldKnow.whatMadeVulnerable) {
+        report += `${t('wysk_what_made_vulnerable') ?? 'What made you vulnerable'}: ${replaceParticipantIds(analysis.whatYouShouldKnow.whatMadeVulnerable)}\n`;
+      }
+      pushList(t('wysk_patterns_to_watch') ?? 'Patterns to watch', analysis.whatYouShouldKnow.patternsToWatch);
+      pushList(t('wysk_resources') ?? 'Resources', analysis.whatYouShouldKnow.resources);
+      pushList(t('wysk_red_flags_next') ?? 'Red flags for next time', analysis.whatYouShouldKnow.redFlagsForNextTime);
+      report += '\n';
+    }
+
+    if (analysis.closure) {
+      report += `${t('pdf_closure_title')}:\n`;
+      if (analysis.closure.whatWasRightAbout) report += `- ${t('pdf_closure_right')}: ${replaceParticipantIds(analysis.closure.whatWasRightAbout)}\n`;
+      if (analysis.closure.whatWasDeserved) report += `- ${t('pdf_closure_deserved')}: ${replaceParticipantIds(analysis.closure.whatWasDeserved)}\n`;
+      if (analysis.closure.whatWasGot) report += `- ${t('pdf_closure_got')}: ${replaceParticipantIds(analysis.closure.whatWasGot)}\n`;
+      if (analysis.closure.permissionToMoveOn) report += `- ${t('pdf_closure_permission')}: ${replaceParticipantIds(analysis.closure.permissionToMoveOn)}\n`;
+      if (analysis.closure.endStatement) report += `- ${t('pdf_closure_end')}: ${replaceParticipantIds(analysis.closure.endStatement)}\n`;
+      report += '\n';
+    }
+
     report += `\n${generatedBy}`;
     return report;
   };
@@ -1040,11 +1163,13 @@ export default function AnalysisPage() {
 
   const exportTXT = () => {
     const text = generateTextReport();
+    const fileDate = getIsoDateForFileName(analysis.createdAt);
+    const safeId = getSafeIdForFileName(analysis.id);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `analysis-${analysis.id.substring(0, 8)}.txt`;
+    a.download = `analysis-${fileDate}-${safeId}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1052,38 +1177,115 @@ export default function AnalysisPage() {
   };
 
   const exportJSON = () => {
+    const mapEvidence = (e: typeof analysis.sections[number]['evidenceSnippets'][number]) => ({
+      excerpt: replaceParticipantIds(e.excerpt),
+      explanation: replaceParticipantIds(e.explanation),
+      messageId: e.messageId,
+      mediaArtifactId: e.mediaArtifactId
+    });
+
     const data = {
       analysisId: analysis.id,
+      conversationId: analysis.conversationId,
       createdAt: analysis.createdAt,
-      locale: locale,
+      locale,
+      version: analysis.version,
       overview: getOverviewSummaryText(),
       scores: {
         gaslightingRisk: analysis.gaslightingRiskScore,
         conflictIntensity: analysis.conflictIntensityScore,
         supportiveness: analysis.supportivenessScore,
-        // Use resolution rate (0–100) as the fourth headline metric instead of apology frequency
-        conflictResolutionRate: analysis.communicationStats?.resolutionRate ?? null
+        apologyFrequency: analysis.apologyFrequencyScore,
+        conflictResolutionRate: analysis.communicationStats?.resolutionRate ?? null,
+        otherPatternScores: analysis.otherPatternScores
       },
+      communicationStats: analysis.communicationStats,
+      promiseTracking: analysis.promiseTracking,
+      redFlagCounts: analysis.redFlagCounts,
+      emotionalCycle: analysis.emotionalCycle,
+      timePatterns: analysis.timePatterns,
+      contradictions: analysis.contradictions,
+      realityCheck: analysis.realityCheck
+        ? {
+            whatParticipantWasRightAbout: analysis.realityCheck.whatParticipantWasRightAbout?.map((item) => ({
+              participant: replaceParticipantIds(item.participant),
+              thought: replaceParticipantIds(item.thought),
+              evidence: replaceParticipantIds(item.evidence)
+            })),
+            whatParticipantWasWrongAbout: analysis.realityCheck.whatParticipantWasWrongAbout?.map((item) => ({
+              participant: replaceParticipantIds(item.participant),
+              accusation: replaceParticipantIds(item.accusation),
+              reality: replaceParticipantIds(item.reality)
+            })),
+            whosePerceptionWasAccurate: replaceParticipantIds(analysis.realityCheck.whosePerceptionWasAccurate)
+          }
+        : undefined,
+      frameworkDiagnosis: analysis.frameworkDiagnosis,
+      hardTruth: analysis.hardTruth
+        ? {
+            verdict: analysis.hardTruth.verdict,
+            message: replaceParticipantIds(analysis.hardTruth.message),
+            abusiveBehaviors: analysis.hardTruth.abusiveBehaviors?.map((b) => replaceParticipantIds(b))
+          }
+        : undefined,
+      whatYouShouldKnow: analysis.whatYouShouldKnow
+        ? {
+            couldHaveDoneDifferently: analysis.whatYouShouldKnow.couldHaveDoneDifferently?.map((i) => replaceParticipantIds(i)),
+            communicationTools: analysis.whatYouShouldKnow.communicationTools?.map((i) => replaceParticipantIds(i)),
+            couldHaveBeenSaved: analysis.whatYouShouldKnow.couldHaveBeenSaved,
+            whyNotFault: analysis.whatYouShouldKnow.whyNotFault
+              ? replaceParticipantIds(analysis.whatYouShouldKnow.whyNotFault)
+              : undefined,
+            whatMadeVulnerable: analysis.whatYouShouldKnow.whatMadeVulnerable
+              ? replaceParticipantIds(analysis.whatYouShouldKnow.whatMadeVulnerable)
+              : undefined,
+            patternsToWatch: analysis.whatYouShouldKnow.patternsToWatch?.map((i) => replaceParticipantIds(i)),
+            resources: analysis.whatYouShouldKnow.resources?.map((i) => replaceParticipantIds(i)),
+            redFlagsForNextTime: analysis.whatYouShouldKnow.redFlagsForNextTime?.map((i) => replaceParticipantIds(i))
+          }
+        : undefined,
       sections: analysis.sections.map((s) => ({
         id: s.id,
         title: s.title,
-        summary: s.summary,
-        plainSummary: s.plainSummary,
+        summary: replaceParticipantIds(s.summary),
+        plainSummary: s.plainSummary ? replaceParticipantIds(s.plainSummary) : undefined,
         score: s.score,
-        evidenceSnippets: s.evidenceSnippets.map((e) => ({
-          excerpt: replaceParticipantIds(e.excerpt),
-          explanation: replaceParticipantIds(e.explanation),
-          messageId: e.messageId,
-          mediaArtifactId: e.mediaArtifactId
-        }))
-      }))
+        evidenceSnippets: s.evidenceSnippets.map(mapEvidence)
+      })),
+      participantProfiles: analysis.participantProfiles?.map((p) => ({
+        participantId: p.participantId,
+        profile: replaceParticipantIds(p.profile)
+      })),
+      importantDates: analysis.importantDates?.map((d) => ({
+        ...d,
+        reason: replaceParticipantIds(d.reason),
+        excerpt: d.excerpt ? replaceParticipantIds(d.excerpt) : undefined
+      })),
+      closure: analysis.closure
+        ? {
+            whatWasRightAbout: replaceParticipantIds(analysis.closure.whatWasRightAbout),
+            whatWasDeserved: replaceParticipantIds(analysis.closure.whatWasDeserved),
+            whatWasGot: replaceParticipantIds(analysis.closure.whatWasGot),
+            permissionToMoveOn: replaceParticipantIds(analysis.closure.permissionToMoveOn),
+            endStatement: replaceParticipantIds(analysis.closure.endStatement)
+          }
+        : undefined,
+      safetyConcern: analysis.safetyConcern
+        ? {
+            isPresent: analysis.safetyConcern.isPresent,
+            behaviors: analysis.safetyConcern.behaviors?.map((b) => replaceParticipantIds(b)),
+            resources: analysis.safetyConcern.resources?.map((r) => replaceParticipantIds(r))
+          }
+        : undefined
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `analysis-${analysis.id.substring(0, 8)}.json`;
+    const fileDate = getIsoDateForFileName(analysis.createdAt);
+    const safeId = getSafeIdForFileName(analysis.id);
+    a.download = `analysis-${fileDate}-${safeId}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1208,9 +1410,84 @@ export default function AnalysisPage() {
             `;
           });
         }
-        
+
         html += `</div>`;
       });
+
+      if (analysis.participantProfiles && analysis.participantProfiles.length > 0) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #dbeafe; background: #eff6ff; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #1d4ed8;">${escapeHtml(t('participant_profiles_title'))}</h2>
+            <ul style="margin: 0; padding-left: 12px; font-size: 9px; color: #0f172a; line-height: 1.5;">
+              ${analysis.participantProfiles
+                .map((p) => {
+                  const matchedParticipant =
+                    participants.find(
+                      (pt) => pt.id === p.participantId || pt.displayName === p.participantId
+                    );
+                  const displayName = matchedParticipant?.displayName || p.participantId;
+                  return `<li><strong>${escapeHtml(displayName)}:</strong> ${escapeHtml(replaceParticipantIds(p.profile))}</li>`;
+                })
+                .join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (analysis.importantDates && analysis.importantDates.length > 0) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #111827;">${escapeHtml(t('important_dates_label'))}</h2>
+            <ul style="margin: 0; padding-left: 12px; font-size: 9px; color: #111827; line-height: 1.5;">
+              ${analysis.importantDates
+                .map((d) => {
+                  const dateStr = formatDate(d.date);
+                  const severity = d.severity !== undefined ? ` (${(d.severity * 100).toFixed(0)}%)` : '';
+                  const excerpt = d.excerpt ? `<div style="margin: 2px 0 0 0; font-style: italic; color: #4b5563;">"${escapeHtml(replaceParticipantIds(d.excerpt))}"</div>` : '';
+                  return `<li><strong>${dateStr}${severity}:</strong> ${escapeHtml(replaceParticipantIds(d.reason))}${excerpt}</li>`;
+                })
+                .join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (analysis.safetyConcern && analysis.safetyConcern.isPresent) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #f87171; background: #fef2f2; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #b91c1c;">${escapeHtml(t('pdf_safety_concern_title'))}</h2>
+            <p style="margin: 0 0 4px 0; font-size: 10px; color: #7f1d1d;">${escapeHtml(t('pdf_safety_concern_intro'))}</p>
+            <ul style="margin: 0 0 4px 0; padding-left: 12px; color: #7f1d1d; font-size: 9px;">
+              ${analysis.safetyConcern.behaviors.map((b) => `<li>${escapeHtml(replaceParticipantIds(b))}</li>`).join('')}
+            </ul>
+            ${
+              analysis.safetyConcern.resources && analysis.safetyConcern.resources.length
+                ? `
+                  <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: bold; color: #7f1d1d;">${escapeHtml(t('pdf_safety_resources'))}:</p>
+                  <ul style="margin: 0; padding-left: 12px; color: #7f1d1d; font-size: 9px;">
+                    ${analysis.safetyConcern.resources.map((r) => `<li>${escapeHtml(replaceParticipantIds(r))}</li>`).join('')}
+                  </ul>
+                `
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      if (analysis.closure) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 6px 0; color: #111827;">${escapeHtml(t('pdf_closure_title'))}</h2>
+            <ul style="margin: 0; padding-left: 12px; font-size: 9px; color: #111827; line-height: 1.45;">
+              ${analysis.closure.whatWasRightAbout ? `<li><strong>${escapeHtml(t('pdf_closure_right'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.closure.whatWasRightAbout))}</li>` : ''}
+              ${analysis.closure.whatWasDeserved ? `<li><strong>${escapeHtml(t('pdf_closure_deserved'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.closure.whatWasDeserved))}</li>` : ''}
+              ${analysis.closure.whatWasGot ? `<li><strong>${escapeHtml(t('pdf_closure_got'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.closure.whatWasGot))}</li>` : ''}
+              ${analysis.closure.permissionToMoveOn ? `<li><strong>${escapeHtml(t('pdf_closure_permission'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.closure.permissionToMoveOn))}</li>` : ''}
+              ${analysis.closure.endStatement ? `<li><strong>${escapeHtml(t('pdf_closure_end'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.closure.endStatement))}</li>` : ''}
+            </ul>
+          </div>
+        `;
+      }
 
       html += `
         </div>
@@ -1319,7 +1596,9 @@ export default function AnalysisPage() {
         remainingHeight -= heightOnThisPage;
       }
       
-      doc.save(`analysis-${analysis.id.substring(0, 8)}.pdf`);
+      const fileDate = getIsoDateForFileName(analysis.createdAt);
+      const safeId = getSafeIdForFileName(analysis.id);
+      doc.save(`analysis-${fileDate}-${safeId}.pdf`);
       
       // Clean up
       if (container.parentNode) {

@@ -67,22 +67,6 @@ export type EvidenceSnippet = {
   explanation: string;
 };
 
-export type RecommendedReply = {
-  /**
-   * Free-form reply text, in the same language as the conversation.
-   */
-  text: string;
-  /**
-   * Optional high-level tone or style marker (e.g. "soft", "firm", "boundary").
-   */
-  tone?: string | null;
-  /**
-   * Optional role indicator for whom this reply is written.
-   * This is advisory only; the UI remains neutral.
-   */
-  fromRole?: 'user' | 'other' | 'neutral';
-};
-
 export type AnalysisSection = {
   id: string;
   title: string;
@@ -90,7 +74,6 @@ export type AnalysisSection = {
   plainSummary?: string; // Layman's terms summary (simple, everyday language)
   score?: number;
   evidenceSnippets: EvidenceSnippet[];
-  recommendedReplies?: RecommendedReply[];
 };
 
 export type ParticipantProfile = {

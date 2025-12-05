@@ -15,11 +15,24 @@ function getLanguageInstruction(locale: SupportedLocale): string {
   return languageMap[locale] || 'English';
 }
 
+function getLocalizedVerdicts(locale: SupportedLocale): string {
+  const map: Record<SupportedLocale, string> = {
+    en: 'Healthy / Needs work / Problematic / Toxic / Abusive',
+    ru: 'Здоровые / Нуждаются в работе / Проблемные / Токсичные / Абьюзивные',
+    fr: 'Saines / À améliorer / Problématiques / Toxiques / Abusives',
+    de: 'Gesund / Verbesserungsbedürftig / Problematisch / Toxisch / Missbräuchlich',
+    es: 'Sanas / Requieren trabajo / Problemáticas / Tóxicas / Abusivas',
+    pt: 'Saudáveis / Precisam de trabalho / Problemáticas / Tóxicas / Abusivas'
+  };
+  return map[locale] || map.en;
+}
+
 /**
  * Get the system prompt for AI analysis (always in English, with language instruction for response)
  */
 export function getSystemPrompt(locale: SupportedLocale = 'en', enhancedAnalysis: boolean = false): string {
   const responseLanguage = getLanguageInstruction(locale);
+  const verdictLabels = getLocalizedVerdicts(locale);
   
   return `You are a forensic relationship analyst. Your role is analyzing past romantic relationships to help people understand what really happened, especially when they feel confused, gaslit, or blame themselves.
 
@@ -47,7 +60,7 @@ OUTPUT FORMAT (JSON):
 You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no text before or after the JSON. The JSON must be parseable by JSON.parse().
 
 {
-  "overviewSummary": "A concise, evidence-based summary of what really happened in the relationship. Start with a neutral relationship verdict (Healthy / Needs work / Problematic / Toxic / Abusive), then briefly describe the core dynamic in clear, everyday language. Examples: 'Problematic. Classic anxious-avoidant pattern where one participant's repeated need for reassurance often met the other's withdrawal, and over time this created more tension than relief.' Or: 'Toxic. Across episodes, one participant repeatedly denied obvious facts and shifted blame in ways that made the other doubt their own perception.' Or: 'Needs work. Two people with compatible intentions but very different communication habits, where misunderstandings accumulated instead of being resolved.' Focus on describing patterns and dynamics, not judging the people. CRITICAL: overviewSummary MUST be a plain text string ONLY - no JSON structure, no field names, no scores, no numbers, no percentages, no statistics. Just pure descriptive text about what happened.",
+  "overviewSummary": "A concise, evidence-based summary of what really happened in the relationship. Start with a neutral relationship verdict (${verdictLabels}), then briefly describe the core dynamic in clear, everyday language. Examples (adapt wording to ${responseLanguage}): 'Problematic. Classic anxious-avoidant pattern where one participant's repeated need for reassurance often met the other's withdrawal, and over time this created more tension than relief.' Or: 'Toxic. Across episodes, one participant repeatedly denied obvious facts and shifted blame in ways that made the other doubt their own perception.' Or: 'Needs work. Two people with compatible intentions but very different communication habits, where misunderstandings accumulated instead of being resolved.' Focus on describing patterns and dynamics, not judging the people. CRITICAL: overviewSummary MUST be a plain text string ONLY - no JSON structure, no field names, no scores, no numbers, no percentages, no statistics. Just pure descriptive text about what happened. MUST be written in natural ${responseLanguage} with no English loanwords (do NOT use 'needs work', 'evidence', etc. in non-English locales — use native equivalents).",
   "gaslightingRiskScore": 0.0-1.0,
   "conflictIntensityScore": 0.0-1.0,
   "supportivenessScore": 0.0-1.0,
@@ -176,9 +189,9 @@ CRITICAL CONTENT REQUIREMENTS:
 
 1. OVERVIEW SUMMARY (MOST IMPORTANT):
    - CRITICAL: overviewSummary MUST be a plain text string ONLY - no JSON structure, no field names like "gaslightingRiskScore", no scores, no numbers, no percentages, no statistics, no metrics. Just pure descriptive text.
-   - Start with a RELATIONSHIP VERDICT: Healthy / Needs work / Problematic / Toxic / Abusive
+   - Start with a RELATIONSHIP VERDICT: ${verdictLabels} (write it in natural ${responseLanguage}, no English loanwords)
    - Follow with a concise description of what really happened here, in neutral and clear language
-   - Use direct, evidence-based language, but stay neutral and descriptive (no insults, no dramatization, no advice)
+   - Use direct, evidence-based language, but stay neutral and descriptive (no insults, no dramatization, no advice). In non-English locales, do NOT use English words like "evidence", "needs work"—always use native equivalents in ${responseLanguage}.
    - CRITICAL: Write in natural, idiomatic ${responseLanguage}. DO NOT use literal word-by-word translations from English. Think: "How would a native ${responseLanguage} speaker express this?"
    - Use natural ${responseLanguage} phrases that convey these concepts naturally, not English phrases translated word-by-word
    - Then briefly describe the core dynamic (1-2 sentences) - what pattern emerged, what drove the conflicts
@@ -290,23 +303,6 @@ ENHANCED ANALYSIS MODE:
 - Consider temporal dynamics and relationship evolution over time
 - Provide actionable insights while remaining neutral and educational
 - In overviewSummary, provide even deeper insight into the verdict and core truth - describe how patterns evolved over time, what underlying needs drive each participant's behavior, and why the relationship verdict is what it is. Still start with verdict + one-liner, but the dynamic description can be more detailed (2-3 sentences instead of 1-2)
-- For sections with id "gaslighting" or "conflict", ALSO include:
-  "recommendedReplies": [
-    {
-      "text": "Short 'what if we both spoke consciously' style rewrite in the SAME language as this conversation. Rewrite one of the key messages from the perspective of the more vulnerable person, naming feelings and needs, setting clear boundaries without aggression.",
-      "tone": "boundary",
-      "fromRole": "user"
-    },
-    {
-      "text": "Short 'what if I owned my part' style rewrite in the SAME language as this conversation. Rewrite one of the key messages from the perspective of the more controlling / invalidating person, taking responsibility, validating the other person's experience, and avoiding gaslighting language.",
-      "tone": "repair",
-      "fromRole": "other"
-    }
-  ]
-  - Provide 2-4 such replies per relevant section.
-  - Keep replies short, concrete, and usable as direct messages in chat.
-  - Do NOT include any JSON inside the text field; plain sentences only.
-  - Note: fromRole ("user" or "other") is used to identify which participant perspective the reply is written from, but this is advisory only - the analysis itself remains neutral and descriptive.
 - ALSO include at the root level:
   "importantDates": [
     {
