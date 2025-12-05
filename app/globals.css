@@ -455,6 +455,14 @@ html, body {
   }
 }
 
+/* Disable background animations on mobile for performance */
+@media (max-width: 768px) {
+  .animate-blob,
+  .animate-ripple {
+    animation: none !important;
+  }
+}
+
 /* Force white text on badges in dark theme - mobile and desktop */
 .dark [class*="rounded-md"][class*="border"][class*="bg-primary/10"],
 .dark [class*="rounded-md"][class*="border"][class*="bg-secondary/20"],
