@@ -1158,19 +1158,27 @@ export async function analyzeConversation(
         });
         
         const validSections = parsed.sections
-          .filter(s => s.evidenceSnippets && Array.isArray(s.evidenceSnippets) && s.evidenceSnippets.length > 0)
+          .filter((s) => {
+            const hasText =
+              (s.summary && s.summary.trim().length > 0) ||
+              (s.title && s.title.trim().length > 0);
+            const hasEvidence = Array.isArray(s.evidenceSnippets) && s.evidenceSnippets.length > 0;
+            return hasText || hasEvidence;
+          })
           .map((s) => ({
             id: s.id || `section_${Date.now()}_${Math.random()}`,
             title: s.title || 'Pattern',
             summary: s.summary || '',
             plainSummary: s.plainSummary || undefined,
             score: s.score ?? undefined,
-            evidenceSnippets: (s.evidenceSnippets || []).map((e) => ({
-              messageId: null,
-              mediaArtifactId: null,
-              excerpt: e.excerpt || '',
-              explanation: e.explanation || ''
-            })),
+            evidenceSnippets: Array.isArray(s.evidenceSnippets)
+              ? s.evidenceSnippets.map((e) => ({
+                  messageId: null,
+                  mediaArtifactId: null,
+                  excerpt: e.excerpt || '',
+                  explanation: e.explanation || ''
+                }))
+              : []
           }));
         
         logInfo('analysis_sections_filtered', {
@@ -1181,11 +1189,10 @@ export async function analyzeConversation(
           filteredOut: parsed.sections.length - validSections.length
         });
         
-        // Only add sections that have evidence snippets
+        // Add sections if any survived; otherwise warn
         if (validSections.length > 0) {
           allSections.push(...validSections);
         } else {
-          // Log warning if we got sections but they all lacked evidence
           logWarn('analysis_no_valid_sections', {
             conversationId: conversation.id,
             chunkIndex: chunkIndex + 1,
@@ -1196,7 +1203,9 @@ export async function analyzeConversation(
               hasEvidenceSnippets: !!s.evidenceSnippets,
               evidenceSnippetsType: typeof s.evidenceSnippets,
               evidenceSnippetsIsArray: Array.isArray(s.evidenceSnippets),
-              evidenceSnippetsLength: s.evidenceSnippets?.length
+              evidenceSnippetsLength: s.evidenceSnippets?.length,
+              summaryLength: s.summary?.length ?? 0,
+              titleLength: s.title?.length ?? 0
             }))
           });
         }
