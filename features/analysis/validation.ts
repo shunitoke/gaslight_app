@@ -1,7 +1,8 @@
 import type {
   AnalysisResult,
   AnalysisSection,
-  EvidenceSnippet
+  EvidenceSnippet,
+  RealityCheck
 } from './types';
 
 type Defaults = {
@@ -24,6 +25,50 @@ const cleanString = (value: unknown, fallback = ''): string => {
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const normalizeRealityCheck = (value: unknown): RealityCheck | undefined => {
+  if (!isPlainObject(value)) return undefined;
+  const whosePerceptionWasAccurate = cleanString(value.whosePerceptionWasAccurate, '');
+  const rightAboutRaw = Array.isArray((value as any).whatParticipantWasRightAbout)
+    ? (value as any).whatParticipantWasRightAbout
+    : [];
+
+  if (!whosePerceptionWasAccurate || rightAboutRaw.length === 0) return undefined;
+
+  const whatParticipantWasRightAbout = rightAboutRaw
+    .map((item: any) => {
+      if (!isPlainObject(item)) return null;
+      const participant = cleanString(item.participant, '');
+      const thought = cleanString(item.thought, '');
+      const evidence = cleanString(item.evidence, '');
+      if (!participant || !thought || !evidence) return null;
+      return { participant, thought, evidence };
+    })
+    .filter((v): v is { participant: string; thought: string; evidence: string } => v !== null);
+
+  if (whatParticipantWasRightAbout.length === 0) return undefined;
+
+  const whatParticipantWasWrongAbout = Array.isArray((value as any).whatParticipantWasWrongAbout)
+    ? (value as any).whatParticipantWasWrongAbout
+        .map((item: any) => {
+          if (!isPlainObject(item)) return null;
+          const participant = cleanString(item.participant, '');
+          const accusation = cleanString(item.accusation, '');
+          const reality = cleanString(item.reality, '');
+          if (!participant || !accusation || !reality) return null;
+          return { participant, accusation, reality };
+        })
+        .filter(
+          (v): v is { participant: string; accusation: string; reality: string } => v !== null
+        )
+    : undefined;
+
+  return {
+    whatParticipantWasRightAbout,
+    whatParticipantWasWrongAbout,
+    whosePerceptionWasAccurate
+  };
+};
 
 const normalizeEvidence = (value: unknown): EvidenceSnippet[] => {
   if (!Array.isArray(value)) return [];
@@ -130,7 +175,7 @@ export const normalizeAnalysisResult = (
     emotionalCycle: cleanString(source.emotionalCycle, ''),
     timePatterns: isPlainObject(source.timePatterns) ? source.timePatterns : undefined,
     contradictions: Array.isArray(source.contradictions) ? source.contradictions : undefined,
-    realityCheck: isPlainObject(source.realityCheck) ? source.realityCheck : undefined,
+    realityCheck: normalizeRealityCheck(source.realityCheck),
     frameworkDiagnosis: isPlainObject(source.frameworkDiagnosis) ? source.frameworkDiagnosis : undefined,
     hardTruth: isPlainObject(source.hardTruth) ? source.hardTruth : undefined,
     whatYouShouldKnow: isPlainObject(source.whatYouShouldKnow) ? source.whatYouShouldKnow : undefined,
