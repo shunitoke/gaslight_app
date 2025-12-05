@@ -1006,129 +1006,137 @@ export async function analyzeConversation(
         totalMessagesForScores += chunkSize;
       }
 
-      // Collect new analysis parts (for enhanced analysis) - aggregate properly
-      if (enhancedAnalysis) {
-        // communicationStats - merge from all chunks (sum counts, average rates)
-        if (parsed.communicationStats) {
-          if (!aggregatedCommunicationStats) {
-            aggregatedCommunicationStats = { ...parsed.communicationStats };
-          } else {
-            // Merge initiatorBalance
-            if (parsed.communicationStats.initiatorBalance && aggregatedCommunicationStats.initiatorBalance) {
-              const merged = { ...aggregatedCommunicationStats.initiatorBalance };
-              Object.entries(parsed.communicationStats.initiatorBalance).forEach(([key, value]) => {
-                merged[key] = ((merged[key] || 0) + (value as number)) / 2;
-              });
-              aggregatedCommunicationStats.initiatorBalance = merged;
-            }
-            // Sum apology counts
-            if (parsed.communicationStats.apologyCount && aggregatedCommunicationStats.apologyCount) {
-              const merged = { ...aggregatedCommunicationStats.apologyCount };
-              Object.entries(parsed.communicationStats.apologyCount).forEach(([key, value]) => {
-                merged[key] = (merged[key] || 0) + (value as number);
-              });
-              aggregatedCommunicationStats.apologyCount = merged;
-            }
-            // Average resolution rate
-            if (parsed.communicationStats.resolutionRate !== undefined) {
-              const current = aggregatedCommunicationStats.resolutionRate || 0;
-              aggregatedCommunicationStats.resolutionRate = (current + parsed.communicationStats.resolutionRate) / 2;
-            }
-          }
-        }
-        
-        // promiseTracking - merge from all chunks (sum promises)
-        if (parsed.promiseTracking) {
-          if (!aggregatedPromiseTracking) {
-            aggregatedPromiseTracking = { ...parsed.promiseTracking };
-          } else {
-            Object.entries(parsed.promiseTracking).forEach(([key, value]) => {
-              if (value && typeof value === 'object' && 'made' in value && 'kept' in value) {
-                const existing = aggregatedPromiseTracking[key];
-                if (existing) {
-                  aggregatedPromiseTracking[key] = {
-                    made: existing.made + value.made,
-                    kept: existing.kept + value.kept,
-                    percentage: existing.made > 0 ? (existing.kept / existing.made) * 100 : 0
-                  };
-                } else {
-                  aggregatedPromiseTracking[key] = { ...value };
-                }
-              }
+      // Collect new analysis parts (aggregate for all chunks, regardless of enhanced flag)
+      // communicationStats - merge from all chunks (sum counts, keep max resolutionRate)
+      if (parsed.communicationStats) {
+        if (!aggregatedCommunicationStats) {
+          aggregatedCommunicationStats = { ...parsed.communicationStats };
+        } else {
+          // Merge initiatorBalance (simple average per key)
+          if (parsed.communicationStats.initiatorBalance && aggregatedCommunicationStats.initiatorBalance) {
+            const merged = { ...aggregatedCommunicationStats.initiatorBalance };
+            Object.entries(parsed.communicationStats.initiatorBalance).forEach(([key, value]) => {
+              merged[key] = ((merged[key] || 0) + (value as number)) / 2;
             });
+            aggregatedCommunicationStats.initiatorBalance = merged;
+          } else if (parsed.communicationStats.initiatorBalance && !aggregatedCommunicationStats.initiatorBalance) {
+            aggregatedCommunicationStats.initiatorBalance = { ...parsed.communicationStats.initiatorBalance };
           }
-        }
-        
-        // redFlagCounts - sum from all chunks
-        if (parsed.redFlagCounts) {
-          if (!aggregatedRedFlagCounts) {
-            aggregatedRedFlagCounts = { ...parsed.redFlagCounts };
-          } else {
-            aggregatedRedFlagCounts = {
-              yellow: (aggregatedRedFlagCounts.yellow || 0) + (parsed.redFlagCounts.yellow || 0),
-              orange: (aggregatedRedFlagCounts.orange || 0) + (parsed.redFlagCounts.orange || 0),
-              red: (aggregatedRedFlagCounts.red || 0) + (parsed.redFlagCounts.red || 0)
-            };
+          // Sum apology counts
+          if (parsed.communicationStats.apologyCount) {
+            const merged = { ...(aggregatedCommunicationStats.apologyCount || {}) };
+            Object.entries(parsed.communicationStats.apologyCount).forEach(([key, value]) => {
+              merged[key] = (merged[key] || 0) + (value as number);
+            });
+            aggregatedCommunicationStats.apologyCount = merged;
           }
-        }
-        
-        // emotionalCycle - take first non-empty (usually same across chunks)
-        if (parsed.emotionalCycle && !aggregatedEmotionalCycle) {
-          aggregatedEmotionalCycle = parsed.emotionalCycle;
-        }
-        
-        // timePatterns - merge triggers, take most detailed conflictTimes
-        if (parsed.timePatterns) {
-          if (!aggregatedTimePatterns) {
-            aggregatedTimePatterns = { ...parsed.timePatterns };
-          } else {
-            // Merge triggers
-            if (parsed.timePatterns.triggers) {
-              const existingTriggers = new Set(aggregatedTimePatterns.triggers || []);
-              parsed.timePatterns.triggers.forEach((t: string) => existingTriggers.add(t));
-              aggregatedTimePatterns.triggers = Array.from(existingTriggers);
-            }
-            // Take more detailed conflictTimes
-            if (parsed.timePatterns.conflictTimes && 
-                (!aggregatedTimePatterns.conflictTimes || 
-                 parsed.timePatterns.conflictTimes.length > aggregatedTimePatterns.conflictTimes.length)) {
-              aggregatedTimePatterns.conflictTimes = parsed.timePatterns.conflictTimes;
+          // Resolution rate: keep max seen
+          if (parsed.communicationStats.resolutionRate !== undefined) {
+            const current = aggregatedCommunicationStats.resolutionRate ?? 0;
+            aggregatedCommunicationStats.resolutionRate = Math.max(current, parsed.communicationStats.resolutionRate);
+          }
+          // conflictFrequency: keep the longest/non-empty description
+          if (parsed.communicationStats.conflictFrequency) {
+            const existing = aggregatedCommunicationStats.conflictFrequency || '';
+            if (parsed.communicationStats.conflictFrequency.length > existing.length) {
+              aggregatedCommunicationStats.conflictFrequency = parsed.communicationStats.conflictFrequency;
             }
           }
         }
-        
-        // contradictions - already correctly aggregated via push
-        if (parsed.contradictions && Array.isArray(parsed.contradictions)) {
-          aggregatedContradictions.push(...parsed.contradictions);
+      }
+      
+      // promiseTracking - merge from all chunks (sum promises)
+      if (parsed.promiseTracking) {
+        if (!aggregatedPromiseTracking) {
+          aggregatedPromiseTracking = { ...parsed.promiseTracking };
+        } else {
+          Object.entries(parsed.promiseTracking).forEach(([key, value]) => {
+            if (value && typeof value === 'object' && 'made' in value && 'kept' in value) {
+              const existing = aggregatedPromiseTracking[key];
+              if (existing) {
+                const made = (existing.made || 0) + (value as any).made;
+                const kept = (existing.kept || 0) + (value as any).kept;
+                aggregatedPromiseTracking[key] = {
+                  made,
+                  kept,
+                  percentage: made > 0 ? (kept / made) * 100 : 0
+                };
+              } else {
+                aggregatedPromiseTracking[key] = { ...value };
+              }
+            }
+          });
         }
-        
-        // realityCheck, frameworkDiagnosis, hardTruth, whatYouShouldKnow, closure, safetyConcern
-        // These are holistic and should come from the most complete chunk
-        // Take first non-empty, but prefer longer/more detailed versions
-        if (parsed.realityCheck && (!aggregatedRealityCheck || 
-            JSON.stringify(parsed.realityCheck).length > JSON.stringify(aggregatedRealityCheck).length)) {
-          aggregatedRealityCheck = parsed.realityCheck;
+      }
+      
+      // redFlagCounts - sum from all chunks
+      if (parsed.redFlagCounts) {
+        if (!aggregatedRedFlagCounts) {
+          aggregatedRedFlagCounts = { ...parsed.redFlagCounts };
+        } else {
+          aggregatedRedFlagCounts = {
+            yellow: (aggregatedRedFlagCounts.yellow || 0) + (parsed.redFlagCounts.yellow || 0),
+            orange: (aggregatedRedFlagCounts.orange || 0) + (parsed.redFlagCounts.orange || 0),
+            red: (aggregatedRedFlagCounts.red || 0) + (parsed.redFlagCounts.red || 0)
+          };
         }
-        if (parsed.frameworkDiagnosis && (!aggregatedFrameworkDiagnosis ||
-            JSON.stringify(parsed.frameworkDiagnosis).length > JSON.stringify(aggregatedFrameworkDiagnosis).length)) {
-          aggregatedFrameworkDiagnosis = parsed.frameworkDiagnosis;
+      }
+      
+      // emotionalCycle - take first non-empty (usually same across chunks)
+      if (parsed.emotionalCycle && !aggregatedEmotionalCycle) {
+        aggregatedEmotionalCycle = parsed.emotionalCycle;
+      }
+      
+      // timePatterns - merge triggers, take most detailed conflictTimes
+      if (parsed.timePatterns) {
+        if (!aggregatedTimePatterns) {
+          aggregatedTimePatterns = { ...parsed.timePatterns };
+        } else {
+          // Merge triggers
+          if (parsed.timePatterns.triggers) {
+            const existingTriggers = new Set(aggregatedTimePatterns.triggers || []);
+            parsed.timePatterns.triggers.forEach((t: string) => existingTriggers.add(t));
+            aggregatedTimePatterns.triggers = Array.from(existingTriggers);
+          }
+          // Take more detailed conflictTimes
+          if (parsed.timePatterns.conflictTimes && 
+              (!aggregatedTimePatterns.conflictTimes || 
+               parsed.timePatterns.conflictTimes.length > aggregatedTimePatterns.conflictTimes.length)) {
+            aggregatedTimePatterns.conflictTimes = parsed.timePatterns.conflictTimes;
+          }
         }
-        if (parsed.hardTruth && (!aggregatedHardTruth ||
-            JSON.stringify(parsed.hardTruth).length > JSON.stringify(aggregatedHardTruth).length)) {
-          aggregatedHardTruth = parsed.hardTruth;
-        }
-        if (parsed.whatYouShouldKnow && (!aggregatedWhatYouShouldKnow ||
-            JSON.stringify(parsed.whatYouShouldKnow).length > JSON.stringify(aggregatedWhatYouShouldKnow).length)) {
-          aggregatedWhatYouShouldKnow = parsed.whatYouShouldKnow;
-        }
-        if (parsed.closure && (!aggregatedClosure ||
-            JSON.stringify(parsed.closure).length > JSON.stringify(aggregatedClosure).length)) {
-          aggregatedClosure = parsed.closure;
-        }
-        if (parsed.safetyConcern && (!aggregatedSafetyConcern ||
-            JSON.stringify(parsed.safetyConcern).length > JSON.stringify(aggregatedSafetyConcern).length)) {
-          aggregatedSafetyConcern = parsed.safetyConcern;
-        }
+      }
+      
+      // contradictions - already correctly aggregated via push
+      if (parsed.contradictions && Array.isArray(parsed.contradictions)) {
+        aggregatedContradictions.push(...parsed.contradictions);
+      }
+      
+      // realityCheck, frameworkDiagnosis, hardTruth, whatYouShouldKnow, closure, safetyConcern
+      // Take first non-empty, but prefer longer/more detailed versions
+      if (parsed.realityCheck && (!aggregatedRealityCheck || 
+          JSON.stringify(parsed.realityCheck).length > JSON.stringify(aggregatedRealityCheck).length)) {
+        aggregatedRealityCheck = parsed.realityCheck;
+      }
+      if (parsed.frameworkDiagnosis && (!aggregatedFrameworkDiagnosis ||
+          JSON.stringify(parsed.frameworkDiagnosis).length > JSON.stringify(aggregatedFrameworkDiagnosis).length)) {
+        aggregatedFrameworkDiagnosis = parsed.frameworkDiagnosis;
+      }
+      if (parsed.hardTruth && (!aggregatedHardTruth ||
+          JSON.stringify(parsed.hardTruth).length > JSON.stringify(aggregatedHardTruth).length)) {
+        aggregatedHardTruth = parsed.hardTruth;
+      }
+      if (parsed.whatYouShouldKnow && (!aggregatedWhatYouShouldKnow ||
+          JSON.stringify(parsed.whatYouShouldKnow).length > JSON.stringify(aggregatedWhatYouShouldKnow).length)) {
+        aggregatedWhatYouShouldKnow = parsed.whatYouShouldKnow;
+      }
+      if (parsed.closure && (!aggregatedClosure ||
+          JSON.stringify(parsed.closure).length > JSON.stringify(aggregatedClosure).length)) {
+        aggregatedClosure = parsed.closure;
+      }
+      if (parsed.safetyConcern && (!aggregatedSafetyConcern ||
+          JSON.stringify(parsed.safetyConcern).length > JSON.stringify(aggregatedSafetyConcern).length)) {
+        aggregatedSafetyConcern = parsed.safetyConcern;
       }
       
       // Collect overview summary if available - clean it from any JSON structure
