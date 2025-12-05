@@ -27,20 +27,20 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 
 const normalizeEvidence = (value: unknown): EvidenceSnippet[] => {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!isPlainObject(item)) return null;
-      const excerpt = cleanString(item.excerpt, '');
-      const explanation = cleanString(item.explanation, '');
-      if (!excerpt || !explanation) return null;
-      return {
-        messageId: typeof item.messageId === 'string' ? item.messageId : null,
-        mediaArtifactId: typeof item.mediaArtifactId === 'string' ? item.mediaArtifactId : null,
-        excerpt,
-        explanation
-      };
-    })
-    .filter((v): v is EvidenceSnippet => v !== null);
+  const snippets: EvidenceSnippet[] = [];
+  value.forEach((item) => {
+    if (!isPlainObject(item)) return;
+    const excerpt = cleanString(item.excerpt, '');
+    const explanation = cleanString(item.explanation, '');
+    if (!excerpt || !explanation) return;
+    snippets.push({
+      messageId: typeof item.messageId === 'string' ? item.messageId : null,
+      mediaArtifactId: typeof item.mediaArtifactId === 'string' ? item.mediaArtifactId : null,
+      excerpt,
+      explanation
+    });
+  });
+  return snippets;
 };
 
 const normalizeSection = (
