@@ -2573,6 +2573,42 @@ export default function AnalysisPage() {
           </TabsContent>
         </Tabs>
 
+        {/* Beta banner / donations */}
+        <CardBase className="mt-6 p-4 sm:p-5 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 border border-primary/20 shadow-md">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary font-semibold text-xs">
+            <span>β</span>
+            <span>Beta</span>
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mt-3">
+            Support the developer
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            If this report helped, consider a small donation. Спасибо за поддержку!
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono text-foreground/80 mt-3">
+            <div className="space-y-1">
+              <div className="text-muted-foreground font-semibold">TON</div>
+              <div className="break-all">UQB_oYK9egOO1V1pbqIklusCFwStX652kDopnlSUFfYJemnI</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-muted-foreground font-semibold">USDT TON</div>
+              <div className="break-all">UQCfBdwQTDCFLmwhX1cFPiUWzDdTpDqzBBsTKS6bGJPZiglC</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-muted-foreground font-semibold">USDT ERC20</div>
+              <div className="break-all">0x10704b9E8C9fEc676C329F019A0C9BC0D5Bb474A</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-muted-foreground font-semibold">USDT SOL</div>
+              <div className="break-all">AuFi57sgG1JGsZVHJHTaomj8dpjpnQAPKZv9G1Gao8ju</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-muted-foreground font-semibold">USDT TRC20</div>
+              <div className="break-all">TRG9ReoAjTt1zy4EnfVbfHBmms8h4ssSCj</div>
+            </div>
+          </div>
+        </CardBase>
+
         {/* Disclaimers about purpose and limitations */}
         <div className="mt-3 text-xs text-muted-foreground space-y-1">
           <p>{t('report_disclaimer_main')}</p>
