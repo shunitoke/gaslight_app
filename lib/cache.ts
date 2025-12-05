@@ -20,7 +20,7 @@ const CACHE_KEY_PREFIX = 'analysis_cache:';
 const PROMPT_VERSION_KEY = 'prompt_version';
 
 // Current prompt version - increment this when prompts change
-const CURRENT_PROMPT_VERSION = '1.1.0'; // Updated for unified prompts + two-stage analysis
+const CURRENT_PROMPT_VERSION = '1.1.1'; // Added stronger contradiction requirements and long-context overlap logic
 
 /**
  * Compute hash of chat content for caching
