@@ -1687,11 +1687,11 @@ export default function AnalysisPage() {
             )}
 
             {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
-         {isPremiumAnalysis && analysis.importantDates && analysis.importantDates.length > 0 ? (
+         {isPremiumAnalysis && (activityByDay.length > 0 || (analysis.importantDates?.length ?? 0) > 0) ? (
            <AnalysisDashboard
              analysis={analysis}
              activityByDay={activityByDay}
-             importantDates={analysis.importantDates}
+             importantDates={analysis.importantDates || []}
              conversationLanguage={conversationLanguage}
              locale={locale}
              onDateSelect={(importantDate: ImportantDate) => {
