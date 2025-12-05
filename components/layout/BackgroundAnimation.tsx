@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 import { Ripple } from '../ui/ripple';
 import { useAnimation } from '../../contexts/AnimationContext';
 
-export const BackgroundAnimation = memo(() => {
+function BackgroundAnimationComponent() {
   const { animationsEnabled, isPageVisible, prefersReducedMotion } = useAnimation();
 
   // For blobs we want them alive while tab is visible (desktop), even during processing.
@@ -99,7 +99,11 @@ export const BackgroundAnimation = memo(() => {
       />
     </div>
   );
-});
+}
 
+const BackgroundAnimation = memo(BackgroundAnimationComponent);
 BackgroundAnimation.displayName = 'BackgroundAnimation';
+
+export { BackgroundAnimation };
+export default BackgroundAnimation;
 

@@ -1307,8 +1307,8 @@ export default function HomePage() {
           className="flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500" 
           style={{ 
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            height: '500px',
-            minHeight: '500px',
+            height: '560px',
+            minHeight: '560px',
             willChange: 'opacity, transform',
             overflow: 'hidden'
           }}
