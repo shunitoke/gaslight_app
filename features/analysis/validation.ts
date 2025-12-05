@@ -2,7 +2,8 @@ import type {
   AnalysisResult,
   AnalysisSection,
   EvidenceSnippet,
-  RealityCheck
+  RealityCheck,
+  HardTruth
 } from './types';
 
 type Defaults = {
@@ -65,6 +66,33 @@ const normalizeRealityCheck = (value: unknown): RealityCheck | undefined => {
     whatParticipantWasRightAbout,
     whatParticipantWasWrongAbout,
     whosePerceptionWasAccurate
+  };
+};
+
+const normalizeHardTruth = (value: unknown): HardTruth | undefined => {
+  if (!isPlainObject(value)) return undefined;
+  const verdictRaw = typeof value.verdict === 'string' ? value.verdict : '';
+  const verdict: HardTruth['verdict'] | undefined =
+    verdictRaw === 'healthy' ||
+    verdictRaw === 'needs_work' ||
+    verdictRaw === 'problematic' ||
+    verdictRaw === 'toxic' ||
+    verdictRaw === 'abusive'
+      ? verdictRaw
+      : undefined;
+  const message = cleanString(value.message, '');
+  if (!verdict || !message) return undefined;
+
+  const abusiveBehaviors = Array.isArray((value as any).abusiveBehaviors)
+    ? (value as any).abusiveBehaviors
+        .map((b: unknown) => cleanString(b, ''))
+        .filter((b) => b.length > 0)
+    : undefined;
+
+  return {
+    verdict,
+    message,
+    abusiveBehaviors: abusiveBehaviors && abusiveBehaviors.length > 0 ? abusiveBehaviors : undefined
   };
 };
 
@@ -175,7 +203,7 @@ export const normalizeAnalysisResult = (
     contradictions: Array.isArray(source.contradictions) ? source.contradictions : undefined,
     realityCheck: normalizeRealityCheck(source.realityCheck),
     frameworkDiagnosis: isPlainObject(source.frameworkDiagnosis) ? source.frameworkDiagnosis : undefined,
-    hardTruth: isPlainObject(source.hardTruth) ? source.hardTruth : undefined,
+    hardTruth: normalizeHardTruth(source.hardTruth),
     whatYouShouldKnow: isPlainObject(source.whatYouShouldKnow) ? source.whatYouShouldKnow : undefined,
     closure: isPlainObject(source.closure) ? source.closure : undefined,
     safetyConcern: isPlainObject(source.safetyConcern) ? source.safetyConcern : undefined
