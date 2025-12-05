@@ -1158,20 +1158,23 @@ export async function analyzeConversation(
         });
         
         const validSections = parsed.sections
-          .filter(s => s.evidenceSnippets && Array.isArray(s.evidenceSnippets) && s.evidenceSnippets.length > 0)
           .map((s) => ({
             id: s.id || `section_${Date.now()}_${Math.random()}`,
             title: s.title || 'Pattern',
             summary: s.summary || '',
             plainSummary: s.plainSummary || undefined,
             score: s.score ?? undefined,
-            evidenceSnippets: (s.evidenceSnippets || []).map((e) => ({
-              messageId: null,
-              mediaArtifactId: null,
-              excerpt: e.excerpt || '',
-              explanation: e.explanation || ''
-            })),
-          }));
+            evidenceSnippets: Array.isArray(s.evidenceSnippets)
+              ? s.evidenceSnippets.map((e) => ({
+                  messageId: null,
+                  mediaArtifactId: null,
+                  excerpt: e.excerpt || '',
+                  explanation: e.explanation || ''
+                }))
+              : []
+          }))
+          // keep sections that have at least some content (summary/title), even if evidence is empty
+          .filter((s) => (s.summary && s.summary.trim().length > 0) || (s.title && s.title.trim().length > 0));
         
         logInfo('analysis_sections_filtered', {
           conversationId: conversation.id,
@@ -1181,24 +1184,8 @@ export async function analyzeConversation(
           filteredOut: parsed.sections.length - validSections.length
         });
         
-        // Only add sections that have evidence snippets
         if (validSections.length > 0) {
           allSections.push(...validSections);
-        } else {
-          // Log warning if we got sections but they all lacked evidence
-          logWarn('analysis_no_valid_sections', {
-            conversationId: conversation.id,
-            chunkIndex: chunkIndex + 1,
-            totalSections: parsed.sections.length,
-            sectionsStructure: parsed.sections.map(s => ({
-              id: s.id,
-              title: s.title,
-              hasEvidenceSnippets: !!s.evidenceSnippets,
-              evidenceSnippetsType: typeof s.evidenceSnippets,
-              evidenceSnippetsIsArray: Array.isArray(s.evidenceSnippets),
-              evidenceSnippetsLength: s.evidenceSnippets?.length
-            }))
-          });
         }
       }
 
