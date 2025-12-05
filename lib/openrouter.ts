@@ -231,7 +231,8 @@ export const callOpenRouter = async (
           logError('openrouter_error', { 
             status: response.status, 
             body: text.substring(0, 200),
-            attempt: attempt + 1
+            attempt: attempt + 1,
+            model: requestBody.model || requestBody.models
           });
           
           // Handle 402 (insufficient credits / token limit exceeded)

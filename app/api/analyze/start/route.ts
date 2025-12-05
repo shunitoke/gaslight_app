@@ -190,7 +190,8 @@ export async function POST(request: Request) {
           jobId: job.id,
           conversationId: conversation.id,
           messageCount: messages.length,
-          mediaCount: features.canAnalyzeMedia ? mediaArtifacts.length : 0
+          mediaCount: features.canAnalyzeMedia ? mediaArtifacts.length : 0,
+          model: getConfig().textModel
         });
 
         const analysisResult = await analyzeConversation(
