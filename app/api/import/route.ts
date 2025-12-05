@@ -104,6 +104,27 @@ export async function POST(request: Request) {
                   file.type === 'application/zip' ||
                   file.type === 'application/x-zip-compressed';
 
+    // Temporary block: large ZIPs with media until next version
+    const ZIP_MEDIA_MAX_BYTES = 25 * 1024 * 1024;
+    if (isZip && file.size > ZIP_MEDIA_MAX_BYTES) {
+      logError('zip_media_too_large_temp_block', {
+        fileName: file.name,
+        size: file.size,
+        maxSize: ZIP_MEDIA_MAX_BYTES
+      });
+      return NextResponse.json(
+        { error: [
+          'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
+          'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
+          'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
+          'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
+          'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
+          'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
+        ].join(' ') },
+        { status: 413 }
+      );
+    }
+
     if (isZip && !features.canImportZip) {
       logError('zip_requires_premium', { fileName: file.name, tier: subscriptionTier });
       return NextResponse.json(
