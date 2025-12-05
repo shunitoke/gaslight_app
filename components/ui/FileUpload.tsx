@@ -149,9 +149,18 @@ export function FileUpload({
           {uploading ? (
             <Progress value={uploadProgress} className="w-full" />
           ) : (
-            <Button type="button" variant="secondary" size="sm" disabled={disabled}>
+            <button
+              type="button"
+              disabled={disabled}
+              className={cn(
+                'inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-all duration-200',
+                disabled
+                  ? 'cursor-not-allowed border-border text-muted-foreground opacity-60'
+                  : 'border-border bg-background hover:border-primary/50 hover:text-primary',
+              )}
+            >
               {fileName ? fileName : t('clickToSelectFile')}
-            </Button>
+            </button>
           )}
           {importSuccessful && (
             <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
