@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, AlertCircle, X } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import { Button } from '../../components/ui/Button';
@@ -53,7 +53,6 @@ type SectionCardProps = {
   conversationLanguage: SupportedLocale | 'unknown';
   isPremiumAnalysis: boolean;
   index: number;
-  shouldShowReplies: boolean;
   getSectionTitle: (sectionId: string, fallbackTitle: string) => string;
   replaceParticipantIds: (text: string) => string;
   formatParticipantName: (
@@ -109,57 +108,16 @@ function SectionCard({
   conversationLanguage,
   isPremiumAnalysis,
   index,
-  shouldShowReplies,
   getSectionTitle,
   replaceParticipantIds,
   formatParticipantName,
   getParticipantColor
 }: SectionCardProps) {
-  const [isRepliesOpen, setIsRepliesOpen] = React.useState(false);
-  const [generatedReplies, setGeneratedReplies] = React.useState<string[] | null>(null);
-  const [isGenerating, setIsGenerating] = React.useState(false);
-  const [visibleReplyCount, setVisibleReplyCount] = React.useState(0);
-
   const sectionTitle = getSectionTitle(section.id, section.title);
   const formattedSummary =
     section.summary && section.summary.trim()
       ? section.summary
       : t('analysisEmptySummary');
-
-  const baseRecommended = Array.isArray(section.recommendedReplies)
-    ? section.recommendedReplies.map((r) => r.text).filter((txt) => txt.trim().length > 0)
-    : [];
-
-  const recommended = generatedReplies ?? baseRecommended;
-
-  React.useEffect(() => {
-    if (!isRepliesOpen || !recommended || recommended.length === 0) {
-      setVisibleReplyCount(0);
-      return;
-    }
-
-    setVisibleReplyCount(1);
-    if (recommended.length === 1) return;
-
-    let i = 1;
-    const interval = window.setInterval(() => {
-      i += 1;
-      setVisibleReplyCount((prev) => {
-        if (prev >= recommended.length) {
-          window.clearInterval(interval);
-          return prev;
-        }
-        return Math.min(i, recommended.length);
-      });
-      if (i >= recommended.length) {
-        window.clearInterval(interval);
-      }
-    }, 350);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [isRepliesOpen, recommended]);
 
   return (
     <Card
@@ -238,100 +196,6 @@ function SectionCard({
         </div>
       )}
 
-      {isPremiumAnalysis &&
-        shouldShowReplies &&
-        conversationLanguage === locale && (
-        <div className="mt-2 border-t border-border/60 pt-2">
-          <button
-            type="button"
-            onClick={async () => {
-              // If уже есть рекомендованные ответы (из анализа или уже сгенерированные),
-              // просто переключаем видимость
-              if (recommended && recommended.length > 0) {
-                setIsRepliesOpen((prev) => !prev);
-                return;
-              }
-
-              if (isGenerating) return;
-              setIsGenerating(true);
-              try {
-                const res = await fetch('/api/replies', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    locale,
-                    conversationLanguage: locale,
-                    section: {
-                      id: section.id,
-                      title: sectionTitle,
-                      summary: formattedSummary,
-                      plainSummary: section.plainSummary,
-                      score: section.score,
-                      evidenceSnippets: section.evidenceSnippets.map((e) => ({
-                        excerpt: e.excerpt,
-                        explanation: e.explanation
-                      }))
-                    }
-                  })
-                });
-
-                if (!res.ok) {
-                  throw new Error('Failed to generate replies');
-                }
-                const data = await res.json() as { replies?: { text: string }[] };
-                const texts =
-                  Array.isArray(data.replies) && data.replies.length > 0
-                    ? data.replies
-                        .map((r) => r.text)
-                        .filter((txt) => txt && txt.trim().length > 0)
-                    : [];
-
-                if (texts.length > 0) {
-                  setGeneratedReplies(texts);
-                  setIsRepliesOpen(true);
-                }
-              } catch {
-                // swallow for now; in future we can surface a toast
-              } finally {
-                setIsGenerating(false);
-              }
-            }}
-            className="inline-flex items-center gap-1 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-60"
-            disabled={isGenerating}
-          >
-            {recommended && recommended.length > 0
-              ? isRepliesOpen
-                ? t('recommended_replies_toggle_hide')
-                : t('recommended_replies_toggle_show')
-              : isGenerating
-                ? (locale === 'ru' ? 'ИИ придумывает…' : 'AI is thinking…')
-                : (locale === 'ru'
-                    ? 'Сгенерировать «а если бы мы говорили осознанно»'
-                    : 'Generate "what if we were both conscious"')}
-            {recommended && recommended.length > 0 ? (
-              isRepliesOpen ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )
-            ) : null}
-          </button>
-          {isRepliesOpen && recommended && recommended.length > 0 && (
-            <ul className="mt-2 space-y-1.5">
-              {recommended.slice(0, visibleReplyCount).map((text, idx) => (
-                <li
-                  key={idx}
-                  className="text-xs sm:text-sm text-foreground/90 bg-muted/40 rounded-md px-2 py-1.5"
-                >
-                  {text}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
     </Card>
   );
 }
@@ -1942,11 +1806,6 @@ export default function AnalysisPage() {
                   sectionLevel,
                   isProblematicSection ? 'higher-worse' : 'higher-better'
                 );
-                const shouldShowReplies =
-                  isPremiumAnalysis &&
-                  isProblematicSection &&
-                  sectionScore >= 0.35;
-
                 return (
                   <AccordionItem key={section.id} value={`section-${section.id}`} className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
                     <AccordionTrigger className="hover:no-underline">

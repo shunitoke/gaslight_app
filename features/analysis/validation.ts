@@ -1,8 +1,7 @@
 import type {
   AnalysisResult,
   AnalysisSection,
-  EvidenceSnippet,
-  RecommendedReply
+  EvidenceSnippet
 } from './types';
 
 type Defaults = {
@@ -25,25 +24,6 @@ const cleanString = (value: unknown, fallback = ''): string => {
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const normalizeRecommendedReplies = (value: unknown): RecommendedReply[] | undefined => {
-  if (!Array.isArray(value)) return undefined;
-  const replies = value
-    .map((item) => {
-      if (!isPlainObject(item)) return null;
-      const text = cleanString(item.text, '');
-      if (!text) return null;
-      const tone =
-        typeof item.tone === 'string' && item.tone.trim().length > 0 ? item.tone.trim() : undefined;
-      const fromRole =
-        item.fromRole === 'user' || item.fromRole === 'other' || item.fromRole === 'neutral'
-          ? item.fromRole
-          : undefined;
-      return { text, tone: tone ?? null, fromRole };
-    })
-    .filter((v): v is RecommendedReply => v !== null);
-  return replies.length > 0 ? replies : undefined;
-};
 
 const normalizeEvidence = (value: unknown): EvidenceSnippet[] => {
   if (!Array.isArray(value)) return [];
@@ -80,7 +60,6 @@ const normalizeSection = (
     typeof value.score === 'number' && Number.isFinite(value.score) ? clamp01(value.score) : undefined;
   const evidenceSnippets = normalizeEvidence(value.evidenceSnippets);
   if (evidenceSnippets.length === 0) return null;
-  const recommendedReplies = normalizeRecommendedReplies(value.recommendedReplies);
   return {
     id,
     title,
@@ -88,7 +67,7 @@ const normalizeSection = (
     plainSummary,
     score,
     evidenceSnippets,
-    recommendedReplies
+    // recommended replies removed
   };
 };
 

@@ -312,11 +312,6 @@ async function analyzeChunk(
         excerpt?: string;
         explanation?: string;
       }>;
-      recommendedReplies?: Array<{
-        text?: string;
-        tone?: string | null;
-        fromRole?: 'user' | 'other' | 'neutral';
-      }>;
     }>;
     participantProfiles?: Array<{
       participantId?: string;
@@ -1176,15 +1171,6 @@ export async function analyzeConversation(
               excerpt: e.excerpt || '',
               explanation: e.explanation || ''
             })),
-            recommendedReplies: Array.isArray(s.recommendedReplies)
-              ? s.recommendedReplies
-                  .map((r) => ({
-                    text: (r && r.text) || '',
-                    tone: r?.tone ?? null,
-                    fromRole: r?.fromRole
-                  }))
-                  .filter((r) => r.text.trim().length > 0)
-              : undefined
           }));
         
         logInfo('analysis_sections_filtered', {
