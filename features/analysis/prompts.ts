@@ -381,6 +381,7 @@ CRITICAL LANGUAGE & NAMING REQUIREMENT: All output MUST be in ${responseLanguage
 - frameworkDiagnosis: ALL content including framework names, attachment styles, transactional analysis terms, cognitive distortion types, and all descriptions (MUST be in native ${responseLanguage}, e.g., for Russian: "ННО" not "NVC", "тревожный" not "anxious", "Родитель-Ребенок" not "Parent-Child")
 - Replace placeholder participant keys (participant1/participant2) with the actual participant names from the chat everywhere in the JSON (communicationStats, promiseTracking, frameworkDiagnosis, etc.). If the names are unavailable, use neutral descriptors in ${responseLanguage} (e.g., "один участник", "другой участник"), NOT English words and NOT numeric labels like "участник 1/2".
 - ABSOLUTE BAN ON ENGLISH WORDS in non-English outputs: never leave English nouns/adjectives (e.g., "promiscuity", "reassurance", "conflict", "pattern", "evidence", "needs work") in non-English locales. Always translate or paraphrase into natural, idiomatic ${responseLanguage}. If no direct term exists, use a native-language paraphrase; do not drop English lexemes.
+- DO NOT TRANSLATE participant names. Preserve names exactly as they appear in the conversation (original spelling/script). Only replace technical IDs like "participant_xxx" with the displayed participant name; never localize or alter the names themselves.
 
 CRITICAL (LANGUAGE & CONSISTENCY SHORT VERSION):
 - Follow the LANGUAGE REQUIREMENT and DATA CONSISTENCY REQUIREMENTS from the system prompt.
