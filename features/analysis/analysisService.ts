@@ -196,8 +196,9 @@ function getDefaultMessages(locale: SupportedLocale): {
  */
 function chunkMessages(
   messages: Message[],
-  maxChunkSize: number = 1000,
-  maxChunks: number = 25
+  // Larger defaults to leverage long-context models (e.g., Grok 2M)
+  maxChunkSize: number = 4000,
+  maxChunks: number = 80
 ): Message[][] {
   const rawChunks: Message[][] = [];
   for (let i = 0; i < messages.length; i += maxChunkSize) {
