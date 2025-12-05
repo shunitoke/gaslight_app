@@ -53,6 +53,34 @@ export function FileUpload({
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('auto');
   const [fileName, setFileName] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const ZIP_MEDIA_MAX_BYTES = 25 * 1024 * 1024;
+
+  const validateBeforeUpload = useCallback(
+    (file: File): boolean => {
+      const isZip =
+        file.name.toLowerCase().endsWith('.zip') ||
+        file.type === 'application/zip' ||
+        file.type === 'application/x-zip-compressed';
+
+      if (isZip && file.size > ZIP_MEDIA_MAX_BYTES) {
+        // Multilingual inline message to match server-side blocking
+        alert(
+          [
+            'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
+            'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
+            'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
+            'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
+            'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
+            'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
+          ].join(' ')
+        );
+        return false;
+      }
+
+      return true;
+    },
+    [ZIP_MEDIA_MAX_BYTES]
+  );
 
   // Hide filename after successful import
   useEffect(() => {
@@ -70,10 +98,14 @@ export function FileUpload({
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file || disabled || uploading) return;
+      if (!validateBeforeUpload(file)) {
+        event.target.value = '';
+        return;
+      }
       setFileName(file.name);
       await onFileSelect(file, selectedPlatform);
     },
-    [disabled, onFileSelect, selectedPlatform, uploading],
+    [disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
   );
 
   const handleDrop = useCallback(
@@ -82,11 +114,14 @@ export function FileUpload({
       if (disabled || uploading) return;
       const file = event.dataTransfer.files?.[0];
       if (file) {
+        if (!validateBeforeUpload(file)) {
+          return;
+        }
         setFileName(file.name);
         await onFileSelect(file, selectedPlatform);
       }
     },
-    [disabled, onFileSelect, selectedPlatform, uploading],
+    [disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
   );
 
   return (
