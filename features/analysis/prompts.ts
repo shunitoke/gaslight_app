@@ -183,6 +183,9 @@ CRITICAL CONTENT REQUIREMENTS:
 2. Each section MUST include at least 2-5 evidenceSnippets with actual quotes from the conversation
 3. evidenceSnippets are REQUIRED - never return empty evidenceSnippets arrays
 4. If you cannot find specific examples, still provide at least 2 evidence snippets with the most relevant quotes you can find
+5. NEVER return empty arrays/objects for any fields in the JSON. If data is sparse, use best-effort from the conversation and provide short, concrete entries. Leave nothing empty.
+6. communicationStats, promiseTracking, redFlagCounts, emotionalCycle, timePatterns MUST all be populated with best-effort values. Do not leave them empty.
+7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
 
 COMPLETE ANALYSIS STRUCTURE (ALL 9 PARTS):
 
