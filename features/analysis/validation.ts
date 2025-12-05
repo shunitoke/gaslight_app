@@ -44,12 +44,12 @@ const normalizeRealityCheck = (value: unknown): RealityCheck | undefined => {
       if (!participant || !thought || !evidence) return null;
       return { participant, thought, evidence };
     })
-    .filter((v): v is { participant: string; thought: string; evidence: string } => v !== null);
+    .filter(Boolean) as Array<{ participant: string; thought: string; evidence: string }>;
 
   if (whatParticipantWasRightAbout.length === 0) return undefined;
 
   const whatParticipantWasWrongAbout = Array.isArray((value as any).whatParticipantWasWrongAbout)
-    ? (value as any).whatParticipantWasWrongAbout
+    ? ((value as any).whatParticipantWasWrongAbout
         .map((item: any) => {
           if (!isPlainObject(item)) return null;
           const participant = cleanString(item.participant, '');
@@ -58,9 +58,7 @@ const normalizeRealityCheck = (value: unknown): RealityCheck | undefined => {
           if (!participant || !accusation || !reality) return null;
           return { participant, accusation, reality };
         })
-        .filter(
-          (v): v is { participant: string; accusation: string; reality: string } => v !== null
-        )
+        .filter(Boolean) as Array<{ participant: string; accusation: string; reality: string }>)
     : undefined;
 
   return {
