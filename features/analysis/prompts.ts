@@ -153,6 +153,14 @@ You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no te
     "isPresent": true/false,
     "behaviors": ["behavior1", "behavior2"],
     "resources": ["hotline", "support service"]
+  },
+  "breakup": {
+    "date": "YYYY-MM-DD",
+    "initiator": "participant name or 'unknown'",
+    "signals": ["quote1", "quote2"],
+    "quotes": [
+      { "excerpt": "quote text", "explanation": "why this shows final boundary" }
+    ]
   }
 }
 
@@ -186,6 +194,7 @@ CRITICAL CONTENT REQUIREMENTS:
 5. NEVER return empty arrays/objects for any fields in the JSON. If data is sparse, use best-effort from the conversation and provide short, concrete entries. Leave nothing empty.
 6. communicationStats, promiseTracking, redFlagCounts, emotionalCycle, timePatterns MUST all be populated with best-effort values. Do not leave them empty.
 7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
+8. Identify if there was a BREAKUP / FINAL SEPARATION. Include date (best guess), initiator (if clear), and 2-3 quotes that mark the final boundary (e.g., “don’t write me anymore”, blocking, explicit goodbye).
 
 COMPLETE ANALYSIS STRUCTURE (ALL 9 PARTS):
 
