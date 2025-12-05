@@ -10,6 +10,7 @@ import { logError, logInfo } from '../../../../lib/telemetry';
 import { getRedisClient, isKvAvailable } from '../../../../lib/kv';
 import { checkDatabaseHealth } from '../../../../lib/db-health';
 import { getConfig } from '../../../../lib/config';
+import { countActiveAnalyses, countActiveImports } from '../../../../lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -39,12 +40,22 @@ export async function GET(request: Request) {
     logInfo('admin_metrics_request', {});
 
     // Get metrics and health status
-    const [aggregateMetrics, cacheMetrics, redisStatus, dbHealth, config] = await Promise.all([
+    const [
+      aggregateMetrics,
+      cacheMetrics,
+      redisStatus,
+      dbHealth,
+      config,
+      activeAnalyses,
+      activeImports
+    ] = await Promise.all([
       getAggregateMetrics(),
       getCacheMetrics(),
       getRedisStatus(),
       checkDatabaseHealth(),
-      getConfigSafe()
+      getConfigSafe(),
+      countActiveAnalyses(),
+      countActiveImports()
     ]);
     const openrouterStatus = await getOpenRouterStatus(
       config.openrouterBaseUrl,
@@ -60,6 +71,10 @@ export async function GET(request: Request) {
         enabled: dbHealth.blob.enabled,
         accessible: dbHealth.blob.accessible,
         error: dbHealth.blob.error
+      },
+      activity: {
+        activeAnalyses,
+        activeImports
       },
       system: {
         adminEnabled: true,

@@ -21,7 +21,8 @@ import {
   FileText,
   Brain,
   Shield,
-  Info
+  Info,
+  Users
 } from 'lucide-react';
 
 type MetricsData = {
@@ -36,6 +37,10 @@ type MetricsData = {
       totalRequests: number;
     } | null;
   } | null;
+  activity?: {
+    activeAnalyses: number;
+    activeImports: number;
+  };
   cache: {
     hits: number;
     misses: number;
@@ -495,6 +500,43 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Live Activity */}
+            {metrics.activity && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-card/90 backdrop-blur-lg rounded-xl p-6 border border-border flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      <h3 className="text-lg font-semibold text-foreground">Active Analyses</h3>
+                    </div>
+                    <span className="text-xs text-muted-foreground">live</span>
+                  </div>
+                  <div className="text-4xl font-bold text-foreground">
+                    {metrics.activity.activeAnalyses}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Conversations currently being analyzed (progress &lt; 100%)
+                  </p>
+                </div>
+
+                <div className="bg-card/90 backdrop-blur-lg rounded-xl p-6 border border-border flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-primary" />
+                      <h3 className="text-lg font-semibold text-foreground">Active Imports</h3>
+                    </div>
+                    <span className="text-xs text-muted-foreground">live</span>
+                  </div>
+                  <div className="text-4xl font-bold text-foreground">
+                    {metrics.activity.activeImports}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Upload/import requests currently processing
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">

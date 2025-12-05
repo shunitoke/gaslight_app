@@ -15,6 +15,7 @@ import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
 import { updateProgressStore } from '../progress/route';
 import { computeChatHash, getCachedAnalysis, setCachedAnalysis } from '../../../../lib/cache';
 import { getConfig } from '../../../../lib/config';
+import { trackAnalysisEnd, trackAnalysisStart } from '../../../../lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // allow blocking analysis for diagnostics
@@ -141,6 +142,7 @@ export async function POST(request: Request) {
       status: 'starting',
       progress: 0
     });
+    await trackAnalysisStart(conversation.id);
 
     // Run analysis inline (blocking) to ensure logs and progress are flushed on Vercel
     try {
@@ -216,6 +218,7 @@ export async function POST(request: Request) {
           finishedAt: new Date().toISOString(),
           progress: 100,
         });
+        await trackAnalysisEnd(conversation.id);
     } catch (error) {
       const message = (error as Error).message || 'Analysis failed';
       logError('analyze_start_job_error', {
@@ -232,6 +235,7 @@ export async function POST(request: Request) {
         finishedAt: new Date().toISOString(),
         error: message,
       });
+      await trackAnalysisEnd(conversation.id);
       return NextResponse.json({ error: message }, { status: 500 });
     }
 

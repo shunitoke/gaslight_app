@@ -8,6 +8,7 @@ import { getSubscriptionFeatures, getSubscriptionTier } from '../../../features/
 import { getConfig } from '../../../lib/config';
 import { logError, logInfo, logWarn } from '../../../lib/telemetry';
 import { sanitizeFileName } from '../../../lib/utils';
+import { endImportSession, startImportSession } from '../../../lib/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -30,6 +31,7 @@ function pickLocalizedMessage(request: Request, messages: Record<string, string>
 }
 
 export async function POST(request: Request) {
+  let importSessionId: string | null = null;
   try {
     // Rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
@@ -43,6 +45,8 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
+
+    importSessionId = await startImportSession();
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -278,6 +282,10 @@ export async function POST(request: Request) {
       },
       { status: isFormatError ? 400 : 500 }
     );
+  } finally {
+    if (importSessionId) {
+      await endImportSession(importSessionId);
+    }
   }
 }
 
