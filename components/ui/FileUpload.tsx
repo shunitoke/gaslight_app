@@ -55,6 +55,18 @@ export function FileUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const ZIP_MEDIA_MAX_BYTES = 25 * 1024 * 1024;
 
+  const pickLocalizedMessage = useCallback((messages: Record<string, string>): string => {
+    const langs = typeof navigator !== 'undefined' ? navigator.languages || [navigator.language] : [];
+    const preferred = (langs || []).map((l) => (l || '').toLowerCase());
+    const localeOrder = [...preferred, 'ru', 'en', 'es', 'fr', 'de', 'pt'];
+    for (const lang of localeOrder) {
+      if (messages[lang]) return messages[lang];
+      const short = lang.split('-')[0];
+      if (messages[short]) return messages[short];
+    }
+    return messages.en || messages.ru || Object.values(messages)[0] || 'Upload blocked.';
+  }, []);
+
   const validateBeforeUpload = useCallback(
     (file: File): boolean => {
       const isZip =
@@ -63,23 +75,21 @@ export function FileUpload({
         file.type === 'application/x-zip-compressed';
 
       if (isZip && file.size > ZIP_MEDIA_MAX_BYTES) {
-        // Multilingual inline message to match server-side blocking
-        alert(
-          [
-            'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
-            'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
-            'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
-            'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
-            'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
-            'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
-          ].join(' ')
-        );
+        const message = pickLocalizedMessage({
+          ru: 'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
+          en: 'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
+          es: 'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
+          fr: 'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
+          de: 'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
+          pt: 'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
+        });
+        alert(message);
         return false;
       }
 
       return true;
     },
-    [ZIP_MEDIA_MAX_BYTES]
+    [ZIP_MEDIA_MAX_BYTES, pickLocalizedMessage]
   );
 
   // Hide filename after successful import
