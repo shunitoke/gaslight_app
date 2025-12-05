@@ -3,20 +3,29 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '../../../../../../lib/admin-auth';
-import { getAnalysisMetrics } from '../../../../../../lib/metrics';
-import { logError, logInfo } from '../../../../../../lib/telemetry';
-import { getProgressFromKv } from '../../../../../../lib/kv';
-import { progressStore } from '../../../../../../lib/progress';
+import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '@/lib/admin-auth';
+import { getAnalysisMetrics } from '@/lib/metrics';
+import { logError, logInfo } from '@/lib/telemetry';
+import { getProgressFromKv } from '@/lib/kv';
+import { progressStore } from '@/lib/progress';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+type AnalysisRouteParams = { conversationId: string };
+type AnalysisRouteContext =
+  | { params: AnalysisRouteParams }
+  | { params: Promise<AnalysisRouteParams> };
+
 export async function GET(
   request: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: AnalysisRouteContext
 ) {
+  let conversationId: string | undefined;
   try {
+    const resolvedParams = await Promise.resolve(params);
+    conversationId = resolvedParams.conversationId;
+
     if (!isAdminEnabled()) {
       return NextResponse.json(
         { error: 'Admin dashboard is not configured' },
@@ -31,8 +40,6 @@ export async function GET(
         { status: 401 }
       );
     }
-
-    const { conversationId } = params;
 
     logInfo('admin_analysis_request', { conversationId });
 
@@ -50,7 +57,7 @@ export async function GET(
     });
   } catch (error) {
     logError('admin_analysis_error', {
-      conversationId: params.conversationId,
+      conversationId,
       error: (error as Error).message
     });
     return NextResponse.json(

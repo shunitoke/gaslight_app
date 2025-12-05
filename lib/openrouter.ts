@@ -257,7 +257,8 @@ export const callOpenRouter = async (
             });
             
             // If it's a token limit and we have fallbacks, try next model
-            if (isTokenLimit && hasFallbacks && triedModels.length < payload.models.length) {
+            const modelsCount = payload.models?.length ?? 0;
+            if (isTokenLimit && hasFallbacks && triedModels.length < modelsCount) {
               // Continue loop to try next fallback model
               continue;
             }
@@ -449,7 +450,7 @@ export async function* callOpenRouterStream(
         conversationId,
         chunkIndex: chunkIndex || 0,
         eventType: 'request_start',
-        model: payload.model
+        model: payload.model || payload.models?.[0] || 'unknown'
       });
     } catch (e) {
       // Ignore activity logging errors
@@ -493,7 +494,7 @@ export async function* callOpenRouterStream(
             conversationId,
             chunkIndex: chunkIndex || 0,
             eventType: 'error',
-            model: payload.model,
+            model: payload.model || payload.models?.[0] || 'unknown',
             data: { error: error.message }
           });
         } catch (e) {
@@ -540,7 +541,7 @@ export async function* callOpenRouterStream(
                     conversationId,
                     chunkIndex: chunkIndex || 0,
                     eventType: 'request_complete',
-                    model: payload.model,
+                    model: payload.model || payload.models?.[0] || 'unknown',
                     data: {
                       content: totalContent,
                       tokens: totalContent.length / 4, // Rough estimate
@@ -571,7 +572,7 @@ export async function* callOpenRouterStream(
                       conversationId,
                       chunkIndex: chunkIndex || 0,
                       eventType: 'chunk_received',
-                      model: payload.model,
+                      model: payload.model || payload.models?.[0] || 'unknown',
                       data: { chunk: content.substring(0, 50) }
                     });
                   } catch (e) {

@@ -4,18 +4,32 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '../../../../../../lib/admin-auth';
-import { getLLMActivity } from '../../../../../../lib/llm-activity-logger';
-import { logError, logInfo } from '../../../../../../lib/telemetry';
+import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '@/lib/admin-auth';
+import { getLLMActivity } from '@/lib/llm-activity-logger';
+import { logError, logInfo } from '@/lib/telemetry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
+type LlmActivityParams = { conversationId: string };
+type LlmActivityContext =
+  | { params: LlmActivityParams }
+  | { params: Promise<LlmActivityParams> };
+
 export async function GET(
   request: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: LlmActivityContext
 ) {
+  let conversationId: string | undefined;
   try {
+    const resolvedParams = await Promise.resolve(params);
+    conversationId = resolvedParams.conversationId;
+    if (!conversationId) {
+      throw new Error('Missing conversationId');
+    }
+
+    const resolvedConversationId = conversationId;
+
     if (!isAdminEnabled()) {
       return new Response('Admin dashboard is not configured', { status: 503 });
     }
@@ -25,8 +39,7 @@ export async function GET(
       return new Response('Unauthorized', { status: 401 });
     }
 
-    const { conversationId } = params;
-    logInfo('admin_llm_activity_stream_start', { conversationId });
+    logInfo('admin_llm_activity_stream_start', { conversationId: resolvedConversationId });
 
     // Create SSE stream
     const stream = new ReadableStream({
@@ -42,7 +55,7 @@ export async function GET(
         // Poll for new events
         const pollInterval = setInterval(async () => {
           try {
-            const events = await getLLMActivity(conversationId);
+            const events = await getLLMActivity(resolvedConversationId);
             
             // Only send new events
             if (events.length > lastEventCount) {
@@ -56,7 +69,7 @@ export async function GET(
             }
           } catch (error) {
             logError('admin_llm_activity_poll_error', {
-              conversationId,
+              conversationId: resolvedConversationId,
               error: (error as Error).message
             });
           }
@@ -66,7 +79,7 @@ export async function GET(
         request.signal.addEventListener('abort', () => {
           clearInterval(pollInterval);
           controller.close();
-          logInfo('admin_llm_activity_stream_closed', { conversationId });
+          logInfo('admin_llm_activity_stream_closed', { conversationId: resolvedConversationId });
         });
 
         // Timeout after 10 minutes
@@ -87,7 +100,7 @@ export async function GET(
     });
   } catch (error) {
     logError('admin_llm_activity_error', {
-      conversationId: params.conversationId,
+      conversationId,
       error: (error as Error).message
     });
     return NextResponse.json(

@@ -1089,7 +1089,7 @@ export async function analyzeConversation(
             // Merge triggers
             if (parsed.timePatterns.triggers) {
               const existingTriggers = new Set(aggregatedTimePatterns.triggers || []);
-              parsed.timePatterns.triggers.forEach(t => existingTriggers.add(t));
+              parsed.timePatterns.triggers.forEach((t: string) => existingTriggers.add(t));
               aggregatedTimePatterns.triggers = Array.from(existingTriggers);
             }
             // Take more detailed conflictTimes
