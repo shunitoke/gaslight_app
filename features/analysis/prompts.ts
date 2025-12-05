@@ -195,6 +195,7 @@ CRITICAL CONTENT REQUIREMENTS:
 6. communicationStats, promiseTracking, redFlagCounts, emotionalCycle, timePatterns MUST all be populated with best-effort values. Do not leave them empty.
 7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
 8. Identify if there was a BREAKUP / FINAL SEPARATION. Include date (best guess), initiator (if clear), and 2-3 quotes that mark the final boundary (e.g., “don’t write me anymore”, blocking, explicit goodbye).
+9. ALWAYS detect self-harm or suicide ideation/threats. If any mention exists, set safetyConcern.isPresent = true, add behaviors with exact quotes (2-3), and include relevant resources.
 
 COMPLETE ANALYSIS STRUCTURE (ALL 9 PARTS):
 
