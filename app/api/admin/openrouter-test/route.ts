@@ -1,4 +1,4 @@
-'use server';
+// No client component imports; keep server defaults
 
 import { NextResponse } from 'next/server';
 import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '@/lib/admin-auth';
