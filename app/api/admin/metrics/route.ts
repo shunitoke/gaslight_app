@@ -122,9 +122,11 @@ function getConfigSafe(): {
   analysisTimeoutMs: number;
   openrouterConfigured: boolean;
   openrouterBaseUrl: string;
+  openrouterKeyPreview: string | null;
 } {
   try {
     const config = getConfig();
+    const key = process.env.OPENROUTER_API_KEY;
     return {
       textModel: config.textModel,
       visionModel: config.visionModel,
@@ -132,7 +134,8 @@ function getConfigSafe(): {
       maxUploadSizeMb: config.maxUploadSizeMb,
       analysisTimeoutMs: config.analysisTimeoutMs,
       openrouterConfigured: !!config.openrouterApiKey,
-      openrouterBaseUrl: config.openrouterBaseUrl
+      openrouterBaseUrl: config.openrouterBaseUrl,
+      openrouterKeyPreview: key ? `${key.slice(0, 4)}…${key.slice(-4)}` : null
     };
   } catch (error) {
     return {
@@ -142,7 +145,8 @@ function getConfigSafe(): {
       maxUploadSizeMb: 0,
       analysisTimeoutMs: 0,
       openrouterConfigured: false,
-      openrouterBaseUrl: 'unknown'
+      openrouterBaseUrl: 'unknown',
+      openrouterKeyPreview: null
     };
   }
 }

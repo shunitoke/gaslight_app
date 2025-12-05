@@ -64,6 +64,7 @@ type MetricsData = {
     maxUploadSizeMb: number;
     analysisTimeoutMs: number;
     openrouterConfigured: boolean;
+    openrouterKeyPreview: string | null;
     openrouterStatus?: {
       configured: boolean;
       reachable: boolean;
@@ -623,6 +624,12 @@ export default function AdminDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">OpenRouter:</span>
                       <StatusBadge status={metrics.configuration.openrouterConfigured} label="" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">API key:</span>
+                      <span className="text-foreground font-mono text-xs">
+                        {metrics.configuration.openrouterKeyPreview || 'missing'}
+                      </span>
                     </div>
                     {metrics.configuration.openrouterStatus && (
                       <div className="flex justify-between items-center">
