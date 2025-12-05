@@ -21,6 +21,19 @@ export const maxDuration = 60;
 
 const RATE_LIMIT_MAX_REQUESTS = 5;
 
+function pickLocalizedMessage(request: Request, messages: Record<string, string>): string {
+  const acceptLang = request.headers.get('accept-language') || '';
+  const preferred = acceptLang.split(',').map((part) => part.split(';')[0].trim().toLowerCase());
+  const localeOrder = [...preferred, 'ru', 'en', 'es', 'fr', 'de', 'pt'];
+  for (const lang of localeOrder) {
+    if (messages[lang]) return messages[lang];
+    const short = lang.split('-')[0];
+    if (messages[short]) return messages[short];
+  }
+  const first = Object.values(messages)[0];
+  return first || 'Unexpected error';
+}
+
 export async function POST(request: Request) {
   try {
     // Check database connections
@@ -139,15 +152,14 @@ export async function POST(request: Request) {
         if (!platform || platform === 'auto') {
           return NextResponse.json(
             { 
-              // Multilingual message (RU first)
-              error: [
-                'Автоопределение недоступно для очень больших файлов. Укажите платформу вручную и повторите загрузку.',
-                'Auto-detection is not available for very large files. Please specify the platform manually.',
-                'La detección automática no está disponible para archivos muy grandes. Especifique la plataforma manualmente.',
-                "La détection automatique n’est pas disponible pour les fichiers très volumineux. Indiquez la plateforme manuellement.",
-                'Die automatische Erkennung ist für sehr große Dateien nicht verfügbar. Bitte geben Sie die Plattform manuell an.',
-                'A detecção automática não está disponível para arquivos muito grandes. Especifique a plataforma manualmente.'
-              ].join(' ')
+              error: pickLocalizedMessage(request, {
+                ru: 'Автоопределение недоступно для очень больших файлов. Укажите платформу вручную и повторите загрузку.',
+                en: 'Auto-detection is not available for very large files. Please specify the platform manually.',
+                es: 'La detección automática no está disponible para archivos muy grandes. Especifique la plataforma manualmente.',
+                fr: 'La détection automatique n’est pas disponible pour les fichiers très volumineux. Indiquez la plateforme manuellement.',
+                de: 'Die automatische Erkennung ist für sehr große Dateien nicht verfügbar. Bitte geben Sie die Plattform manuell an.',
+                pt: 'A detecção automática não está disponível para arquivos muito grandes. Especifique a plataforma manualmente.'
+              })
             },
             { status: 400 }
           );
@@ -275,14 +287,14 @@ export async function POST(request: Request) {
         maxSize: ZIP_MEDIA_MAX_BYTES
       });
       return NextResponse.json(
-        { error: [
-          'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
-          'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
-          'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
-          'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
-          'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
-          'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
-        ].join(' ') },
+        { error: pickLocalizedMessage(request, {
+          ru: 'ZIP загрузки с медиа >25MB временно заблокированы. Анализ медиа будет доступен в следующей версии.',
+          en: 'ZIP uploads with media over 25MB are temporarily blocked. Media analysis will be available in the next version.',
+          es: 'Las subidas ZIP con medios de más de 25MB están bloqueadas temporalmente. El análisis de medios estará disponible en la próxima versión.',
+          fr: 'Les chargements ZIP avec médias de plus de 25 Mo sont temporairement bloqués. L’analyse des médias sera disponible dans la prochaine version.',
+          de: 'ZIP-Uploads mit Medien über 25MB sind vorübergehend blockiert. Medienanalyse wird in der nächsten Version verfügbar sein.',
+          pt: 'Envios ZIP com mídia acima de 25MB estão temporariamente bloqueados. A análise de mídia estará disponível na próxima versão.'
+        }) },
         { status: 413 }
       );
     }
