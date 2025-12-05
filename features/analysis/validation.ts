@@ -86,7 +86,7 @@ const normalizeHardTruth = (value: unknown): HardTruth | undefined => {
   const abusiveBehaviors = Array.isArray((value as any).abusiveBehaviors)
     ? (value as any).abusiveBehaviors
         .map((b: unknown) => cleanString(b, ''))
-        .filter((b) => b.length > 0)
+        .filter((b: string) => b.length > 0)
     : undefined;
 
   return {
