@@ -1,6 +1,6 @@
  'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { Upload, CheckCircle2, Loader2 } from 'lucide-react';
 
 import { useLanguage } from '@/features/i18n';
@@ -53,6 +53,13 @@ export function FileUpload({
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('auto');
   const [fileName, setFileName] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Hide filename after successful import
+  useEffect(() => {
+    if (importSuccessful) {
+      setFileName(null);
+    }
+  }, [importSuccessful]);
 
   const handleOpenPicker = useCallback(() => {
     if (disabled || uploading) return;
@@ -148,7 +155,7 @@ export function FileUpload({
         <div className="mt-4 space-y-2 w-full max-w-md">
           {uploading ? (
             <Progress value={uploadProgress} className="w-full" />
-          ) : (
+          ) : !importSuccessful ? (
             <button
               type="button"
               disabled={disabled}
@@ -161,7 +168,7 @@ export function FileUpload({
             >
               {fileName ? fileName : t('clickToSelectFile')}
             </button>
-          )}
+          ) : null}
           {importSuccessful && (
             <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
               <CheckCircle2 className="h-4 w-4" />
