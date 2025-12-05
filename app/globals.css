@@ -357,31 +357,6 @@ html, body {
   overflow: visible;
 }
 
-[data-upload-card] .mode-panel {
-  transition:
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity, transform, filter;
-  filter: drop-shadow(0 10px 25px hsl(var(--primary) / 0.08));
-}
-
-[data-upload-card] .mode-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  pointer-events: none;
-  background: radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.06), transparent 45%),
-              radial-gradient(circle at 80% 0%, hsl(var(--primary) / 0.05), transparent 35%);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-[data-upload-card] .mode-panel.opacity-100::before {
-  opacity: 1;
-}
-
 /* Smooth transitions for card content - force height transitions */
 [data-upload-card] [class*="CardContent"] {
   transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;

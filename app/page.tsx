@@ -1304,11 +1304,11 @@ export default function HomePage() {
         <Separator className="mb-4" />
 
         <CardContent 
-          className="flex flex-col items-center justify-center relative" 
+          className="flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500" 
           style={{ 
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            height: analyzing ? '560px' : '520px',
-            minHeight: '520px',
+            height: '500px',
+            minHeight: '500px',
             willChange: 'opacity, transform',
             overflow: 'hidden'
           }}
@@ -1399,22 +1399,22 @@ export default function HomePage() {
 
               {!error && (
                 <div 
-                  className="relative w-full max-w-lg h-full min-h-[380px]" 
+                  className="w-full max-w-lg relative h-full flex items-center justify-center overflow-hidden" 
                   style={{ 
                     transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     willChange: 'opacity, transform'
                   }}
                 >
+                  {/* File mode */}
                   <div
                     className={cn(
-                      'mode-panel absolute inset-0 w-full flex flex-col items-center justify-center gap-3',
+                      'absolute inset-0 flex flex-col items-center justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
                       inputMode === 'file'
-                        ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-                        : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                        ? 'opacity-100 translate-x-0 pointer-events-auto'
+                        : 'opacity-0 -translate-x-6 pointer-events-none'
                     )}
-                    aria-hidden={inputMode !== 'file'}
                   >
-                    <div className="w-full flex flex-col h-full justify-center animate-in fade-in duration-400">
+                    <div className="w-full flex flex-col h-full justify-center animate-in fade-in slide-in-from-left-3 duration-500">
                       <FileUpload
                         onFileSelect={handleFileSelect}
                         disabled={uploading}
@@ -1426,46 +1426,53 @@ export default function HomePage() {
                     </div>
                   </div>
 
+                  {/* Paste mode */}
                   <div
                     className={cn(
-                      'mode-panel absolute inset-0 w-full flex flex-col justify-center gap-4',
+                      'absolute inset-0 flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
                       inputMode === 'paste'
-                        ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-                        : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+                        ? 'opacity-100 translate-x-0 pointer-events-auto'
+                        : 'opacity-0 translate-x-6 pointer-events-none'
                     )}
-                    aria-hidden={inputMode !== 'paste'}
                   >
-                    <div className="space-y-3 animate-in fade-in duration-400">
-                      <label className="text-sm font-medium text-foreground text-center block">
-                        {t('pasteLabel')}
-                      </label>
-                      <textarea
-                        value={pastedText}
-                        onChange={(e) => setPastedText(e.target.value)}
-                        maxLength={8000}
-                        rows={9}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-300 resize-none"
-                        placeholder={t('pastePlaceholder')}
-                        style={{ height: '200px' }}
-                      />
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>
-                          {pastedText.length}/8000
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handlePasteAnalyze}
-                      disabled={analyzing || !pastedText.trim()}
-                      className="w-full text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
-                      size="lg"
+                    <div 
+                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500" 
+                      style={{
+                        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
                     >
-                      {t('analyzePasted')}
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      {t('pasteHelp')}
-                    </p>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-foreground text-center block">
+                          {t('pasteLabel')}
+                        </label>
+                        <textarea
+                          value={pastedText}
+                          onChange={(e) => setPastedText(e.target.value)}
+                          maxLength={8000}
+                          rows={9}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-300 resize-none"
+                          placeholder={t('pastePlaceholder')}
+                          style={{ height: '200px' }}
+                        />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>
+                            {pastedText.length}/8000
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handlePasteAnalyze}
+                        disabled={analyzing || !pastedText.trim()}
+                        className="w-full text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
+                        size="lg"
+                      >
+                        {t('analyzePasted')}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        {t('pasteHelp')}
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
