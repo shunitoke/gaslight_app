@@ -17,7 +17,7 @@ import { computeChatHash, getCachedAnalysis, setCachedAnalysis } from '../../../
 import { getConfig } from '../../../../lib/config';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // 1 minute - route handler returns quickly, analysis runs in background
+export const maxDuration = 300; // allow blocking analysis for diagnostics
 
 const RATE_LIMIT_MAX_REQUESTS = 3; // 3 analysis start requests per minute per IP
 
@@ -158,9 +158,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // Fire-and-forget background analysis
-    (async () => {
-      try {
+    // Run analysis inline (blocking) to ensure logs and progress are flushed on Vercel
+    try {
         logInfo('analyze_start_background_started', {
           jobId: job.id,
           conversationId: conversation.id,
@@ -296,46 +295,33 @@ export async function POST(request: Request) {
             hasBlobUrl: !!verifyProgress.blobUrl
           });
         }
-      } catch (error) {
-        const message = (error as Error).message || 'Analysis failed';
-        logError('analyze_start_job_error', {
-          ip,
-          error: message,
-        });
-        await updateProgressStore(conversation.id, {
-          status: 'error',
-          progress: 100,
-          error: message,
-        });
-        await updateJob(job.id, {
-          status: 'failed',
-          finishedAt: new Date().toISOString(),
-          error: message,
-        });
-      }
-    })().catch((error) => {
-      // Log unhandled errors in background task
-      logError('analyze_start_background_unhandled_error', {
-        jobId: job.id,
-        conversationId: conversation.id,
-        error: (error as Error).message,
-        stack: (error as Error).stack?.substring(0, 500)
+    } catch (error) {
+      const message = (error as Error).message || 'Analysis failed';
+      logError('analyze_start_job_error', {
+        ip,
+        error: message,
       });
-      updateProgressStore(conversation.id, {
+      await updateProgressStore(conversation.id, {
         status: 'error',
         progress: 100,
-        error: (error as Error).message || 'Background task failed'
-      }).catch(() => {});
-    });
+        error: message,
+      });
+      await updateJob(job.id, {
+        status: 'failed',
+        finishedAt: new Date().toISOString(),
+        error: message,
+      });
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
 
     return NextResponse.json(
       {
         jobId: job.id,
         conversationId: conversation.id,
-        status: job.status,
+        status: 'completed',
         createdAt: job.createdAt,
       },
-      { status: 202 },
+      { status: 200 },
     );
   } catch (error) {
     const errorMessage = (error as Error).message || 'Failed to start analysis';
