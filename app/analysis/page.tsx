@@ -1835,8 +1835,41 @@ export default function AnalysisPage() {
             <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
               {analysis.sections.map((section: AnalysisSection, index: number) => {
                 const sectionScore = section.score ?? 0;
-                const isProblematicSection =
-                  section.id === 'gaslighting' || section.id === 'conflict';
+                const isProblematicSection = (() => {
+                  const id = (section.id || '').toLowerCase();
+                  const title = (section.title || '').toLowerCase();
+                  const negativeIds = [
+                    'gaslighting',
+                    'conflict',
+                    'jealousy',
+                    'devaluation',
+                    'manipulation',
+                    'abuse',
+                    'toxicity',
+                    'control',
+                    'boundary',
+                    'attachment'
+                  ];
+                  const negativeKeywords = [
+                    'gaslight',
+                    'конфл',
+                    'ревн',
+                    'ревно',
+                    'обесцен',
+                    'манип',
+                    'контрол',
+                    'абью',
+                    'насили',
+                    'токс',
+                    'boundary',
+                    'attachment',
+                    'avoidant',
+                    'anxious'
+                  ];
+                  if (negativeIds.some((k) => id.includes(k))) return true;
+                  if (negativeKeywords.some((k) => title.includes(k))) return true;
+                  return false;
+                })();
                 const sectionPercent = sectionScore * 100;
                 const sectionLevel = getLevelFromPercent(sectionPercent);
                 const sectionTone = getBadgeTone(
