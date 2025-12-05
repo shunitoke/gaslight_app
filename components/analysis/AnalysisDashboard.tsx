@@ -48,6 +48,19 @@ export function AnalysisDashboard({
 }: AnalysisDashboardProps) {
   const { t } = useLanguage();
 
+  const resolvedActivityByDay = useMemo(() => {
+    if (activityByDay && activityByDay.length > 0) return activityByDay;
+    if (importantDates.length > 0) {
+      return importantDates.map((d) => ({
+        date: d.date,
+        messageCount: 1,
+        isImportant: true,
+        severity: d.severity ?? 0.7
+      }));
+    }
+    return [];
+  }, [activityByDay, importantDates]);
+
   const intlLocale = useMemo(() => {
     const map: Record<AnalysisDashboardProps['locale'], string> = {
       en: 'en-US',
@@ -83,8 +96,8 @@ export function AnalysisDashboard({
 
   // Prepare activity chart data with important date markers
   const activityChartData = useMemo(() => {
-    if (!activityByDay || activityByDay.length === 0) return [];
-    return activityByDay.map((day) => {
+    if (!resolvedActivityByDay || resolvedActivityByDay.length === 0) return [];
+    return resolvedActivityByDay.map((day) => {
       const important = importantDatesMap.get(day.date);
       return {
         dateLabel: new Date(day.date).toLocaleDateString(
@@ -100,12 +113,12 @@ export function AnalysisDashboard({
 
   // Prepare heatmap data (grouped by month/week)
   const heatmapData = useMemo(() => {
-    if (!activityByDay || activityByDay.length === 0) return [];
+    if (!resolvedActivityByDay || resolvedActivityByDay.length === 0) return [];
     
     // Group by week for heatmap
     const weeks = new Map<string, { date: string; count: number; severity: number }>();
     
-    activityByDay.forEach((day) => {
+    resolvedActivityByDay.forEach((day) => {
       const date = new Date(day.date);
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
@@ -135,13 +148,13 @@ export function AnalysisDashboard({
 
   // Get date range for calendar
   const dateRange = useMemo(() => {
-    if (!activityByDay || activityByDay.length === 0) return null;
-    const dates = activityByDay.map((d) => new Date(d.date).getTime()).sort((a, b) => a - b);
+    if (!resolvedActivityByDay || resolvedActivityByDay.length === 0) return null;
+    const dates = resolvedActivityByDay.map((d) => new Date(d.date).getTime()).sort((a, b) => a - b);
     return {
       from: new Date(dates[0]),
       to: new Date(dates[dates.length - 1])
     };
-  }, [activityByDay]);
+  }, [resolvedActivityByDay]);
 
   // Prepare calendar modifiers with different colors for different date types
   const calendarModifiers = useMemo(() => {
@@ -189,14 +202,14 @@ export function AnalysisDashboard({
 
   // Prepare weekly aggregated data for wave view
   const weeklyWaveData = useMemo(() => {
-    if (!activityByDay || activityByDay.length === 0) return [];
+    if (!resolvedActivityByDay || resolvedActivityByDay.length === 0) return [];
 
     const weeks = new Map<
       string,
       { date: string; label: string; count: number; severity: number }
     >();
 
-    activityByDay.forEach((day) => {
+    resolvedActivityByDay.forEach((day) => {
       const date = new Date(day.date);
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
@@ -229,7 +242,7 @@ export function AnalysisDashboard({
         isImportant: week.severity > 0.5,
         severity: week.severity
       }));
-  }, [activityByDay, importantDatesMap, locale]);
+  }, [resolvedActivityByDay, importantDatesMap, locale]);
 
   // Wave chart mode: 'day' or 'week'
   const [waveMode, setWaveMode] = useState<'day' | 'week'>('day');
@@ -241,7 +254,7 @@ export function AnalysisDashboard({
       const payload: any = props.payload;
       const dateKey =
         waveMode === 'day'
-          ? activityByDay.find(
+          ? resolvedActivityByDay.find(
               (d) =>
                 new Date(d.date).toLocaleDateString(
                   intlLocale,
