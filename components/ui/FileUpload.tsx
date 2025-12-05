@@ -118,25 +118,27 @@ export function FileUpload({
       </div>
 
       <div
-        onClick={handleOpenPicker}
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
+        onClick={importSuccessful ? undefined : handleOpenPicker}
+        onDrop={importSuccessful ? undefined : handleDrop}
+        onDragOver={importSuccessful ? undefined : ((e) => e.preventDefault())}
         className={cn(
           'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all',
           'bg-card/50 hover:bg-card',
-          disabled
+          disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
             : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5',
         )}
       >
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".json,.txt,.zip"
-          onChange={handleFileChange}
-          className="hidden"
-          aria-label={t('selectFile')}
-        />
+        {!importSuccessful && (
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".json,.txt,.zip"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-label={t('selectFile')}
+          />
+        )}
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/15">
           {importSuccessful ? (
             <CheckCircle2 className="h-6 w-6" />
