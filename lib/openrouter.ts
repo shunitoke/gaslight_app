@@ -32,8 +32,9 @@ function sleep(ms: number): Promise<void> {
 let activeRequests = 0;
 let lastFinishedAt = 0;
 
-const MAX_CONCURRENT = Number(process.env.OPENROUTER_MAX_CONCURRENCY ?? '2');
-const MIN_DELAY_MS = Number(process.env.OPENROUTER_MIN_DELAY_MS ?? '300');
+// Allow higher default concurrency; override via env if needed
+const MAX_CONCURRENT = Math.max(1, Number(process.env.OPENROUTER_MAX_CONCURRENCY ?? '4'));
+const MIN_DELAY_MS = Math.max(0, Number(process.env.OPENROUTER_MIN_DELAY_MS ?? '100'));
 
 async function acquireSlot() {
   // Limit concurrent requests
