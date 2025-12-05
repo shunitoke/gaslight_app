@@ -1803,6 +1803,7 @@ export default function AnalysisPage() {
                 const isProblematicSection = (() => {
                   const id = (section.id || '').toLowerCase();
                   const title = (section.title || '').toLowerCase();
+                  // Prefer stable IDs; fall back to localized keyword detection.
                   const negativeIds = [
                     'gaslighting',
                     'conflict',
@@ -1819,25 +1820,19 @@ export default function AnalysisPage() {
                     'money'
                   ];
                   const negativeKeywords = [
-                    'gaslight',
-                    'конфл',
-                    'ревн',
-                    'ревно',
-                    'обесцен',
-                    'манип',
-                    'контрол',
-                    'абью',
-                    'насили',
-                    'токс',
-                    'boundary',
-                    'attachment',
-                    'avoidant',
-                    'anxious',
-                    'финанс',
-                    'финансов',
-                    'деньг',
-                    'money',
-                    'financial'
+                    // English
+                    'gaslight', 'conflict', 'jealous', 'devalu', 'manip', 'control', 'abuse', 'toxic',
+                    'attachment', 'avoidant', 'anxious', 'financial', 'money', 'finance',
+                    // Russian
+                    'конфл', 'ревн', 'ревно', 'обесцен', 'манип', 'контрол', 'абью', 'насили', 'токс', 'финанс', 'финансов', 'деньг',
+                    // Spanish
+                    'celos', 'conflic', 'toxic', 'abuso', 'financ', 'dinero', 'manipul', 'control',
+                    // French
+                    'jalous', 'conflit', 'tox', 'abus', 'financ', 'argent', 'manip', 'contrôl',
+                    // German
+                    'eifersucht', 'konflikt', 'tox', 'missbrauch', 'finanz', 'geld', 'manip', 'kontroll',
+                    // Portuguese
+                    'ciúme', 'conflito', 'tóxic', 'abuso', 'financ', 'dinheiro', 'manip', 'controle'
                   ];
                   if (negativeIds.some((k) => id.includes(k))) return true;
                   if (negativeKeywords.some((k) => title.includes(k))) return true;
