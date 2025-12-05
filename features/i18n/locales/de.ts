@@ -229,6 +229,13 @@ export const deBundle: LocaleBundle = {
     calendar_title: 'Konversationskalender',
     calendar_description:
       'Wichtige Daten sind rot hervorgehoben. Bewegen Sie die Maus über Daten, um Details anzuzeigen.',
+    // Tages-Aktivitätsdiagramm
+    activity_chart_title: 'Aktivität nach Tagen',
+    activity_chart_description:
+      'Zeigt, an welchen Tagen mehr Nachrichten geschrieben wurden. Spitzen können mit Phasen von Spannung zusammenfallen.',
+    activity_chart_messages_label: 'Nachrichten',
+    activity_chart_color_hint:
+      'Rot ≈ Tage mit heftigen Konflikten oder Manipulation.',
     important_dates_label: 'Wichtige Daten',
     important_date: 'Wichtiges Datum',
     important_dates_list_title: 'Wichtige Daten',

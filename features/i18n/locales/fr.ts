@@ -229,6 +229,13 @@ export const frBundle: LocaleBundle = {
     calendar_title: 'Calendrier de conversation',
     calendar_description:
       'Les dates importantes sont surlignées en rouge. Survolez les dates pour voir les détails.',
+    // Graphique d'activité par jour
+    activity_chart_title: 'Activité par jour',
+    activity_chart_description:
+      'Montre les jours avec plus de messages. Les pics peuvent coïncider avec des périodes de tension.',
+    activity_chart_messages_label: 'Messages',
+    activity_chart_color_hint:
+      'Rouge ≈ jours liés à des conflits intenses ou à de la manipulation.',
     important_dates_label: 'Dates importantes',
     important_date: 'Date importante',
     important_dates_list_title: 'Dates importantes',

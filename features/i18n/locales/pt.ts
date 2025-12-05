@@ -229,6 +229,13 @@ export const ptBundle: LocaleBundle = {
     calendar_title: 'Calendário da conversa',
     calendar_description:
       'Datas importantes estão destacadas em vermelho. Passe o mouse sobre as datas para ver detalhes.',
+    // Gráfico de atividade por dia
+    activity_chart_title: 'Atividade por dia',
+    activity_chart_description:
+      'Mostra em quais dias houve mais mensagens. Picos podem coincidir com períodos de tensão.',
+    activity_chart_messages_label: 'Mensagens',
+    activity_chart_color_hint:
+      'Vermelho ≈ dias ligados a conflitos intensos ou manipulação.',
     important_dates_label: 'Datas importantes',
     important_date: 'Data importante',
     important_dates_list_title: 'Datas importantes',

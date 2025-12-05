@@ -1,28 +1,23 @@
 // Simple service worker for PWA installability
-const CACHE_NAME = 'texts-with-my-ex-v1';
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/icon.svg',
-  '/?utm_source=pwa'
-];
+// Bumped cache name to drop stale assets/chunks
+const CACHE_NAME = 'gaslight-app-v3';
+const PRECACHE_URLS = ['/', '/manifest.json', '/icon.svg'];
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        // Cache resources individually to handle failures gracefully
-        return Promise.allSettled(
-          urlsToCache.map((url) =>
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+        Promise.allSettled(
+          PRECACHE_URLS.map((url) =>
             cache.add(url).catch((err) => {
               console.log(`Failed to cache ${url}:`, err);
-              // Don't fail installation if individual resources fail
               return null;
             })
           )
-        );
-      })
+        )
+      )
       .catch((err) => console.log('Service Worker install error:', err))
   );
   self.skipWaiting();
@@ -46,62 +41,81 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
+  const { request } = event;
+
+  if (request.method !== 'GET') {
     return;
   }
 
-  // Don't intercept requests to external domains or API routes
-  const url = new URL(event.request.url);
+  const url = new URL(request.url);
+
+  // Only handle same-origin, non-API requests
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Don't intercept requests to Vercel Blob or other external services
-  if (url.hostname.includes('vercel.com') || 
-      url.hostname.includes('vercel-storage.com') ||
-      url.hostname.includes('openrouter.ai')) {
+  // Let Next.js handle framework/runtime assets to avoid stale chunk errors
+  if (url.pathname.startsWith('/_next/')) {
     return;
   }
 
-  // Use respondWith with proper error handling to prevent message channel errors
-  try {
-    event.respondWith(
-      caches.match(event.request)
-        .then((response) => {
-          // Return cached version or fetch from network
-          if (response) {
-            return response;
-          }
-          return fetch(event.request).catch((err) => {
-            console.log('Fetch failed for:', event.request.url, err);
-            // If both fail, return offline page for document requests
-            if (event.request.destination === 'document') {
-              return caches.match('/').catch(() => {
-                return new Response('Offline', { status: 503 });
-              });
-            }
-            // For other requests, return a basic error response
-            return new Response('Network error', { status: 408 });
-          });
-        })
-        .catch(() => {
-          // If cache match fails, try network
-          return fetch(event.request).catch(() => {
-            if (event.request.destination === 'document') {
-              return caches.match('/').catch(() => {
-                return new Response('Offline', { status: 503 });
-              });
-            }
-            return new Response('Network error', { status: 408 });
-          });
-        })
-    );
-  } catch (error) {
-    // If respondWith fails (e.g., event already handled), just return
-    // This prevents the "message channel closed" error
-    console.log('Service Worker fetch handler error:', error);
+  // Don't intercept requests to external services
+  if (
+    url.hostname.includes('vercel.com') ||
+    url.hostname.includes('vercel-storage.com') ||
+    url.hostname.includes('openrouter.ai')
+  ) {
     return;
   }
+
+  const isNavigation =
+    request.mode === 'navigate' || request.destination === 'document';
+
+  // Network-first for HTML to always pick up the latest build; fallback to cache when offline
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('/', clone));
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match('/');
+          return (
+            cached ||
+            new Response('Offline', {
+              status: 503,
+              headers: { 'Content-Type': 'text/plain' }
+            })
+          );
+        })
+    );
+    return;
+  }
+
+  const shouldCache = PRECACHE_URLS.includes(url.pathname);
+
+  // Cache-first for small static assets we pre-cache; network fallback otherwise
+  event.respondWith(
+    caches
+      .match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(request)
+          .then((response) => {
+            if (shouldCache && response.ok) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() => new Response('Network error', { status: 408 }));
+      })
+      .catch(() => new Response('Network error', { status: 408 }))
+  );
 });
 

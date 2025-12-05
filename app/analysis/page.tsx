@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, AlertCircle, X } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import { Button } from '../../components/ui/Button';
 import { Card, CardBase } from '../../components/ui/card';
-import { ChartContainer } from '../../components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../components/ui/chart';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../../components/ui/accordion';
 import { Separator } from '../../components/ui/separator';
@@ -60,6 +60,46 @@ type SectionCardProps = {
     text: string
   ) => { name: string; remainingText: string } | null;
   getParticipantColor: (participantName: string) => string;
+};
+
+type SeverityLevel = 'low' | 'medium' | 'high';
+type MetricPolarity = 'higher-worse' | 'higher-better';
+type Tone = 'success' | 'warning' | 'danger';
+
+const getLevelFromPercent = (percentage: number): SeverityLevel => {
+  if (percentage >= 70) return 'high';
+  if (percentage >= 40) return 'medium';
+  return 'low';
+};
+
+const getBadgeTone = (level: SeverityLevel, polarity: MetricPolarity): Tone => {
+  if (polarity === 'higher-worse') {
+    if (level === 'high') return 'danger';
+    if (level === 'medium') return 'warning';
+    return 'success';
+  }
+  // higher = better
+  if (level === 'high') return 'success';
+  if (level === 'medium') return 'warning';
+  return 'danger';
+};
+
+const getLevelLabel = (level: SeverityLevel, locale: SupportedLocale): string => {
+  if (level === 'high') return locale === 'ru' ? 'Высокий' : 'High';
+  if (level === 'medium') return locale === 'ru' ? 'Средний' : 'Medium';
+  return locale === 'ru' ? 'Низкий' : 'Low';
+};
+
+const getToneTextColor = (tone: Tone) => {
+  if (tone === 'danger') return 'text-red-600 dark:text-red-500';
+  if (tone === 'warning') return 'text-amber-600 dark:text-amber-500';
+  return 'text-green-600 dark:text-green-500';
+};
+
+const getBadgeToneClass = (tone: Tone) => {
+  if (tone === 'danger') return 'border-rose-600 bg-rose-600 text-white dark:border-rose-500 dark:bg-rose-500';
+  if (tone === 'warning') return 'border-amber-500 bg-amber-500 text-white dark:border-amber-400 dark:bg-amber-400';
+  return 'border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500';
 };
 
 function SectionCard({
@@ -315,6 +355,127 @@ export default function AnalysisPage() {
   } | null>(null);
   const dataLoadedRef = useRef(false);
 
+  const intlLocale = useMemo(() => {
+    const map: Record<SupportedLocale, string> = {
+      en: 'en-US',
+      ru: 'ru-RU',
+      fr: 'fr-FR',
+      de: 'de-DE',
+      es: 'es-ES',
+      pt: 'pt-PT'
+    };
+    return map[locale] ?? 'en-US';
+  }, [locale]);
+
+  const formatPercent = (value: number) => `${Math.round(value)}%`;
+
+  const transliterateCyrillic = (value: string): string => {
+    const map: Record<string, string> = {
+      а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z',
+      и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+      с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh',
+      щ: 'sch', ы: 'y', э: 'e', ю: 'yu', я: 'ya', ъ: '', ь: '',
+    };
+    return value.replace(/[А-Яа-яЁё]/g, (ch) => {
+      const lower = ch.toLowerCase();
+      const tr = map[lower] ?? '';
+      return ch === ch.toUpperCase() ? tr.toUpperCase() : tr;
+    });
+  };
+
+  /**
+   * Replace participant IDs in text with display names
+   * Simple replacement - assumes AI follows format: "Name: \"text\""
+   */
+  const replaceParticipantIds = useCallback((text: string): string => {
+    let result = text;
+
+    participants.forEach((participant) => {
+      const id = participant.id;
+      const idWithoutPrefix = id.replace(/^participant_/i, '');
+      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedIdWithoutPrefix = idWithoutPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // Replace exact ID matches (case-insensitive)
+      result = result.replace(new RegExp(`\\b${escapedId}\\b`, 'gi'), participant.displayName);
+
+      // Replace "participant_xxx" patterns
+      result = result.replace(new RegExp(`participant_${escapedIdWithoutPrefix}`, 'gi'), participant.displayName);
+
+      // Replace patterns like "participant_xxx:" with "Name:"
+      result = result.replace(new RegExp(`participant_${escapedIdWithoutPrefix}:`, 'gi'), `${participant.displayName}:`);
+    });
+
+    return result;
+  }, [participants]);
+
+  const safeDisplayName = useCallback((name: string) => {
+    const raw = name ?? '';
+    const replaced = replaceParticipantIds(raw).trim();
+    const display = replaced || raw.trim() || 'Participant';
+    return display;
+  }, [replaceParticipantIds]);
+
+  const makeParticipantKey = useCallback((name: string) => {
+    const display = safeDisplayName(name);
+    const translit = transliterateCyrillic(display);
+    const normalized = translit
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '')
+      .trim();
+    const fallback = display.toLowerCase().replace(/\s+/g, '');
+    return { key: normalized || fallback, display };
+  }, [safeDisplayName]);
+
+  const aggregateNumericByParticipant = useCallback((
+    entries: Record<string, number> | undefined,
+    formatter: (value: number) => number = (v) => v
+  ) => {
+    if (!entries) return [];
+    const acc = new Map<string, { display: string; value: number }>();
+    Object.entries(entries).forEach(([participant, value]) => {
+      const { key, display } = makeParticipantKey(participant);
+      const prev = acc.get(key);
+      acc.set(key, { display: prev?.display ?? display, value: (prev?.value ?? 0) + formatter(value) });
+    });
+    return Array.from(acc.values())
+      .map(({ display, value }) => ({
+        participant: display && display.trim() ? display : 'Participant',
+        value
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [makeParticipantKey]);
+
+  const aggregatePromisesByParticipant = useCallback((entries: Record<string, { made: number; kept: number }> | undefined) => {
+    if (!entries) return [];
+    const acc = new Map<string, { display: string; made: number; kept: number }>();
+    Object.entries(entries).forEach(([participant, data]) => {
+      const { key, display } = makeParticipantKey(participant);
+      const prev = acc.get(key) ?? { display, made: 0, kept: 0 };
+      acc.set(key, { display: prev.display, made: prev.made + data.made, kept: prev.kept + data.kept });
+    });
+    return Array.from(acc.values()).map(({ display, made, kept }) => ({
+      participant: display && display.trim() ? display : 'Participant',
+      made,
+      kept,
+      percentage: made ? Math.round((kept / made) * 100) : 0
+    }));
+  }, [makeParticipantKey]);
+
+  const aggregatedInitiatorBalance = useMemo(() => {
+    return aggregateNumericByParticipant(analysis?.communicationStats?.initiatorBalance);
+  }, [analysis?.communicationStats?.initiatorBalance, participants]);
+
+  const aggregatedApologyCounts = useMemo(() => {
+    return aggregateNumericByParticipant(analysis?.communicationStats?.apologyCount);
+  }, [analysis?.communicationStats?.apologyCount, participants]);
+
+  const aggregatedPromiseTracking = useMemo(() => {
+    return aggregatePromisesByParticipant(analysis?.promiseTracking).sort((a, b) => b.percentage - a.percentage);
+  }, [analysis?.promiseTracking, participants]);
+
   // Calculate Emotional Safety Index based on all scores
   // Formula: Safety = (1 - negative factors) * positive factors
   // This ensures that high negative factors (gaslighting, conflict) reduce safety,
@@ -345,19 +506,40 @@ export default function AnalysisPage() {
     return 'high';
   }, [emotionalSafetyIndex]);
 
+  const safetyBadgeTone = useMemo(
+    () => getBadgeTone(getLevelFromPercent(emotionalSafetyIndex * 100), 'higher-better'),
+    [emotionalSafetyIndex]
+  );
+
+  const gaslightingPercent = (analysis?.gaslightingRiskScore ?? 0) * 100;
+  const gaslightingLevel = getLevelFromPercent(gaslightingPercent);
+  const gaslightingTone = getBadgeTone(gaslightingLevel, 'higher-worse');
+
+  const conflictPercent = (analysis?.conflictIntensityScore ?? 0) * 100;
+  const conflictLevel = getLevelFromPercent(conflictPercent);
+  const conflictTone = getBadgeTone(conflictLevel, 'higher-worse');
+
+  const supportPercent = (analysis?.supportivenessScore ?? 0) * 100;
+  const supportLevel = getLevelFromPercent(supportPercent);
+  const supportTone = getBadgeTone(supportLevel, 'higher-better');
+
+  const resolutionPercent = analysis?.communicationStats?.resolutionRate ?? 0;
+  const resolutionLevel = getLevelFromPercent(resolutionPercent);
+  const resolutionTone = getBadgeTone(resolutionLevel, 'higher-better');
+
   const activityChartData = useMemo(() => {
     if (!activityByDay || activityByDay.length === 0) return [];
     return activityByDay.map((day) => ({
       dateLabel: new Date(day.date).toLocaleDateString(
-        locale === 'ru' ? 'ru-RU' : 'en-US',
-        { month: 'short', day: 'numeric' }
+        intlLocale,
+        { month: 'short', day: 'numeric', year: 'numeric' }
       ),
       messageCount: day.messageCount
     }));
-  }, [activityByDay, locale]);
+  }, [activityByDay, intlLocale]);
 
   // Get localized safety level text
-  const getSafetyLevelText = (level: 'low' | 'medium' | 'high'): string => {
+  const getSafetyLevelText = (level: SeverityLevel): string => {
     if (level === 'low') return t('hero_preview_score_low');
     if (level === 'medium') {
       const key = 'emotional_safety_medium' as keyof typeof t;
@@ -365,13 +547,6 @@ export default function AnalysisPage() {
     }
     const key = 'emotional_safety_high' as keyof typeof t;
     return t(key) !== key ? t(key) : 'High';
-  };
-
-  // Get color for safety level
-  const getSafetyColor = (level: 'low' | 'medium' | 'high') => {
-    if (level === 'low') return 'text-red-600 dark:text-red-500';
-    if (level === 'medium') return 'text-yellow-600 dark:text-yellow-500';
-    return 'text-green-600 dark:text-green-500';
   };
 
   // Get progress bar color based on percentage (for negative metrics - higher = worse)
@@ -846,60 +1021,43 @@ export default function AnalysisPage() {
   };
 
   /**
-   * Replace participant IDs in text with display names
-   * Simple replacement - assumes AI follows format: "Name: \"text\""
-   */
-  const replaceParticipantIds = (text: string): string => {
-    let result = text;
-    
-    // Replace participant IDs in various formats
-    participants.forEach((participant) => {
-      const id = participant.id;
-      const idWithoutPrefix = id.replace(/^participant_/i, '');
-      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedIdWithoutPrefix = idWithoutPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      
-      // Replace exact ID matches (case-insensitive)
-      result = result.replace(new RegExp(`\\b${escapedId}\\b`, 'gi'), participant.displayName);
-      
-      // Replace "participant_xxx" patterns
-      result = result.replace(new RegExp(`participant_${escapedIdWithoutPrefix}`, 'gi'), participant.displayName);
-      
-      // Replace patterns like "participant_xxx:" with "Name:"
-      result = result.replace(new RegExp(`participant_${escapedIdWithoutPrefix}:`, 'gi'), `${participant.displayName}:`);
-    });
-    
-    return result;
-  };
-
-  /**
    * Get color for participant based on their index
    * Uses a consistent color palette for visual distinction
    */
-  const getParticipantColor = (participantName: string): string => {
+  const participantColors = [
+    'text-blue-600 dark:text-blue-400',
+    'text-purple-600 dark:text-purple-400',
+    'text-cyan-600 dark:text-cyan-400',
+    'text-pink-600 dark:text-pink-400',
+    'text-indigo-600 dark:text-indigo-400',
+    'text-teal-600 dark:text-teal-400',
+  ];
+
+  const colorByHash = (name: string) => {
+    const hash = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    return participantColors[hash % participantColors.length] || 'text-primary';
+  };
+
+  const getParticipantColor = (participantName?: string): string => {
+    const display = safeDisplayName(participantName || '');
+    const nameLc = display.toLowerCase();
+
     const participantIndex = participants.findIndex(
-      p => p.displayName.toLowerCase() === participantName.toLowerCase() || 
-           p.id.toLowerCase().includes(participantName.toLowerCase().replace(/\s+/g, '_'))
+      (p) =>
+        p.displayName?.toLowerCase() === nameLc ||
+        p.id?.toLowerCase().includes(nameLc.replace(/\s+/g, '_'))
     );
     
     if (participantIndex === -1) {
       // Try to find by matching name
-      const found = participants.find(p => 
-        p.displayName.toLowerCase() === participantName.toLowerCase()
+      const found = participants.find(
+        (p) => p.displayName?.toLowerCase() === nameLc
       );
       if (found) {
         const idx = participants.indexOf(found);
-        const colors = [
-          'text-blue-600 dark:text-blue-400',      // First participant - blue
-          'text-purple-600 dark:text-purple-400',   // Second participant - purple
-          'text-cyan-600 dark:text-cyan-400',       // Third participant - cyan
-          'text-pink-600 dark:text-pink-400',       // Fourth participant - pink
-          'text-indigo-600 dark:text-indigo-400',   // Fifth participant - indigo
-          'text-teal-600 dark:text-teal-400',       // Sixth participant - teal
-        ];
-        return colors[idx % colors.length] || 'text-primary';
+        return participantColors[idx % participantColors.length] || 'text-primary';
       }
-      return 'text-primary';
+      return colorByHash(display);
     }
     
     const colors = [
@@ -1355,17 +1513,13 @@ export default function AnalysisPage() {
             </h2>
             {analysis && (
               <div className="flex items-center gap-2">
-                <div className={`text-lg sm:text-xl font-bold ${getSafetyColor(safetyLevel)}`}>
+                <div className={`text-lg sm:text-xl font-bold ${getToneTextColor(safetyBadgeTone)}`}>
                   {(emotionalSafetyIndex * 100).toFixed(0)}%
                 </div>
                 <Badge
-                  className={`text-xs px-2 py-0.5 border ${
-                    emotionalSafetyIndex >= 0.7
-                      ? 'bg-green-600 text-white border-green-600'
-                      : emotionalSafetyIndex >= 0.4
-                        ? 'bg-yellow-600 text-white border-yellow-600'
-                        : 'bg-red-600 text-white border-red-600'
-                  }`}
+                  variant="outline"
+                  tone={safetyBadgeTone}
+                  size="sm"
                 >
                   {getSafetyLevelText(safetyLevel)}
                 </Badge>
@@ -1388,30 +1542,16 @@ export default function AnalysisPage() {
                     <div className="flex flex-col justify-between gap-1.5 h-full">
                       <div className="flex items-center justify-between gap-2">
                         <div
-                          className={`text-lg sm:text-xl font-bold ${
-                            analysis.gaslightingRiskScore >= 0.7
-                              ? 'text-red-600 dark:text-red-500'
-                              : analysis.gaslightingRiskScore >= 0.4
-                                ? 'text-orange-600 dark:text-orange-500'
-                                : 'text-green-600 dark:text-green-500'
-                          }`}
+                          className={`text-lg sm:text-xl font-bold ${getToneTextColor(gaslightingTone)}`}
                         >
-                          {(analysis.gaslightingRiskScore * 100).toFixed(0)}%
+                          {gaslightingPercent.toFixed(0)}%
                         </div>
                       <Badge
-                        className={`text-xs px-1.5 py-0 border ${
-                          analysis.gaslightingRiskScore >= 0.7
-                            ? 'bg-red-600 text-white border-red-600'
-                            : analysis.gaslightingRiskScore >= 0.4
-                              ? 'bg-orange-600 text-white border-orange-600'
-                              : 'bg-green-600 text-white border-green-600'
-                        }`}
+                        variant="outline"
+                        tone={gaslightingTone}
+                        size="sm"
                       >
-                          {analysis.gaslightingRiskScore >= 0.7
-                            ? (locale === 'ru' ? 'Высокий' : 'High')
-                            : analysis.gaslightingRiskScore >= 0.4
-                              ? (locale === 'ru' ? 'Средний' : 'Medium')
-                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                          {getLevelLabel(gaslightingLevel, locale)}
                         </Badge>
                       </div>
                       <div className="space-y-0">
@@ -1437,30 +1577,16 @@ export default function AnalysisPage() {
                     <div className="flex flex-col justify-between gap-1.5 h-full">
                       <div className="flex items-center justify-between gap-2">
                         <div
-                          className={`text-lg sm:text-xl font-bold ${
-                            analysis.conflictIntensityScore >= 0.7
-                              ? 'text-red-600 dark:text-red-500'
-                              : analysis.conflictIntensityScore >= 0.4
-                                ? 'text-orange-600 dark:text-orange-500'
-                                : 'text-green-600 dark:text-green-500'
-                          }`}
+                          className={`text-lg sm:text-xl font-bold ${getToneTextColor(conflictTone)}`}
                         >
-                          {(analysis.conflictIntensityScore * 100).toFixed(0)}%
+                          {conflictPercent.toFixed(0)}%
                         </div>
                       <Badge
-                        className={`text-xs px-1.5 py-0 border ${
-                          analysis.conflictIntensityScore >= 0.7
-                            ? 'bg-red-600 text-white border-red-600'
-                            : analysis.conflictIntensityScore >= 0.4
-                              ? 'bg-orange-600 text-white border-orange-600'
-                              : 'bg-green-600 text-white border-green-600'
-                        }`}
+                        variant="outline"
+                        tone={conflictTone}
+                        size="sm"
                       >
-                          {analysis.conflictIntensityScore >= 0.7
-                            ? (locale === 'ru' ? 'Высокий' : 'High')
-                            : analysis.conflictIntensityScore >= 0.4
-                              ? (locale === 'ru' ? 'Средний' : 'Medium')
-                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                          {getLevelLabel(conflictLevel, locale)}
                         </Badge>
                       </div>
                       <div className="space-y-0">
@@ -1486,30 +1612,16 @@ export default function AnalysisPage() {
                     <div className="flex flex-col justify-between gap-1.5 h-full">
                       <div className="flex items-center justify-between gap-2">
                         <div
-                          className={`text-lg sm:text-xl font-bold ${
-                            analysis.supportivenessScore >= 0.7
-                              ? 'text-green-600 dark:text-green-500'
-                              : analysis.supportivenessScore >= 0.4
-                                ? 'text-yellow-600 dark:text-yellow-500'
-                                : 'text-red-600 dark:text-red-500'
-                          }`}
+                          className={`text-lg sm:text-xl font-bold ${getToneTextColor(supportTone)}`}
                         >
-                          {(analysis.supportivenessScore * 100).toFixed(0)}%
+                          {supportPercent.toFixed(0)}%
                         </div>
                       <Badge
-                        className={`text-xs px-1.5 py-0 border ${
-                          analysis.supportivenessScore >= 0.7
-                            ? 'bg-green-600 text-white border-green-600'
-                            : analysis.supportivenessScore >= 0.4
-                              ? 'bg-yellow-600 text-white border-yellow-600'
-                              : 'bg-red-600 text-white border-red-600'
-                        }`}
+                        variant="outline"
+                        tone={supportTone}
+                        size="sm"
                       >
-                          {analysis.supportivenessScore >= 0.7
-                            ? (locale === 'ru' ? 'Высокий' : 'High')
-                            : analysis.supportivenessScore >= 0.4
-                              ? (locale === 'ru' ? 'Средний' : 'Medium')
-                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                          {getLevelLabel(supportLevel, locale)}
                         </Badge>
                       </div>
                       <div className="space-y-0">
@@ -1535,30 +1647,16 @@ export default function AnalysisPage() {
                     <div className="flex flex-col justify-between gap-1.5 h-full">
                       <div className="flex items-center justify-between gap-2">
                         <div
-                          className={`text-lg sm:text-xl font-bold ${
-                            (analysis.communicationStats?.resolutionRate ?? 0) >= 70
-                              ? 'text-green-600 dark:text-green-500'
-                              : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
-                                ? 'text-yellow-600 dark:text-yellow-500'
-                                : 'text-red-600 dark:text-red-500'
-                          }`}
+                          className={`text-lg sm:text-xl font-bold ${getToneTextColor(resolutionTone)}`}
                         >
-                          {(analysis.communicationStats?.resolutionRate ?? 0).toFixed(0)}%
+                          {resolutionPercent.toFixed(0)}%
                         </div>
                       <Badge
-                        className={`text-xs px-1.5 py-0 border ${
-                          (analysis.communicationStats?.resolutionRate ?? 0) >= 70
-                            ? 'bg-green-600 text-white border-green-600'
-                            : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
-                              ? 'bg-yellow-600 text-white border-yellow-600'
-                              : 'bg-red-600 text-white border-red-600'
-                        }`}
+                        variant="outline"
+                        tone={resolutionTone}
+                        size="sm"
                       >
-                          {(analysis.communicationStats?.resolutionRate ?? 0) >= 70
-                            ? (locale === 'ru' ? 'Высокий' : 'High')
-                            : (analysis.communicationStats?.resolutionRate ?? 0) >= 40
-                              ? (locale === 'ru' ? 'Средний' : 'Medium')
-                              : (locale === 'ru' ? 'Низкий' : 'Low')}
+                          {getLevelLabel(resolutionLevel, locale)}
                         </Badge>
                       </div>
                       <div className="space-y-0">
@@ -1756,15 +1854,17 @@ export default function AnalysisPage() {
                         allowDecimals={false}
                         width={28}
                       />
-                      <Tooltip
-                        contentStyle={{
-                          fontSize: 11
-                        }}
-                        formatter={(value) =>
-                          [
-                            value,
-                            t('activity_chart_messages_label')
-                          ] as [string | number, string]
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            className="bg-background text-foreground"
+                            formatter={(value) =>
+                              [
+                                value,
+                                t('activity_chart_messages_label')
+                              ] as [string | number, string]
+                            }
+                          />
                         }
                       />
                       <Area
@@ -1790,6 +1890,12 @@ export default function AnalysisPage() {
                 const sectionScore = section.score ?? 0;
                 const isProblematicSection =
                   section.id === 'gaslighting' || section.id === 'conflict';
+                const sectionPercent = sectionScore * 100;
+                const sectionLevel = getLevelFromPercent(sectionPercent);
+                const sectionTone = getBadgeTone(
+                  sectionLevel,
+                  isProblematicSection ? 'higher-worse' : 'higher-better'
+                );
                 const shouldShowReplies =
                   isPremiumAnalysis &&
                   isProblematicSection &&
@@ -1804,24 +1910,12 @@ export default function AnalysisPage() {
                             {getSectionTitle(section.id, section.title)}
                           </h3>
                           {section.score !== undefined && (
-                            <Badge 
-                              className={`text-xs border ${
-                                // For problematic sections (gaslighting, conflict): higher = worse = redder
-                                isProblematicSection
-                                  ? (section.score >= 0.7
-                                      ? 'bg-red-600 text-white border-red-600'
-                                      : section.score >= 0.4
-                                        ? 'bg-orange-600 text-white border-orange-600'
-                                        : 'bg-green-600 text-white border-green-600')
-                                  : // For positive sections: higher = better = greener
-                                    (section.score >= 0.7
-                                      ? 'bg-green-600 text-white border-green-600'
-                                      : section.score >= 0.4
-                                        ? 'bg-yellow-600 text-white border-yellow-600'
-                                        : 'bg-red-600 text-white border-red-600')
-                              }`}
+                            <Badge
+                              variant="outline"
+                              tone={sectionTone}
+                              size="sm"
                             >
-                              {(section.score * 100).toFixed(0)}%
+                              {getLevelLabel(sectionLevel, locale)} • {sectionPercent.toFixed(0)}%
                             </Badge>
                           )}
                         </div>
@@ -1908,35 +2002,37 @@ export default function AnalysisPage() {
               {locale === 'ru' ? 'Статистика коммуникации' : 'Communication Statistics'}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {analysis.communicationStats.initiatorBalance && (
+              {aggregatedInitiatorBalance.length > 0 && (
                 <div>
                   <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
                     {locale === 'ru' ? 'Кто инициирует разговоры' : 'Who initiates conversations'}
                   </p>
                   <div className="space-y-1">
-                    {Object.entries(analysis.communicationStats.initiatorBalance).map(([participant, percentage]) => (
-                      <div key={participant} className="flex justify-between items-center text-sm sm:text-base py-1">
-                        <span className={`font-medium ${getParticipantColor(replaceParticipantIds(participant))}`}>
-                          {replaceParticipantIds(participant)}
+                    {aggregatedInitiatorBalance.map(({ participant, value }, idx) => (
+                      <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
+                        <span className={`font-medium ${getParticipantColor(participant)}`}>
+                          {participant || 'Participant'}
                         </span>
-                        <span className="font-bold text-foreground">{percentage}%</span>
+                        <span className="font-bold text-foreground">{formatPercent(value)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              {analysis.communicationStats.apologyCount && (
+              {aggregatedApologyCounts.length > 0 && (
                 <div>
                   <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
                     {locale === 'ru' ? 'Кто извиняется' : 'Who apologizes'}
                   </p>
                   <div className="space-y-1">
-                    {Object.entries(analysis.communicationStats.apologyCount).map(([participant, count]) => (
-                      <div key={participant} className="flex justify-between items-center text-sm sm:text-base py-1">
-                        <span className={`font-medium ${getParticipantColor(replaceParticipantIds(participant))}`}>
-                          {replaceParticipantIds(participant)}
+                    {aggregatedApologyCounts.map(({ participant, value }, idx) => (
+                      <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
+                        <span className={`font-medium ${getParticipantColor(participant)}`}>
+                          {participant || 'Participant'}
                         </span>
-                        <span className="font-bold text-foreground">{count} {locale === 'ru' ? 'раз' : 'times'}</span>
+                        <span className="font-bold text-foreground">
+                          {value} {locale === 'ru' ? 'раз' : 'times'}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1955,33 +2051,35 @@ export default function AnalysisPage() {
                   <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
                     {locale === 'ru' ? 'Процент разрешенных конфликтов' : 'Resolution rate'}
                   </p>
-                  <p className="text-lg sm:text-xl font-bold">{analysis.communicationStats.resolutionRate}%</p>
+                  <p className="text-lg sm:text-xl font-bold">
+                    {formatPercent(analysis.communicationStats.resolutionRate)}
+                  </p>
                 </div>
               )}
             </div>
-            {analysis.promiseTracking && (
+            {aggregatedPromiseTracking.length > 0 && (
               <div className="mt-4 pt-4 border-t border-border/60">
                 <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 tracking-tight">
                   {locale === 'ru' ? 'Отслеживание обещаний' : 'Promise Tracking'}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Object.entries(analysis.promiseTracking).map(([participant, data]) => (
-                    <div key={participant}>
-                      <p className={`text-sm sm:text-base font-semibold mb-3 ${getParticipantColor(replaceParticipantIds(participant))}`}>
-                        {replaceParticipantIds(participant)}
+                  {aggregatedPromiseTracking.map(({ participant, made, kept, percentage }, idx) => (
+                    <div key={`${participant}-${idx}`}>
+                      <p className={`text-sm sm:text-base font-semibold mb-3 ${getParticipantColor(participant)}`}>
+                        {participant || 'Participant'}
                       </p>
                       <div className="space-y-1.5 text-sm sm:text-base">
                         <div className="flex justify-between items-center py-0.5">
                           <span className="text-muted-foreground">{locale === 'ru' ? 'Дано' : 'Made'}</span>
-                          <span className="font-semibold">{data.made}</span>
+                          <span className="font-semibold">{made}</span>
                         </div>
                         <div className="flex justify-between items-center py-0.5">
                           <span className="text-muted-foreground">{locale === 'ru' ? 'Выполнено' : 'Kept'}</span>
-                          <span className="font-semibold">{data.kept}</span>
+                          <span className="font-semibold">{kept}</span>
                         </div>
                         <div className="flex justify-between items-center py-0.5 font-bold border-t border-border/40 pt-1.5 mt-1.5">
                           <span>{locale === 'ru' ? 'Процент' : 'Percentage'}</span>
-                          <span className="text-foreground">{data.percentage}%</span>
+                          <span className="text-foreground">{formatPercent(percentage)}</span>
                         </div>
                       </div>
                     </div>

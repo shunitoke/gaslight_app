@@ -229,6 +229,13 @@ export const esBundle: LocaleBundle = {
     calendar_title: 'Calendario de conversación',
     calendar_description:
       'Las fechas importantes están resaltadas en rojo. Pase el mouse sobre las fechas para ver detalles.',
+    // Gráfico de actividad por día
+    activity_chart_title: 'Actividad por días',
+    activity_chart_description:
+      'Muestra en qué días hubo más mensajes. Los picos pueden coincidir con periodos de tensión.',
+    activity_chart_messages_label: 'Mensajes',
+    activity_chart_color_hint:
+      'Rojo ≈ días ligados a conflictos intensos o manipulación.',
     important_dates_label: 'Fechas importantes',
     important_date: 'Fecha importante',
     important_dates_list_title: 'Fechas importantes',

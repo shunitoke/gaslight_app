@@ -203,7 +203,7 @@ export const enBundle: LocaleBundle = {
       'Shows on which days more messages were exchanged. Spikes may coincide with periods of tension.',
     activity_chart_messages_label: 'Messages',
     activity_chart_color_hint:
-      'Green ≈ calmer periods, red ≈ days linked to intense conflict or manipulation.',
+      'Red ≈ days linked to intense conflict or manipulation.',
 
     // Recommended replies
     recommended_replies_toggle_show: 'Show example healthy replies',

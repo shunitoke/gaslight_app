@@ -1366,7 +1366,7 @@ export default function HomePage() {
              </div>
            ) : (
             <div className="w-full h-full flex flex-col items-center justify-center">
-              {!uploading && !analyzing && !error && (
+              {!uploading && !analyzing && !error && !conversation && (
                 <div className="flex justify-center w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs">
                     <button

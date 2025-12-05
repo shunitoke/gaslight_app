@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import type { Locale as DateFnsLocale } from 'date-fns';
+import { de, enUS, es, fr, pt, ru } from 'date-fns/locale';
 import { Calendar } from '../ui/calendar';
 import { Card } from '../ui/card';
 import { ChartContainer } from '../ui/chart';
@@ -15,6 +17,8 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
+import type { Formatter } from 'recharts/types/component/DefaultTooltipContent';
 import type { AnalysisResult, ImportantDate } from '../../features/analysis/types';
 import { useLanguage } from '../../features/i18n';
 
@@ -44,6 +48,30 @@ export function AnalysisDashboard({
 }: AnalysisDashboardProps) {
   const { t } = useLanguage();
 
+  const intlLocale = useMemo(() => {
+    const map: Record<AnalysisDashboardProps['locale'], string> = {
+      en: 'en-US',
+      ru: 'ru-RU',
+      fr: 'fr-FR',
+      de: 'de-DE',
+      es: 'es-ES',
+      pt: 'pt-PT'
+    };
+    return map[locale] ?? 'en-US';
+  }, [locale]);
+
+  const dayPickerLocale = useMemo<DateFnsLocale>(() => {
+    const map: Record<AnalysisDashboardProps['locale'], DateFnsLocale> = {
+      en: enUS,
+      ru,
+      fr,
+      de,
+      es,
+      pt
+    };
+    return map[locale] ?? enUS;
+  }, [locale]);
+
   // Create a map of important dates for quick lookup
   const importantDatesMap = useMemo(() => {
     const map = new Map<string, ImportantDate>();
@@ -60,8 +88,8 @@ export function AnalysisDashboard({
       const important = importantDatesMap.get(day.date);
       return {
         dateLabel: new Date(day.date).toLocaleDateString(
-          locale === 'ru' ? 'ru-RU' : 'en-US',
-          { month: 'short', day: 'numeric' }
+          intlLocale,
+          { month: 'short', day: 'numeric', year: 'numeric' }
         ),
         messageCount: day.messageCount,
         isImportant: !!important,
@@ -180,8 +208,8 @@ export function AnalysisDashboard({
       const maxSeverity = Math.max(existing?.severity ?? 0, severity);
 
       const label = weekStart.toLocaleDateString(
-        locale === 'ru' ? 'ru-RU' : 'en-US',
-        { month: 'short', day: 'numeric' }
+        intlLocale,
+        { month: 'short', day: 'numeric', year: 'numeric' }
       );
 
       weeks.set(weekKey, {
@@ -208,6 +236,32 @@ export function AnalysisDashboard({
 
   const waveData = waveMode === 'day' ? activityChartData : weeklyWaveData;
 
+  const waveTooltipFormatter: Formatter<any, any> = (value, _name, props) => {
+    if (props && 'payload' in props && props.payload && (props.payload as any).isImportant) {
+      const payload: any = props.payload;
+      const dateKey =
+        waveMode === 'day'
+          ? activityByDay.find(
+              (d) =>
+                new Date(d.date).toLocaleDateString(
+                  intlLocale,
+                  { month: 'short', day: 'numeric', year: 'numeric' }
+                ) === payload.dateLabel
+            )?.date
+          : payload.dateKey;
+
+      const important = dateKey ? importantDatesMap.get(dateKey) : undefined;
+
+      if (important) {
+        return [important.reason || t('important_date'), t('important_date')];
+      }
+    }
+
+    return [value, t('activity_chart_messages_label')];
+  };
+
+  const [showAllDates, setShowAllDates] = useState(false);
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <Card className="p-3 sm:p-4">
@@ -215,8 +269,8 @@ export function AnalysisDashboard({
           {t('dashboard_title')}
         </h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Left Column: Charts */}
+        <div className="space-y-4">
+          {/* Activity charts */}
           <div className="space-y-3 sm:space-y-4">
             {/* Wave Activity Chart (day/week toggle) */}
             {waveData.length > 1 && (
@@ -282,35 +336,50 @@ export function AnalysisDashboard({
                         width={24}
                       />
                       <Tooltip
-                        contentStyle={{ fontSize: 11, maxWidth: 260 }}
-                        labelFormatter={(label: string) =>
-                          `${label} — ${t('activity_chart_color_hint')}`
-                        }
-                        formatter={(value: number, name: string, props: any) => {
-                          if (props && props.payload && props.payload.isImportant) {
-                            const dateKey =
-                              waveMode === 'day'
-                                ? activityByDay.find(
-                                    (d) =>
-                                      new Date(d.date).toLocaleDateString(
-                                        locale === 'ru' ? 'ru-RU' : 'en-US',
-                                        { month: 'short', day: 'numeric' }
-                                      ) === props.payload.dateLabel
-                                  )?.date
-                                : props.payload.dateKey;
+                        content={(props: TooltipProps<any, any>) => {
+                          if (!props?.active || !props.payload?.length) return null;
 
-                            const important = dateKey
-                              ? importantDatesMap.get(dateKey)
-                              : undefined;
+                          const payload = props.payload as any[];
+                          const importantEntry = payload.find((p) => p?.payload?.isImportant);
+                          const target = importantEntry ?? payload[0];
 
-                            if (important) {
-                              return [
-                                important.reason || t('important_date'),
-                                t('important_dates_label')
-                              ];
-                            }
-                          }
-                          return [value, t('activity_chart_messages_label')];
+                          const [value, name] = importantEntry
+                            ? (waveTooltipFormatter(
+                                target.value,
+                                target.name,
+                                target,
+                                0,
+                                payload
+                              ) as [string | number, string])
+                            : ([target.value, t('activity_chart_messages_label')] as [
+                                string | number,
+                                string
+                              ]);
+
+                          const color = importantEntry
+                            ? 'hsl(var(--destructive))'
+                            : target?.color ||
+                              target?.payload?.fill ||
+                              'var(--color-messages, hsl(var(--primary)))';
+
+                          const labelText =
+                            typeof props.label === 'string'
+                              ? `${props.label} — ${t('activity_chart_color_hint')}`
+                              : t('activity_chart_color_hint');
+
+                          return (
+                            <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+                              <div className="font-medium">{labelText}</div>
+                              <div className="flex w-full items-center gap-2">
+                                <span
+                                  className="inline-block h-2.5 w-2.5 rounded-full"
+                                  style={{ background: color }}
+                                />
+                                <span className="text-muted-foreground">{name}</span>
+                                <span className="font-semibold text-foreground">{value}</span>
+                              </div>
+                            </div>
+                          );
                         }}
                       />
                       <Area
@@ -337,8 +406,7 @@ export function AnalysisDashboard({
               </div>
             )}
           </div>
-
-          {/* Right Column: Compact Calendar */}
+          {/* Calendar under charts (desktop and mobile) */}
           {dateRange && (
             <div className="space-y-3 sm:space-y-4">
               <div>
@@ -352,7 +420,8 @@ export function AnalysisDashboard({
               <div className="flex justify-center">
                 <Calendar
                   mode="single"
-                  defaultMonth={dateRange.from}
+                  locale={dayPickerLocale}
+                  defaultMonth={new Date()}
                   numberOfMonths={2}
                   selected={undefined}
                   onSelect={(date) => {
@@ -365,7 +434,7 @@ export function AnalysisDashboard({
                   }}
                   modifiers={calendarModifiers}
                   modifiersClassNames={calendarModifierClassNames}
-                  className="w-full max-w-2xl rounded-lg border shadow-sm"
+                  className="w-fit max-w-xl rounded-lg border shadow-sm [--cell-size:1.7rem] sm:[--cell-size:1.9rem]"
                   disabled={(date) => {
                     const dateStr = date.toISOString().split('T')[0];
                     return !activityByDay.some((d) => d.date === dateStr);
@@ -378,23 +447,44 @@ export function AnalysisDashboard({
                     {t('important_dates_list_title')}:
                   </p>
                   <ul className="space-y-1 text-xs text-muted-foreground">
-                    {importantDates.slice(0, 5).map((d, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
+                    {importantDates.slice(0, 3).map((d, idx) => (
+                      <li key={`first-${idx}`} className="flex items-start gap-2">
                         <span className="text-red-600 dark:text-red-400 font-medium">
-                          {new Date(d.date).toLocaleDateString(
-                            locale === 'ru' ? 'ru-RU' : 'en-US',
-                            { month: 'short', day: 'numeric' }
-                          )}
+                          {new Date(d.date).toLocaleDateString(intlLocale, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
                         </span>
                         <span>— {d.reason}</span>
                       </li>
                     ))}
-                    {importantDates.length > 5 && (
-                      <li className="text-xs text-muted-foreground/70 italic">
-                        +{importantDates.length - 5} {t('more_dates')}
-                      </li>
-                    )}
+                    {showAllDates &&
+                      importantDates.slice(3).map((d, idx) => (
+                        <li
+                          key={`extra-${idx}`}
+                          className="flex items-start gap-2 animate-in slide-in-from-bottom-1 duration-300 ease-out"
+                        >
+                          <span className="text-red-600 dark:text-red-400 font-medium">
+                            {new Date(d.date).toLocaleDateString(intlLocale, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                          <span>— {d.reason}</span>
+                        </li>
+                      ))}
                   </ul>
+                  {importantDates.length > 3 && !showAllDates && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllDates(true)}
+                      className="text-xs text-muted-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      +{importantDates.length - 3} {t('more_dates')}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
