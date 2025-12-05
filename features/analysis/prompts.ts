@@ -81,14 +81,14 @@ You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no te
     }
   ],
   "communicationStats": {
-    "initiatorBalance": { "participant1": 0-100, "participant2": 0-100 }, // OR use actual participant names/IDs as keys
-    "apologyCount": { "participant1": 0, "participant2": 0 }, // OR use actual participant names/IDs as keys
+    "initiatorBalance": { "participant1": 0-100, "participant2": 0-100 }, // REPLACE participant1/participant2 with actual participant names/IDs in ${responseLanguage}; only use these placeholders if no names exist
+    "apologyCount": { "participant1": 0, "participant2": 0 }, // REPLACE participant1/participant2 with actual participant names/IDs in ${responseLanguage}; only use placeholders if no names exist
     "conflictFrequency": "X per week/month",
     "resolutionRate": 0-100
   },
   "promiseTracking": {
-    "participant1": { "made": 0, "kept": 0, "percentage": 0-100 }, // OR use actual participant names/IDs as keys
-    "participant2": { "made": 0, "kept": 0, "percentage": 0-100 } // OR use actual participant names/IDs as keys
+    "participant1": { "made": 0, "kept": 0, "percentage": 0-100 }, // REPLACE participant1/participant2 with actual participant names/IDs in ${responseLanguage}; only use placeholders if no names exist
+    "participant2": { "made": 0, "kept": 0, "percentage": 0-100 } // REPLACE participant1/participant2 with actual participant names/IDs in ${responseLanguage}; only use placeholders if no names exist
   },
   "redFlagCounts": {
     "yellow": 0,
@@ -371,7 +371,7 @@ IMPORTANT FORMATTING RULES FOR evidenceSnippets.excerpt:
 - Use the exact participant names/IDs as they appear in the conversation
 - Include the colon after the name, then space, then opening quote, then text, then closing quote
 
-CRITICAL LANGUAGE REQUIREMENT: All output MUST be in ${responseLanguage}. This includes:
+CRITICAL LANGUAGE & NAMING REQUIREMENT: All output MUST be in ${responseLanguage}. This includes:
 - overviewSummary
 - section titles
 - section summaries
@@ -379,6 +379,8 @@ CRITICAL LANGUAGE REQUIREMENT: All output MUST be in ${responseLanguage}. This i
 - evidenceSnippets.excerpt
 - evidenceSnippets.explanation
 - frameworkDiagnosis: ALL content including framework names, attachment styles, transactional analysis terms, cognitive distortion types, and all descriptions (MUST be in native ${responseLanguage}, e.g., for Russian: "ННО" not "NVC", "тревожный" not "anxious", "Родитель-Ребенок" not "Parent-Child")
+- Replace placeholder participant keys (participant1/participant2) with the actual participant names from the chat everywhere in the JSON (communicationStats, promiseTracking, frameworkDiagnosis, etc.). If the names are unavailable, use neutral descriptors in ${responseLanguage} (e.g., "один участник", "другой участник"), NOT English words and NOT numeric labels like "участник 1/2".
+- ABSOLUTE BAN ON ENGLISH WORDS in non-English outputs: never leave English nouns/adjectives (e.g., "promiscuity", "reassurance", "conflict", "pattern", "evidence", "needs work") in non-English locales. Always translate or paraphrase into natural, idiomatic ${responseLanguage}. If no direct term exists, use a native-language paraphrase; do not drop English lexemes.
 
 CRITICAL (LANGUAGE & CONSISTENCY SHORT VERSION):
 - Follow the LANGUAGE REQUIREMENT and DATA CONSISTENCY REQUIREMENTS from the system prompt.
