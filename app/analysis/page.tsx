@@ -1813,7 +1813,10 @@ export default function AnalysisPage() {
                     'toxicity',
                     'control',
                     'boundary',
-                    'attachment'
+                    'attachment',
+                    'financial',
+                    'finance',
+                    'money'
                   ];
                   const negativeKeywords = [
                     'gaslight',
@@ -1829,7 +1832,12 @@ export default function AnalysisPage() {
                     'boundary',
                     'attachment',
                     'avoidant',
-                    'anxious'
+                    'anxious',
+                    'финанс',
+                    'финансов',
+                    'деньг',
+                    'money',
+                    'financial'
                   ];
                   if (negativeIds.some((k) => id.includes(k))) return true;
                   if (negativeKeywords.some((k) => title.includes(k))) return true;
