@@ -46,6 +46,10 @@ export async function GET(request: Request) {
       checkDatabaseHealth(),
       getConfigSafe()
     ]);
+    const openrouterStatus = await getOpenRouterStatus(
+      config.openrouterBaseUrl,
+      config.openrouterConfigured
+    );
 
     const response = {
       timestamp: new Date().toISOString(),
@@ -62,7 +66,10 @@ export async function GET(request: Request) {
         redisAvailable: isKvAvailable(),
         overallHealth: dbHealth.overall
       },
-      configuration: config
+      configuration: {
+        ...config,
+        openrouterStatus
+      }
     };
 
     return NextResponse.json(response);
@@ -114,6 +121,7 @@ function getConfigSafe(): {
   maxUploadSizeMb: number;
   analysisTimeoutMs: number;
   openrouterConfigured: boolean;
+  openrouterBaseUrl: string;
 } {
   try {
     const config = getConfig();
@@ -123,7 +131,8 @@ function getConfigSafe(): {
       textModelFallbacks: config.textModelFallbacks,
       maxUploadSizeMb: config.maxUploadSizeMb,
       analysisTimeoutMs: config.analysisTimeoutMs,
-      openrouterConfigured: !!config.openrouterApiKey
+      openrouterConfigured: !!config.openrouterApiKey,
+      openrouterBaseUrl: config.openrouterBaseUrl
     };
   } catch (error) {
     return {
@@ -132,7 +141,53 @@ function getConfigSafe(): {
       textModelFallbacks: [],
       maxUploadSizeMb: 0,
       analysisTimeoutMs: 0,
-      openrouterConfigured: false
+      openrouterConfigured: false,
+      openrouterBaseUrl: 'unknown'
+    };
+  }
+}
+
+async function getOpenRouterStatus(baseUrl: string, hasKey: boolean) {
+  if (!hasKey) {
+    return {
+      configured: false,
+      reachable: false,
+      error: 'OPENROUTER_API_KEY is missing'
+    };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${baseUrl}/models`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      signal: controller.signal,
+      cache: 'no-store'
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const text = await res.text();
+      return {
+        configured: true,
+        reachable: false,
+        error: `Status ${res.status}: ${text.substring(0, 160)}`
+      };
+    }
+
+    return {
+      configured: true,
+      reachable: true
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      reachable: false,
+      error: (error as Error).message
     };
   }
 }

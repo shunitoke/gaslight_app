@@ -64,6 +64,11 @@ type MetricsData = {
     maxUploadSizeMb: number;
     analysisTimeoutMs: number;
     openrouterConfigured: boolean;
+    openrouterStatus?: {
+      configured: boolean;
+      reachable: boolean;
+      error?: string;
+    };
   };
 };
 
@@ -619,6 +624,17 @@ export default function AdminDashboard() {
                       <span className="text-muted-foreground">OpenRouter:</span>
                       <StatusBadge status={metrics.configuration.openrouterConfigured} label="" />
                     </div>
+                    {metrics.configuration.openrouterStatus && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">OpenRouter Reachable:</span>
+                        <StatusBadge status={metrics.configuration.openrouterStatus.reachable} label="" />
+                      </div>
+                    )}
+                    {metrics.configuration.openrouterStatus?.error && (
+                      <div className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-md p-2">
+                        {metrics.configuration.openrouterStatus.error}
+                      </div>
+                    )}
                     {metrics.configuration.textModelFallbacks.length > 0 && (
                       <div className="pt-2 border-t border-border">
                         <span className="text-muted-foreground text-xs">Fallbacks:</span>
