@@ -225,9 +225,10 @@ PART 3: PATTERN ANALYSIS (extended)
 - timePatterns: Identify when conflicts happen and what triggers them
 
 PART 4: CONTRADICTION TRACKER
-- contradictions: List instances where a participant said X, later denied saying X, or promised Y but didn't do Y
+- contradictions: List instances where a participant said X, later denied/changed X, or promised Y but didn't do Y (dishonesty / несостыковки)
 - Include date, original statement, denial statement, type, and severity (0-1)
 - Use participant names, not "they" or "user"
+- Provide 2-5 concrete contradictions if present; look across distant chunks if needed
 
 PART 5: REALITY CHECK
 - whatParticipantWasRightAbout: List things each participant doubted themselves about but were actually correct, with evidence. Include participant name for each entry.
