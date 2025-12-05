@@ -282,6 +282,13 @@ export const deBundle: LocaleBundle = {
     terms_section9_title: '9. Kontakt',
     terms_section9_content:
       'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte über die auf der Hauptseite oder in der App angegebenen Kontaktdaten.',
+    donation_beta_label: 'Beta',
+    donation_title: 'Entwickler unterstützen',
+    donation_text: 'Wenn dir dieser Bericht geholfen hat, freue ich mich über eine kleine Spende. Danke für deine Unterstützung!',
+    donation_crypto_only: 'Nur Krypto',
+    donation_show_qr: 'QR anzeigen',
+    donation_qr_for_wallet: 'QR für Wallet',
+    donation_close: 'Schließen',
     install_app: 'App installieren',
     install_app_instructions: 'So installieren Sie diese App:',
     install_app_chrome: 'Chrome/Edge: Klicken Sie auf das Installationssymbol in der Adressleiste oder gehen Sie zu Menü → App installieren',

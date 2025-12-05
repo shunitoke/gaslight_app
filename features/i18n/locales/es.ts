@@ -282,6 +282,13 @@ export const esBundle: LocaleBundle = {
     terms_section9_title: '9. Contacto',
     terms_section9_content:
       'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos usando los detalles proporcionados en el sitio principal o dentro de la aplicación.',
+    donation_beta_label: 'Beta',
+    donation_title: 'Apoyar al desarrollador',
+    donation_text: 'Si este informe te ayudó, una pequeña donación sería de gran ayuda. ¡Gracias por tu apoyo!',
+    donation_crypto_only: 'Solo cripto',
+    donation_show_qr: 'Mostrar QR',
+    donation_qr_for_wallet: 'QR de la billetera',
+    donation_close: 'Cerrar',
     install_app: 'Instalar aplicación',
     install_app_instructions: 'Para instalar esta aplicación:',
     install_app_chrome: 'Chrome/Edge: Haz clic en el icono de instalación en la barra de direcciones, o ve a Menú → Instalar aplicación',

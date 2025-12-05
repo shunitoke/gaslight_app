@@ -64,6 +64,11 @@ type SectionCardProps = {
 type SeverityLevel = 'low' | 'medium' | 'high';
 type MetricPolarity = 'higher-worse' | 'higher-better';
 type Tone = 'success' | 'warning' | 'danger';
+type WalletInfo = {
+  id: string;
+  label: string;
+  address: string;
+};
 
 const getLevelFromPercent = (percentage: number): SeverityLevel => {
   if (percentage >= 70) return 'high';
@@ -100,6 +105,37 @@ const getBadgeToneClass = (tone: Tone) => {
   if (tone === 'warning') return 'border-amber-500 bg-amber-500 text-white dark:border-amber-400 dark:bg-amber-400';
   return 'border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500';
 };
+
+const WALLET_ADDRESSES: WalletInfo[] = [
+  {
+    id: 'ton',
+    label: 'TON',
+    address: 'UQB_oYK9egOO1V1pbqIklusCFwStX652kDopnlSUFfYJemnI'
+  },
+  {
+    id: 'usdt-ton',
+    label: 'USDT (TON)',
+    address: 'UQCfBdwQTDCFLmwhX1cFPiUWzDdTpDqzBBsTKS6bGJPZiglC'
+  },
+  {
+    id: 'usdt-erc20',
+    label: 'USDT (ERC20)',
+    address: '0x10704b9E8C9fEc676C329F019A0C9BC0D5Bb474A'
+  },
+  {
+    id: 'usdt-sol',
+    label: 'USDT (SOL)',
+    address: 'AuFi57sgG1JGsZVHJHTaomj8dpjpnQAPKZv9G1Gao8ju'
+  },
+  {
+    id: 'usdt-trc20',
+    label: 'USDT (TRC20)',
+    address: 'TRG9ReoAjTt1zy4EnfVbfHBmms8h4ssSCj'
+  }
+];
+
+const getQrImageUrl = (address: string) =>
+  `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(address)}`;
 
 function SectionCard({
   section,
@@ -216,6 +252,7 @@ export default function AnalysisPage() {
     date: ImportantDate;
     quotes: Array<{ excerpt: string; explanation: string; sectionTitle: string }>;
   } | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const dataLoadedRef = useRef(false);
 
   const intlLocale = useMemo(() => {
@@ -2577,37 +2614,85 @@ export default function AnalysisPage() {
         <CardBase className="mt-6 p-4 sm:p-5 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 border border-primary/20 shadow-md">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary font-semibold text-xs">
             <span>β</span>
-            <span>Beta</span>
+            <span>{t('donation_beta_label')}</span>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground mt-3">
-            Support the developer
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            If this report helped, consider a small donation. Спасибо за поддержку!
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono text-foreground/80 mt-3">
+          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="space-y-1">
-              <div className="text-muted-foreground font-semibold">TON</div>
-              <div className="break-all">UQB_oYK9egOO1V1pbqIklusCFwStX652kDopnlSUFfYJemnI</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                {t('donation_title')}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('donation_text')}
+              </p>
             </div>
-            <div className="space-y-1">
-              <div className="text-muted-foreground font-semibold">USDT TON</div>
-              <div className="break-all">UQCfBdwQTDCFLmwhX1cFPiUWzDdTpDqzBBsTKS6bGJPZiglC</div>
+            <div className="self-start sm:self-center px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
+              {t('donation_crypto_only')}
             </div>
-            <div className="space-y-1">
-              <div className="text-muted-foreground font-semibold">USDT ERC20</div>
-              <div className="break-all">0x10704b9E8C9fEc676C329F019A0C9BC0D5Bb474A</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-muted-foreground font-semibold">USDT SOL</div>
-              <div className="break-all">AuFi57sgG1JGsZVHJHTaomj8dpjpnQAPKZv9G1Gao8ju</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-muted-foreground font-semibold">USDT TRC20</div>
-              <div className="break-all">TRG9ReoAjTt1zy4EnfVbfHBmms8h4ssSCj</div>
-            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-4">
+            {WALLET_ADDRESSES.map((wallet) => (
+              <div
+                key={wallet.id}
+                className="p-3 rounded-lg border border-border/70 bg-background/80 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150"
+              >
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="whitespace-nowrap"
+                    onClick={() => setSelectedWallet(wallet)}
+                  >
+                    {t('donation_show_qr')}
+                  </Button>
+                </div>
+                <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
+              </div>
+            ))}
           </div>
         </CardBase>
+
+        {selectedWallet && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedWallet(null)}
+          >
+            <Card className="w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-start justify-between p-4 pb-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    {t('donation_qr_for_wallet')}
+                  </p>
+                  <p className="text-base font-semibold text-foreground">{selectedWallet.label}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedWallet(null)}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                  aria-label={t('donation_close')}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4 pt-2 flex flex-col items-center gap-3">
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <img
+                    src={getQrImageUrl(selectedWallet.address)}
+                    alt={`${selectedWallet.label} QR`}
+                    className="h-64 w-64 object-contain"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="text-xs font-mono text-muted-foreground break-all text-center">
+                  {selectedWallet.address}
+                </p>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedWallet(null)}>
+                  {t('donation_close')}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Disclaimers about purpose and limitations */}
         <div className="mt-3 text-xs text-muted-foreground space-y-1">

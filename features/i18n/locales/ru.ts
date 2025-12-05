@@ -308,6 +308,13 @@ export const ruBundle: LocaleBundle = {
     terms_section9_title: '9. Контакты',
     terms_section9_content:
       'Если у вас есть вопросы об этих Условиях или Сервисе, пожалуйста, свяжитесь с нами, используя контактные данные, указанные на главном сайте или в приложении.',
+    donation_beta_label: 'Бета',
+    donation_title: 'Поддержать разработчика',
+    donation_text: 'Если этот отчёт помог, буду благодарен за небольшой донат. Спасибо за поддержку!',
+    donation_crypto_only: 'Только крипто',
+    donation_show_qr: 'Показать QR',
+    donation_qr_for_wallet: 'QR для кошелька',
+    donation_close: 'Закрыть',
     install_app: 'Установить приложение',
     install_app_instructions: 'Чтобы установить это приложение:',
     install_app_chrome: 'Chrome/Edge: Нажмите на иконку установки в адресной строке или перейдите в Меню → Установить приложение',

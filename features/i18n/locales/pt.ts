@@ -282,6 +282,13 @@ export const ptBundle: LocaleBundle = {
     terms_section9_title: '9. Contato',
     terms_section9_content:
       'Se você tiver perguntas sobre estes Termos ou o Serviço, entre em contato conosco usando os detalhes fornecidos no site principal ou dentro do aplicativo.',
+    donation_beta_label: 'Beta',
+    donation_title: 'Apoiar o desenvolvedor',
+    donation_text: 'Se este relatório ajudou, uma pequena doação é muito bem-vinda. Obrigado pelo apoio!',
+    donation_crypto_only: 'Apenas cripto',
+    donation_show_qr: 'Mostrar QR',
+    donation_qr_for_wallet: 'QR da carteira',
+    donation_close: 'Fechar',
     install_app: 'Instalar aplicativo',
     install_app_instructions: 'Para instalar este aplicativo:',
     install_app_chrome: 'Chrome/Edge: Clique no ícone de instalação na barra de endereços ou vá em Menu → Instalar aplicativo',

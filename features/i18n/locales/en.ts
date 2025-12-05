@@ -306,6 +306,13 @@ export const enBundle: LocaleBundle = {
     terms_section9_title: '9. Contact',
     terms_section9_content:
       'If you have questions about these Terms or the Service, please contact us using the details provided on the main site or within the app.',
+    donation_beta_label: 'Beta',
+    donation_title: 'Support the developer',
+    donation_text: 'If this report helped, consider a small donation. Thank you for your support!',
+    donation_crypto_only: 'Crypto only',
+    donation_show_qr: 'Show QR',
+    donation_qr_for_wallet: 'QR for wallet',
+    donation_close: 'Close',
     install_app: 'Install App',
     install_app_instructions: 'To install this app:',
     install_app_chrome: 'Chrome/Edge: Click the install icon in the address bar, or go to Menu → Install app',
