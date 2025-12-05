@@ -14,6 +14,7 @@ import { callLLM, type LLMResponse } from '../../lib/llmClient';
 import { logError, logInfo, logWarn } from '../../lib/telemetry';
 import { analyzeMediaArtifact } from '../../lib/vision';
 import { getSystemPrompt, getUserPrompt } from './prompts';
+import { normalizeAnalysisResult } from './validation';
 
 /**
  * Get language instruction for response language (helper for final analysis)
@@ -1491,17 +1492,23 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       safetyConcern: aggregatedSafetyConcern
     };
 
+    const normalizedResult = normalizeAnalysisResult(result, {
+      defaultTitle: defaultMsgs.defaultTitle,
+      defaultOverview: defaultMsgs.defaultOverview,
+      defaultSectionSummary: defaultMsgs.defaultNoPatterns
+    });
+
     const durationMs = Date.now() - startTime;
     
     logInfo('analysis_completed', {
       conversationId: conversation.id,
       analysisId,
       durationMs,
-      sectionCount: result.sections.length,
-      hasOverview: !!result.overviewSummary && result.overviewSummary.trim().length > 0,
-      overviewLength: result.overviewSummary?.length || 0,
-      overviewPreview: result.overviewSummary?.substring(0, 100) || 'none',
-      sectionsDetails: result.sections.map(s => ({
+      sectionCount: normalizedResult.sections.length,
+      hasOverview: !!normalizedResult.overviewSummary && normalizedResult.overviewSummary.trim().length > 0,
+      overviewLength: normalizedResult.overviewSummary?.length || 0,
+      overviewPreview: normalizedResult.overviewSummary?.substring(0, 100) || 'none',
+      sectionsDetails: normalizedResult.sections.map(s => ({
         id: s.id,
         title: s.title,
         evidenceCount: s.evidenceSnippets?.length || 0,
@@ -1533,7 +1540,7 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       progress: 100
     });
 
-    return result;
+    return normalizedResult;
   } catch (error) {
     const progressId = conversationId || conversation.id;
     await updateProgress(progressId, {

@@ -240,7 +240,6 @@ function SectionCard({
 
       {isPremiumAnalysis &&
         shouldShowReplies &&
-        isRepliesOpen &&
         conversationLanguage === locale && (
         <div className="mt-2 border-t border-border/60 pt-2">
           <button
@@ -586,12 +585,50 @@ export default function AnalysisPage() {
     return fallbackTitle;
   };
 
+  const derivePrimaryLanguage = useCallback((conv: Conversation | null | undefined) => {
+    if (!conv || !Array.isArray(conv.languageCodes) || conv.languageCodes.length === 0) {
+      return 'unknown';
+    }
+    const firstLang = conv.languageCodes[0] || '';
+    const shortLang = firstLang.slice(0, 2).toLowerCase();
+    return (['en', 'ru', 'fr', 'de', 'es', 'pt'] as const).includes(shortLang as any)
+      ? (shortLang as SupportedLocale)
+      : 'unknown';
+  }, []);
+
+  const applyLoadedData = useCallback(
+    (
+      analysisData: AnalysisResult,
+      participantsData: Participant[],
+      activityData: DailyActivity[],
+      primaryLanguage: SupportedLocale | 'unknown',
+      isPremium: boolean
+    ) => {
+      const cacheKey = analysisData.id || 'default';
+      const now = Date.now();
+      analysisCache.set(cacheKey, {
+        analysis: analysisData,
+        participants: participantsData,
+        isPremium,
+        timestamp: now
+      });
+
+      setAnalysis(analysisData);
+      setParticipants(participantsData);
+      setIsPremiumAnalysis(isPremium);
+      setActivityByDay(activityData);
+      setConversationLanguage(primaryLanguage);
+      setLoading(false);
+    },
+    []
+  );
+
   // Load analysis data with caching optimization
   useEffect(() => {
     if (dataLoadedRef.current) return;
     dataLoadedRef.current = true;
 
-    const loadAnalysisData = () => {
+    const loadAnalysisData = async () => {
       try {
         // Check if stored analysis matches current conversation
         const storedConversationId = sessionStorage.getItem('currentConversationId');
@@ -629,139 +666,148 @@ export default function AnalysisPage() {
         const storedTier = sessionStorage.getItem('currentSubscriptionTier');
         const storedFeatures = sessionStorage.getItem('currentFeatures');
         const storedActivity = sessionStorage.getItem('currentActivityByDay');
-        
+
+        let participantsData: Participant[] = [];
+        let activityData: DailyActivity[] = [];
+        let primaryLanguage: SupportedLocale | 'unknown' = 'unknown';
+        let parsedConversation: Conversation | null = null;
+
+        if (storedParticipants) {
+          try {
+            participantsData = JSON.parse(storedParticipants);
+          } catch {
+            participantsData = [];
+          }
+        }
+        if (storedActivity) {
+          try {
+            activityData = JSON.parse(storedActivity);
+          } catch {
+            activityData = [];
+          }
+        }
+        if (storedConversation) {
+          try {
+            parsedConversation = JSON.parse(storedConversation) as Conversation;
+            primaryLanguage = derivePrimaryLanguage(parsedConversation);
+          } catch {
+            parsedConversation = null;
+            primaryLanguage = 'unknown';
+          }
+        }
+
+        const tier = storedTier || 'free';
+        let features: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean } = {};
+        if (storedFeatures) {
+          try {
+            features = JSON.parse(storedFeatures);
+          } catch {
+            features = {};
+          }
+        }
+        const isPremium =
+          tier === 'premium' ||
+          features.canAnalyzeMedia === true ||
+          features.canUseEnhancedAnalysis === true;
+
+        const refetchFromServer = async () => {
+          if (!currentConversationId) {
+            throw new Error('No conversationId to refetch analysis');
+          }
+          const res = await fetch(
+            `/api/analyze/result-by-conversation?conversationId=${currentConversationId}`
+          );
+          if (!res.ok) {
+            throw new Error('Result not found');
+          }
+          const data = await res.json();
+          if (!data?.analysis) {
+            throw new Error('Result missing analysis payload');
+          }
+          const analysisData = data.analysis as AnalysisResult;
+          const activityFromServer: DailyActivity[] = Array.isArray(data.activityByDay)
+            ? data.activityByDay
+            : [];
+          const conversationFromServer = data.conversation as Conversation | undefined;
+          const language = derivePrimaryLanguage(conversationFromServer ?? parsedConversation);
+
+          sessionStorage.setItem('currentAnalysis', JSON.stringify(analysisData));
+          sessionStorage.setItem('currentConversationId', currentConversationId);
+          if (conversationFromServer) {
+            sessionStorage.setItem('currentConversation', JSON.stringify(conversationFromServer));
+          }
+          if (activityFromServer.length > 0) {
+            sessionStorage.setItem('currentActivityByDay', JSON.stringify(activityFromServer));
+          }
+          if (participantsData.length > 0) {
+            sessionStorage.setItem('currentParticipants', JSON.stringify(participantsData));
+          }
+          sessionStorage.setItem('currentSubscriptionTier', tier);
+          if (storedFeatures) {
+            sessionStorage.setItem('currentFeatures', storedFeatures);
+          }
+
+          applyLoadedData(
+            analysisData,
+            participantsData,
+            activityFromServer,
+            language,
+            isPremium
+          );
+        };
+
         if (!stored) {
-          setError('No analysis found');
-          setLoading(false);
-          return;
+          try {
+            await refetchFromServer();
+            return;
+          } catch (fetchErr) {
+            console.error('Error fetching analysis:', fetchErr);
+            setError('No analysis found');
+            setLoading(false);
+            return;
+          }
         }
 
         // Try to get from cache first
         let analysisData: AnalysisResult;
-        let participantsData: Participant[] = [];
-        let isPremium = false;
-        let activityData: DailyActivity[] = [];
-        let primaryLanguage: SupportedLocale | 'unknown' = 'unknown';
 
         try {
           analysisData = JSON.parse(stored);
           
-          // Fix overviewSummary if it's a JSON string instead of plain text
-          if (analysisData.overviewSummary && typeof analysisData.overviewSummary === 'string') {
-            const overviewStr = analysisData.overviewSummary.trim();
-            // If it looks like JSON, try to extract the actual text
-            if (overviewStr.startsWith('{') && overviewStr.includes('"overviewSummary"')) {
-              try {
-                const parsed = JSON.parse(overviewStr);
-                if (parsed && typeof parsed === 'object' && 'overviewSummary' in parsed) {
-                  if (typeof parsed.overviewSummary === 'string') {
-                    analysisData.overviewSummary = parsed.overviewSummary;
-                  }
-                }
-              } catch {
-                // If JSON parsing fails, try regex extraction
-                const regex = /"overviewSummary"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"/;
-                const match = overviewStr.match(regex);
-                if (match && match[1]) {
-                  analysisData.overviewSummary = match[1]
-                    .replace(/\\"/g, '"')
-                    .replace(/\\n/g, '\n')
-                    .replace(/\\t/g, '\t')
-                    .replace(/\\\\/g, '\\');
-                }
-              }
-            }
-          }
-
-          if (storedConversation) {
-            try {
-              const conv = JSON.parse(storedConversation) as Conversation;
-              const firstLang =
-                conv.languageCodes && conv.languageCodes.length > 0
-                  ? conv.languageCodes[0]
-                  : '';
-              const shortLang = firstLang.slice(0, 2).toLowerCase();
-              if (
-                shortLang === 'en' ||
-                shortLang === 'ru' ||
-                shortLang === 'fr' ||
-                shortLang === 'de' ||
-                shortLang === 'es' ||
-                shortLang === 'pt'
-              ) {
-                primaryLanguage = shortLang as SupportedLocale;
-              }
-            } catch {
-              primaryLanguage = 'unknown';
-            }
-          }
-          
-          // Check cache
           const cacheKey = analysisData.id || 'default';
           const cached = analysisCache.get(cacheKey);
           const now = Date.now();
           
           if (cached && (now - cached.timestamp) < CACHE_TTL) {
             // Use cached data
-            setAnalysis(cached.analysis);
-            setParticipants(cached.participants);
-            setIsPremiumAnalysis(cached.isPremium);
-            // Activity is small and cheap to re-parse each time
-            if (storedActivity) {
-              try {
-                activityData = JSON.parse(storedActivity);
-                setActivityByDay(activityData);
-              } catch {
-                setActivityByDay([]);
-              }
-            }
-            setConversationLanguage(primaryLanguage);
-            setLoading(false);
+            applyLoadedData(
+              cached.analysis,
+              cached.participants,
+              activityData,
+              primaryLanguage,
+              cached.isPremium
+            );
             return;
           }
 
-          // Parse participants
-          if (storedParticipants) {
-            participantsData = JSON.parse(storedParticipants);
-          }
-          if (storedActivity) {
-            try {
-              activityData = JSON.parse(storedActivity);
-            } catch {
-              activityData = [];
-            }
-          }
-
-          // Derive premium status
-          const tier = storedTier || 'free';
-          let features: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean } = {};
-          if (storedFeatures) {
-            features = JSON.parse(storedFeatures);
-          }
-          isPremium =
-            tier === 'premium' ||
-            features.canAnalyzeMedia === true ||
-            features.canUseEnhancedAnalysis === true;
-
-          // Store in cache
-          analysisCache.set(cacheKey, {
-            analysis: analysisData,
-            participants: participantsData,
-            isPremium,
-            timestamp: now
-          });
-
-          // Update state synchronously to avoid pop-in
-          setAnalysis(analysisData);
-          setParticipants(participantsData);
-          setIsPremiumAnalysis(isPremium);
-          setActivityByDay(activityData);
-          setConversationLanguage(primaryLanguage);
-          setLoading(false);
+          // Store in cache + state
+          applyLoadedData(
+            analysisData,
+            participantsData,
+            activityData,
+            primaryLanguage,
+            isPremium
+          );
         } catch (parseError) {
           console.error('Failed to parse analysis data:', parseError);
-          setError('Failed to parse analysis data');
-          setLoading(false);
+          try {
+            await refetchFromServer();
+            return;
+          } catch (fetchErr) {
+            console.error('Error fetching analysis after parse failure:', fetchErr);
+            setError('Failed to parse analysis data');
+            setLoading(false);
+          }
         }
       } catch (err) {
         console.error('Error loading analysis:', err);

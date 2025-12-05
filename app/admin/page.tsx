@@ -81,6 +81,8 @@ export default function AdminDashboard() {
   const [recentErrors, setRecentErrors] = useState<any[]>([]);
   const [errorFilter, setErrorFilter] = useState<string>('');
   const [logSize, setLogSize] = useState<{ bytes: number; mb: string } | null>(null);
+  const [clearingCache, setClearingCache] = useState(false);
+  const [cacheClearMessage, setCacheClearMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (authenticated && autoRefresh) {
@@ -246,6 +248,44 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       // Silently fail - errors are not critical
+    }
+  };
+
+  const clearCache = async () => {
+    if (!confirm('Clear analysis cache and reset cache metrics?')) {
+      return;
+    }
+
+    setClearingCache(true);
+    setCacheClearMessage(null);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/admin/cache/clear', {
+        method: 'POST',
+        headers: {
+          'x-admin-secret': secret
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const deleted = data.deletedCacheKeys ?? 0;
+        const metricsCleared = data.clearedMetricKeys ?? 0;
+        setCacheClearMessage(
+          `Cleared ${deleted} cache entr${deleted === 1 ? 'y' : 'ies'} and reset ${metricsCleared} cache metric key${metricsCleared === 1 ? '' : 's'}.`
+        );
+        await fetchMetrics();
+      } else if (response.status === 401) {
+        setAuthenticated(false);
+        setError('Session expired. Please login again.');
+      } else {
+        setError('Failed to clear cache');
+      }
+    } catch (err) {
+      setError('Failed to clear cache');
+    } finally {
+      setClearingCache(false);
     }
   };
 
@@ -454,10 +494,30 @@ export default function AdminDashboard() {
               {/* Cache Metrics */}
               {metrics.cache && (
                 <div className="bg-card/90 backdrop-blur-lg rounded-xl p-6 border border-border">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Zap className="w-5 h-5 text-primary" />
-                    <h3 className="text-xl font-semibold text-foreground">Cache Metrics</h3>
+                  <div className="flex items-center justify-between mb-4 gap-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-primary" />
+                      <h3 className="text-xl font-semibold text-foreground">Cache Metrics</h3>
+                    </div>
+                    <button
+                      onClick={clearCache}
+                      disabled={clearingCache}
+                      className="text-xs bg-accent/10 hover:bg-accent/20 text-foreground px-3 py-1.5 rounded-lg border border-border flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {clearingCache ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <HardDrive className="w-4 h-4" />
+                      )}
+                      {clearingCache ? 'Clearing...' : 'Clear cache'}
+                    </button>
                   </div>
+                  {cacheClearMessage && (
+                    <div className="mb-3 text-xs text-muted-foreground flex items-center gap-2">
+                      <Info className="w-4 h-4" />
+                      {cacheClearMessage}
+                    </div>
+                  )}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Hits:</span>

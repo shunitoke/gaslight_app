@@ -1307,8 +1307,8 @@ export default function HomePage() {
           className="flex flex-col items-center justify-center relative" 
           style={{ 
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            height: '500px',
-            minHeight: '500px',
+            height: analyzing ? '560px' : '520px',
+            minHeight: '520px',
             willChange: 'opacity, transform',
             overflow: 'hidden'
           }}
@@ -1399,38 +1399,43 @@ export default function HomePage() {
 
               {!error && (
                 <div 
-                  className="w-full max-w-lg relative h-full flex items-center justify-center" 
+                  className="relative w-full max-w-lg h-full min-h-[380px]" 
                   style={{ 
                     transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     willChange: 'opacity, transform'
                   }}
                 >
-                  {inputMode === 'file' ? (
-                    <div 
-                      className="w-full flex flex-col items-center justify-center h-full animate-in fade-in duration-500" 
-                      style={{
-                        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                      }}
-                    >
-                      <div className="w-full flex flex-col h-full justify-center">
-                        <FileUpload
-                          onFileSelect={handleFileSelect}
-                          disabled={uploading}
-                          uploading={uploading}
-                          uploadProgress={uploadProgress}
-                          importSuccessful={!!conversation && !analyzing && !error}
-                          messageCount={conversation?.messageCount || 0}
-                        />
-                      </div>
+                  <div
+                    className={cn(
+                      'mode-panel absolute inset-0 w-full flex flex-col items-center justify-center gap-3',
+                      inputMode === 'file'
+                        ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                        : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                    )}
+                    aria-hidden={inputMode !== 'file'}
+                  >
+                    <div className="w-full flex flex-col h-full justify-center animate-in fade-in duration-400">
+                      <FileUpload
+                        onFileSelect={handleFileSelect}
+                        disabled={uploading}
+                        uploading={uploading}
+                        uploadProgress={uploadProgress}
+                        importSuccessful={!!conversation && !analyzing && !error}
+                        messageCount={conversation?.messageCount || 0}
+                      />
                     </div>
-                  ) : (
-                    <div 
-                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in duration-500" 
-                      style={{
-                        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                      }}
-                    >
-                    <div className="space-y-3">
+                  </div>
+
+                  <div
+                    className={cn(
+                      'mode-panel absolute inset-0 w-full flex flex-col justify-center gap-4',
+                      inputMode === 'paste'
+                        ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                        : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+                    )}
+                    aria-hidden={inputMode !== 'paste'}
+                  >
+                    <div className="space-y-3 animate-in fade-in duration-400">
                       <label className="text-sm font-medium text-foreground text-center block">
                         {t('pasteLabel')}
                       </label>
@@ -1462,7 +1467,6 @@ export default function HomePage() {
                       {t('pasteHelp')}
                     </p>
                   </div>
-                  )}
                 </div>
               )}
             </div>

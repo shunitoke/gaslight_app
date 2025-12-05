@@ -208,6 +208,32 @@ export async function getCacheMetrics(): Promise<CacheMetrics | null> {
 }
 
 /**
+ * Reset cache hit/miss counters
+ */
+export async function resetCacheMetrics(): Promise<number> {
+  try {
+    const redis = await getRedisClient();
+    if (!redis) {
+      return 0;
+    }
+
+    const keys = [
+      `${METRICS_KEY_PREFIX}cache:hits`,
+      `${METRICS_KEY_PREFIX}cache:misses`
+    ];
+
+    const deleted = await redis.del(keys);
+    logInfo('metrics_cache_reset', { deletedKeys: deleted });
+    return deleted;
+  } catch (error) {
+    logError('metrics_reset_cache_error', {
+      error: (error as Error).message
+    });
+    return 0;
+  }
+}
+
+/**
  * Get analysis metrics for a conversation
  */
 export async function getAnalysisMetrics(conversationId: string): Promise<AnalysisMetrics | null> {
