@@ -3,7 +3,10 @@ import type {
   AnalysisSection,
   EvidenceSnippet,
   RealityCheck,
-  HardTruth
+  HardTruth,
+  WhatYouShouldKnow,
+  ClosureStatements,
+  SafetyConcern
 } from './types';
 
 type Defaults = {
@@ -93,6 +96,83 @@ const normalizeHardTruth = (value: unknown): HardTruth | undefined => {
     verdict,
     message,
     abusiveBehaviors: abusiveBehaviors && abusiveBehaviors.length > 0 ? abusiveBehaviors : undefined
+  };
+};
+
+const normalizeWhatYouShouldKnow = (value: unknown): WhatYouShouldKnow | undefined => {
+  if (!isPlainObject(value)) return undefined;
+
+  const stringArray = (arr: unknown): string[] | undefined =>
+    Array.isArray(arr)
+      ? arr.map((v) => cleanString(v, '')).filter((v) => v.length > 0)
+      : undefined;
+
+  const normalized: WhatYouShouldKnow = {};
+  const couldHaveDoneDifferently = stringArray((value as any).couldHaveDoneDifferently);
+  if (couldHaveDoneDifferently?.length) normalized.couldHaveDoneDifferently = couldHaveDoneDifferently;
+
+  const communicationTools = stringArray((value as any).communicationTools);
+  if (communicationTools?.length) normalized.communicationTools = communicationTools;
+
+  if (typeof (value as any).couldHaveBeenSaved === 'boolean') {
+    normalized.couldHaveBeenSaved = (value as any).couldHaveBeenSaved;
+  }
+
+  const whyNotFault = cleanString((value as any).whyNotFault, '');
+  if (whyNotFault) normalized.whyNotFault = whyNotFault;
+
+  const whatMadeVulnerable = cleanString((value as any).whatMadeVulnerable, '');
+  if (whatMadeVulnerable) normalized.whatMadeVulnerable = whatMadeVulnerable;
+
+  const patternsToWatch = stringArray((value as any).patternsToWatch);
+  if (patternsToWatch?.length) normalized.patternsToWatch = patternsToWatch;
+
+  const resources = stringArray((value as any).resources);
+  if (resources?.length) normalized.resources = resources;
+
+  const redFlagsForNextTime = stringArray((value as any).redFlagsForNextTime);
+  if (redFlagsForNextTime?.length) normalized.redFlagsForNextTime = redFlagsForNextTime;
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
+const normalizeClosureStatements = (value: unknown): ClosureStatements | undefined => {
+  if (!isPlainObject(value)) return undefined;
+  const whatWasRightAbout = cleanString((value as any).whatWasRightAbout, '');
+  const whatWasDeserved = cleanString((value as any).whatWasDeserved, '');
+  const whatWasGot = cleanString((value as any).whatWasGot, '');
+  const permissionToMoveOn = cleanString((value as any).permissionToMoveOn, '');
+  const endStatement = cleanString((value as any).endStatement, '');
+
+  if (!whatWasRightAbout || !whatWasDeserved || !whatWasGot || !permissionToMoveOn || !endStatement) {
+    return undefined;
+  }
+
+  return {
+    whatWasRightAbout,
+    whatWasDeserved,
+    whatWasGot,
+    permissionToMoveOn,
+    endStatement
+  };
+};
+
+const normalizeSafetyConcern = (value: unknown): SafetyConcern | undefined => {
+  if (!isPlainObject(value)) return undefined;
+  const isPresent = typeof (value as any).isPresent === 'boolean' ? (value as any).isPresent : false;
+  const behaviors = Array.isArray((value as any).behaviors)
+    ? (value as any).behaviors.map((b) => cleanString(b, '')).filter((b) => b.length > 0)
+    : [];
+  const resources = Array.isArray((value as any).resources)
+    ? (value as any).resources.map((r) => cleanString(r, '')).filter((r) => r.length > 0)
+    : undefined;
+
+  if (!isPresent && behaviors.length === 0 && !resources) return undefined;
+
+  return {
+    isPresent,
+    behaviors,
+    resources: resources && resources.length > 0 ? resources : undefined
   };
 };
 
@@ -204,9 +284,9 @@ export const normalizeAnalysisResult = (
     realityCheck: normalizeRealityCheck(source.realityCheck),
     frameworkDiagnosis: isPlainObject(source.frameworkDiagnosis) ? source.frameworkDiagnosis : undefined,
     hardTruth: normalizeHardTruth(source.hardTruth),
-    whatYouShouldKnow: isPlainObject(source.whatYouShouldKnow) ? source.whatYouShouldKnow : undefined,
-    closure: isPlainObject(source.closure) ? source.closure : undefined,
-    safetyConcern: isPlainObject(source.safetyConcern) ? source.safetyConcern : undefined
+    whatYouShouldKnow: normalizeWhatYouShouldKnow(source.whatYouShouldKnow),
+    closure: normalizeClosureStatements(source.closure),
+    safetyConcern: normalizeSafetyConcern(source.safetyConcern)
   };
 };
 
