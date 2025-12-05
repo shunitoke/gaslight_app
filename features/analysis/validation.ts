@@ -214,6 +214,7 @@ const normalizeSection = (
   const score =
     typeof value.score === 'number' && Number.isFinite(value.score) ? clamp01(value.score) : undefined;
   const evidenceSnippets = normalizeEvidence(value.evidenceSnippets);
+  if (evidenceSnippets.length === 0) return null;
   return {
     id,
     title,
