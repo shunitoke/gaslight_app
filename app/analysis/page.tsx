@@ -38,6 +38,9 @@ const analysisCache = new Map<string, {
   timestamp: number;
 }>();
 
+// Global cache for participant → color mapping (stable across renders/hot reloads)
+const participantColorCache = new Map<string, string>();
+
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 type DailyActivity = {
@@ -313,6 +316,16 @@ export default function AnalysisPage() {
       .sort((a, b) => b.value - a.value);
   }, [makeParticipantKey]);
 
+  const getLegacyParticipantLabel = useCallback(
+    (idx: number) => {
+      const p = participants[idx];
+      if (p?.displayName?.trim()) return safeDisplayName(p.displayName);
+      if (p?.id?.trim()) return safeDisplayName(p.id);
+      return locale === 'ru' ? `Участник ${idx + 1}` : `Participant ${idx + 1}`;
+    },
+    [participants, locale, safeDisplayName]
+  );
+
   const aggregatePromisesByParticipant = useCallback((entries: Record<string, { made: number; kept: number }> | undefined) => {
     if (!entries) return [];
     const acc = new Map<string, { display: string; made: number; kept: number }>();
@@ -340,6 +353,79 @@ export default function AnalysisPage() {
   const aggregatedPromiseTracking = useMemo(() => {
     return aggregatePromisesByParticipant(analysis?.promiseTracking).sort((a, b) => b.percentage - a.percentage);
   }, [analysis?.promiseTracking, participants]);
+
+  // Normalize framework diagnosis participant-specific fields (handles dynamic keys like "<name>UnmetNeeds")
+  const normalizedNvcNeeds = useMemo(() => {
+    const entries: Array<{ name: string; needs: string[] }> = [];
+    const nvc = analysis?.frameworkDiagnosis?.nvc;
+    if (!nvc) return entries;
+
+    if (nvc.participantUnmetNeeds) {
+      Object.entries(nvc.participantUnmetNeeds).forEach(([participant, needs]) => {
+        if (Array.isArray(needs)) {
+          entries.push({ name: replaceParticipantIds(participant), needs });
+        }
+      });
+      return entries;
+    }
+
+    Object.entries(nvc).forEach(([key, value]) => {
+      const m = key.match(/^(.*)UnmetNeeds$/i);
+      if (m && Array.isArray(value)) {
+        const rawName = m[1];
+        entries.push({ name: replaceParticipantIds(rawName), needs: value as string[] });
+      }
+    });
+    return entries;
+  }, [analysis?.frameworkDiagnosis?.nvc, replaceParticipantIds]);
+
+  const normalizedCbtDistortions = useMemo(() => {
+    const entries: Array<{ name: string; distortions: Array<{ type: string; example: string }> }> = [];
+    const cbt = analysis?.frameworkDiagnosis?.cbt;
+    if (!cbt) return entries;
+
+    if (cbt.participantDistortions) {
+      Object.entries(cbt.participantDistortions).forEach(([participant, distortions]) => {
+        if (Array.isArray(distortions)) {
+          entries.push({ name: replaceParticipantIds(participant), distortions: distortions as Array<{ type: string; example: string }> });
+        }
+      });
+      return entries;
+    }
+
+    Object.entries(cbt).forEach(([key, value]) => {
+      const m = key.match(/^(.*)Distortions$/i);
+      if (m && Array.isArray(value)) {
+        const rawName = m[1];
+        entries.push({ name: replaceParticipantIds(rawName), distortions: value as Array<{ type: string; example: string }> });
+      }
+    });
+    return entries;
+  }, [analysis?.frameworkDiagnosis?.cbt, replaceParticipantIds]);
+
+  const normalizedAttachmentStyles = useMemo(() => {
+    const entries: Array<{ name: string; style: string }> = [];
+    const attachment = analysis?.frameworkDiagnosis?.attachment;
+    if (!attachment) return entries;
+
+    if (attachment.participantStyles) {
+      Object.entries(attachment.participantStyles).forEach(([participant, style]) => {
+        if (style) {
+          entries.push({ name: replaceParticipantIds(participant), style: String(style) });
+        }
+      });
+      return entries;
+    }
+
+    Object.entries(attachment).forEach(([key, value]) => {
+      const m = key.match(/^(.*)Style$/i);
+      if (m && value) {
+        const rawName = m[1];
+        entries.push({ name: replaceParticipantIds(rawName), style: String(value) });
+      }
+    });
+    return entries;
+  }, [analysis?.frameworkDiagnosis?.attachment, replaceParticipantIds]);
 
   // Calculate Emotional Safety Index based on all scores
   // Formula: Safety = (1 - negative factors) * positive factors
@@ -1065,16 +1151,16 @@ export default function AnalysisPage() {
     'text-cyan-600 dark:text-cyan-400',
     'text-pink-600 dark:text-pink-400',
     'text-indigo-600 dark:text-indigo-400',
-    'text-teal-600 dark:text-teal-400',
+    'text-teal-600 dark:text-teal-400'
   ];
-
-  const colorByHash = (name: string) => {
-    const hash = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-    return participantColors[hash % participantColors.length] || 'text-primary';
-  };
 
   const getParticipantColor = (participantName?: string): string => {
     const display = safeDisplayName(participantName || '');
+    const { key } = makeParticipantKey(display);
+    if (participantColorCache.has(key)) {
+      return participantColorCache.get(key)!;
+    }
+
     const nameLc = display.toLowerCase();
 
     const participantIndex = participants.findIndex(
@@ -1082,28 +1168,23 @@ export default function AnalysisPage() {
         p.displayName?.toLowerCase() === nameLc ||
         p.id?.toLowerCase().includes(nameLc.replace(/\s+/g, '_'))
     );
-    
+
+    let color: string;
     if (participantIndex === -1) {
-      // Try to find by matching name
-      const found = participants.find(
-        (p) => p.displayName?.toLowerCase() === nameLc
-      );
+      const found = participants.find((p) => p.displayName?.toLowerCase() === nameLc);
       if (found) {
         const idx = participants.indexOf(found);
-        return participantColors[idx % participantColors.length] || 'text-primary';
+        color = participantColors[idx % participantColors.length] || 'text-primary';
+      } else {
+        const hash = key.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        color = participantColors[hash % participantColors.length] || 'text-primary';
       }
-      return colorByHash(display);
+    } else {
+      color = participantColors[participantIndex % participantColors.length] || 'text-primary';
     }
-    
-    const colors = [
-      'text-blue-600 dark:text-blue-400',      // First participant - blue
-      'text-purple-600 dark:text-purple-400',   // Second participant - purple
-      'text-cyan-600 dark:text-cyan-400',       // Third participant - cyan
-      'text-pink-600 dark:text-pink-400',       // Fourth participant - pink
-      'text-indigo-600 dark:text-indigo-400',   // Fifth participant - indigo
-      'text-teal-600 dark:text-teal-400',       // Sixth participant - teal
-    ];
-    return colors[participantIndex % colors.length] || 'text-primary';
+
+    participantColorCache.set(key, color);
+    return color;
   };
 
   /**
@@ -2508,7 +2589,21 @@ export default function AnalysisPage() {
                      'NVC (Nonviolent Communication)'}
                   </h3>
                   <div className="space-y-2 text-sm">
-                    {analysis.frameworkDiagnosis.nvc.participantUnmetNeeds ? (
+                    {normalizedNvcNeeds.length > 0 ? (
+                      normalizedNvcNeeds.map(({ name, needs }) => (
+                        <div key={name}>
+                          <p className="font-semibold mb-2 text-sm">
+                            <span className={getParticipantColor(name)}>{name}</span>
+                            <span className="text-muted-foreground"> {locale === 'ru' ? 'неудовлетворенные потребности:' : 'unmet needs:'}</span>
+                          </p>
+                          <ul className="list-disc list-inside ml-3 space-y-1 text-sm leading-relaxed text-muted-foreground">
+                            {needs.map((need, idx) => (
+                              <li key={idx}>{need}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    ) : analysis.frameworkDiagnosis.nvc.participantUnmetNeeds ? (
                       Object.entries(analysis.frameworkDiagnosis.nvc.participantUnmetNeeds).map(([participant, needs]) => (
                         <div key={participant}>
                           <p className="font-semibold mb-2 text-sm">
@@ -2528,7 +2623,9 @@ export default function AnalysisPage() {
                       <>
                         {analysis.frameworkDiagnosis.nvc.participant1UnmetNeeds && (
                           <div>
-                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 1 неудовлетворенные потребности:' : 'Participant 1 unmet needs:'}</p>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">
+                              {locale === 'ru' ? 'Участник 1 неудовлетворенные потребности:' : 'Participant 1 unmet needs:'}
+                            </p>
                             <ul className="list-disc list-inside ml-2 text-sm text-muted-foreground">
                               {analysis.frameworkDiagnosis.nvc.participant1UnmetNeeds.map((need, idx) => (
                                 <li key={idx}>{need}</li>
@@ -2538,7 +2635,9 @@ export default function AnalysisPage() {
                         )}
                         {analysis.frameworkDiagnosis.nvc.participant2UnmetNeeds && (
                           <div>
-                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 2 неудовлетворенные потребности:' : 'Participant 2 unmet needs:'}</p>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">
+                              {locale === 'ru' ? 'Участник 2 неудовлетворенные потребности:' : 'Participant 2 unmet needs:'}
+                            </p>
                             <ul className="list-disc list-inside ml-2 text-sm text-muted-foreground">
                               {analysis.frameworkDiagnosis.nvc.participant2UnmetNeeds.map((need, idx) => (
                                 <li key={idx}>{need}</li>
@@ -2566,7 +2665,23 @@ export default function AnalysisPage() {
                      'CBT (Cognitive Behavioral Therapy)'}
                   </h3>
                   <div className="space-y-3 text-sm">
-                    {analysis.frameworkDiagnosis.cbt.participantDistortions ? (
+                    {normalizedCbtDistortions.length > 0 ? (
+                      normalizedCbtDistortions.map(({ name, distortions }) => (
+                        <div key={name}>
+                          <p className="font-semibold mb-2 text-sm">
+                            <span className={getParticipantColor(name)}>{name}</span>
+                            <span className="text-muted-foreground"> {locale === 'ru' ? 'искажения:' : 'distortions:'}</span>
+                          </p>
+                          <ul className="space-y-1.5 ml-3 text-sm leading-relaxed text-muted-foreground">
+                            {distortions.map((dist, idx) => (
+                              <li key={idx}>
+                                <span className="font-semibold text-foreground">🧠 {dist.type}:</span> <span className="italic">"{dist.example}"</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    ) : analysis.frameworkDiagnosis.cbt.participantDistortions ? (
                       Object.entries(analysis.frameworkDiagnosis.cbt.participantDistortions).map(([participant, distortions]) => (
                         <div key={participant}>
                           <p className="font-semibold mb-2 text-sm">
@@ -2588,7 +2703,9 @@ export default function AnalysisPage() {
                       <>
                         {analysis.frameworkDiagnosis.cbt.participant1Distortions && analysis.frameworkDiagnosis.cbt.participant1Distortions.length > 0 && (
                           <div>
-                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 1 искажения:' : 'Participant 1 distortions:'}</p>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">
+                              {locale === 'ru' ? 'Участник 1 искажения:' : 'Participant 1 distortions:'}
+                            </p>
                             <ul className="space-y-1 ml-2 text-sm text-muted-foreground">
                               {analysis.frameworkDiagnosis.cbt.participant1Distortions.map((dist, idx) => (
                                 <li key={idx}>
@@ -2600,7 +2717,9 @@ export default function AnalysisPage() {
                         )}
                         {analysis.frameworkDiagnosis.cbt.participant2Distortions && analysis.frameworkDiagnosis.cbt.participant2Distortions.length > 0 && (
                           <div>
-                            <p className="font-medium text-sm text-muted-foreground mb-1">{locale === 'ru' ? 'Участник 2 искажения:' : 'Participant 2 distortions:'}</p>
+                            <p className="font-medium text-sm text-muted-foreground mb-1">
+                              {locale === 'ru' ? 'Участник 2 искажения:' : 'Participant 2 distortions:'}
+                            </p>
                             <ul className="space-y-1 ml-2 text-sm text-muted-foreground">
                               {analysis.frameworkDiagnosis.cbt.participant2Distortions.map((dist, idx) => (
                                 <li key={idx}>
@@ -2622,7 +2741,17 @@ export default function AnalysisPage() {
                 <div className="pt-4 border-t border-border/60">
                   <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">{locale === 'ru' ? 'Теория привязанности' : 'Attachment Theory'}</h3>
                   <div className="space-y-2 text-sm">
-                    {analysis.frameworkDiagnosis.attachment.participantStyles ? (
+                    {normalizedAttachmentStyles.length > 0 ? (
+                      normalizedAttachmentStyles.map(({ name, style }) => (
+                        <div key={name} className="flex items-center gap-3 py-1">
+                          <span className={`font-semibold text-sm ${getParticipantColor(name)}`}>
+                            {name}
+                          </span>
+                          <span className="text-muted-foreground text-sm">{locale === 'ru' ? 'стиль:' : 'style:'}</span>
+                          <span className="font-medium text-sm text-muted-foreground">{style}</span>
+                        </div>
+                      ))
+                    ) : analysis.frameworkDiagnosis.attachment.participantStyles ? (
                       Object.entries(analysis.frameworkDiagnosis.attachment.participantStyles).map(([participant, style]) => (
                         <div key={participant} className="flex items-center gap-3 py-1">
                           <span className={`font-semibold text-sm ${getParticipantColor(replaceParticipantIds(participant))}`}>
@@ -2636,13 +2765,17 @@ export default function AnalysisPage() {
                       <>
                         {analysis.frameworkDiagnosis.attachment.participant1Style && (
                           <div className="flex gap-4 text-sm">
-                            <span className="text-muted-foreground">{locale === 'ru' ? 'Участник 1 стиль:' : 'Participant 1 style:'}</span>
+                            <span className="text-muted-foreground">
+                              {locale === 'ru' ? 'Участник 1 стиль:' : 'Participant 1 style:'}
+                            </span>
                             <span className="font-medium text-muted-foreground">{analysis.frameworkDiagnosis.attachment.participant1Style}</span>
                           </div>
                         )}
                         {analysis.frameworkDiagnosis.attachment.participant2Style && (
                           <div className="flex gap-4 text-sm">
-                            <span className="text-muted-foreground">{locale === 'ru' ? 'Участник 2 стиль:' : 'Participant 2 style:'}</span>
+                            <span className="text-muted-foreground">
+                              {locale === 'ru' ? 'Участник 2 стиль:' : 'Participant 2 style:'}
+                            </span>
                             <span className="font-medium text-muted-foreground">{analysis.frameworkDiagnosis.attachment.participant2Style}</span>
                           </div>
                         )}
