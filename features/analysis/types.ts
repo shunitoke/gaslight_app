@@ -67,12 +67,17 @@ export type EvidenceSnippet = {
   explanation: string;
 };
 
+export type ScorePolarity = 'higher-is-worse' | 'higher-is-better';
+export type ScoreSentiment = 'negative' | 'positive' | 'neutral';
+
 export type AnalysisSection = {
   id: string;
   title: string;
   summary: string; // Scientific/technical summary
   plainSummary?: string; // Layman's terms summary (simple, everyday language)
   score?: number;
+  scorePolarity?: ScorePolarity;
+  sentiment?: ScoreSentiment;
   evidenceSnippets: EvidenceSnippet[];
 };
 
@@ -246,8 +251,14 @@ export type AnalysisResult = {
   createdAt: string;
   version: string;
   gaslightingRiskScore: number;
+  gaslightingRiskPolarity?: ScorePolarity;
+  gaslightingRiskSentiment?: ScoreSentiment;
   conflictIntensityScore: number;
+  conflictIntensityPolarity?: ScorePolarity;
+  conflictIntensitySentiment?: ScoreSentiment;
   supportivenessScore: number;
+  supportivenessPolarity?: ScorePolarity;
+  supportivenessSentiment?: ScoreSentiment;
   apologyFrequencyScore: number;
   otherPatternScores: Record<string, number>;
   overviewSummary: string;

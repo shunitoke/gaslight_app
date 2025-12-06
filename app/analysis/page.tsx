@@ -68,6 +68,8 @@ type SectionCardProps = {
 type SeverityLevel = 'low' | 'medium' | 'high';
 type MetricPolarity = 'higher-worse' | 'higher-better';
 type Tone = 'success' | 'warning' | 'danger';
+type Polarity = 'higher-is-worse' | 'higher-is-better';
+type Sentiment = 'negative' | 'positive' | 'neutral';
 
 const getLevelFromPercent = (percentage: number): SeverityLevel => {
   if (percentage >= 70) return 'high';
@@ -85,6 +87,24 @@ const getBadgeTone = (level: SeverityLevel, polarity: MetricPolarity): Tone => {
   if (level === 'high') return 'success';
   if (level === 'medium') return 'warning';
   return 'danger';
+};
+
+const getToneFromMeta = (
+  level: SeverityLevel,
+  defaultPolarity: MetricPolarity,
+  polarity?: Polarity,
+  sentiment?: Sentiment
+): Tone => {
+  if (sentiment === 'negative') return 'danger';
+  if (sentiment === 'positive') return 'success';
+  if (sentiment === 'neutral') return 'warning';
+  const mappedPolarity: MetricPolarity =
+    polarity === 'higher-is-worse'
+      ? 'higher-worse'
+      : polarity === 'higher-is-better'
+      ? 'higher-better'
+      : defaultPolarity;
+  return getBadgeTone(level, mappedPolarity);
 };
 
 const getLevelLabel = (level: SeverityLevel, locale: SupportedLocale): string => {
@@ -464,15 +484,30 @@ export default function AnalysisPage() {
 
   const gaslightingPercent = (analysis?.gaslightingRiskScore ?? 0) * 100;
   const gaslightingLevel = getLevelFromPercent(gaslightingPercent);
-  const gaslightingTone = getBadgeTone(gaslightingLevel, 'higher-worse');
+  const gaslightingTone = getToneFromMeta(
+    gaslightingLevel,
+    'higher-worse',
+    analysis?.gaslightingRiskPolarity,
+    analysis?.gaslightingRiskSentiment
+  );
 
   const conflictPercent = (analysis?.conflictIntensityScore ?? 0) * 100;
   const conflictLevel = getLevelFromPercent(conflictPercent);
-  const conflictTone = getBadgeTone(conflictLevel, 'higher-worse');
+  const conflictTone = getToneFromMeta(
+    conflictLevel,
+    'higher-worse',
+    analysis?.conflictIntensityPolarity,
+    analysis?.conflictIntensitySentiment
+  );
 
   const supportPercent = (analysis?.supportivenessScore ?? 0) * 100;
   const supportLevel = getLevelFromPercent(supportPercent);
-  const supportTone = getBadgeTone(supportLevel, 'higher-better');
+  const supportTone = getToneFromMeta(
+    supportLevel,
+    'higher-better',
+    analysis?.supportivenessPolarity,
+    analysis?.supportivenessSentiment
+  );
 
   const resolutionPercent = analysis?.communicationStats?.resolutionRate ?? 0;
   const resolutionLevel = getLevelFromPercent(resolutionPercent);
@@ -2160,7 +2195,7 @@ export default function AnalysisPage() {
             <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
               {analysis.sections.map((section: AnalysisSection, index: number) => {
                 const sectionScore = section.score ?? 0;
-                const isProblematicSection = (() => {
+                const { isProblematicSection, isAvoidance } = (() => {
                   const id = (section.id || '').toLowerCase();
                   const title = (section.title || '').toLowerCase();
                   // Prefer stable IDs; fall back to localized keyword detection.
@@ -2175,6 +2210,9 @@ export default function AnalysisPage() {
                     'control',
                     'boundary',
                     'attachment',
+                    'avoidance',
+                    'avoidant',
+                    'avoid',
                     'financial',
                     'finance',
                     'money'
@@ -2182,28 +2220,44 @@ export default function AnalysisPage() {
                   const negativeKeywords = [
                     // English
                     'gaslight', 'conflict', 'jealous', 'devalu', 'manip', 'control', 'abuse', 'toxic',
-                    'attachment', 'avoidant', 'anxious', 'financial', 'money', 'finance',
+                    'attachment', 'avoidant', 'avoidance', 'avoid', 'anxious', 'financial', 'money', 'finance',
                     // Russian
                     'конфл', 'ревн', 'ревно', 'обесцен', 'манип', 'контрол', 'абью', 'насили', 'токс', 'финанс', 'финансов', 'деньг',
+                    'избег', 'уклон', 'отстран',
                     // Spanish
-                    'celos', 'conflic', 'toxic', 'abuso', 'financ', 'dinero', 'manipul', 'control',
+                    'celos', 'conflic', 'toxic', 'abuso', 'financ', 'dinero', 'manipul', 'control', 'evita', 'evitaci', 'evas',
                     // French
-                    'jalous', 'conflit', 'tox', 'abus', 'financ', 'argent', 'manip', 'contrôl',
+                    'jalous', 'conflit', 'tox', 'abus', 'financ', 'argent', 'manip', 'contrôl', 'évit', 'evit',
                     // German
-                    'eifersucht', 'konflikt', 'tox', 'missbrauch', 'finanz', 'geld', 'manip', 'kontroll',
+                    'eifersucht', 'konflikt', 'tox', 'missbrauch', 'finanz', 'geld', 'manip', 'kontroll', 'vermeid',
                     // Portuguese
-                    'ciúme', 'conflito', 'tóxic', 'abuso', 'financ', 'dinheiro', 'manip', 'controle'
+                    'ciúme', 'conflito', 'tóxic', 'abuso', 'financ', 'dinheiro', 'manip', 'controle', 'evita', 'evitaç'
                   ];
-                  if (negativeIds.some((k) => id.includes(k))) return true;
-                  if (negativeKeywords.some((k) => title.includes(k))) return true;
-                  return false;
+                  const isAvoidance = ['avoid', 'избег', 'evit', 'vermeid', 'уклон', 'отстран'].some(
+                    (k) => id.includes(k) || title.includes(k)
+                  );
+                  const isProblematic =
+                    negativeIds.some((k) => id.includes(k)) ||
+                    negativeKeywords.some((k) => title.includes(k));
+                  return { isProblematicSection: isProblematic, isAvoidance };
                 })();
                 const sectionPercent = sectionScore * 100;
                 const sectionLevel = getLevelFromPercent(sectionPercent);
-                const sectionTone = getBadgeTone(
-                  sectionLevel,
-                  isProblematicSection ? 'higher-worse' : 'higher-better'
-                );
+                const sectionTone = (() => {
+                  if (section.sentiment || section.scorePolarity) {
+                    return getToneFromMeta(
+                      sectionLevel,
+                      isProblematicSection ? 'higher-worse' : 'higher-better',
+                      section.scorePolarity,
+                      section.sentiment
+                    );
+                  }
+                  if (isAvoidance) return 'danger';
+                  return getBadgeTone(
+                    sectionLevel,
+                    isProblematicSection ? 'higher-worse' : 'higher-better'
+                  );
+                })();
                 return (
                   <AccordionItem key={section.id} value={`section-${section.id}`} className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
                     <AccordionTrigger className="hover:no-underline">

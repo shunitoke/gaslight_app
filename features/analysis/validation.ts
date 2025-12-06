@@ -213,6 +213,14 @@ const normalizeSection = (
       : undefined;
   const score =
     typeof value.score === 'number' && Number.isFinite(value.score) ? clamp01(value.score) : undefined;
+  const scorePolarity =
+    value.scorePolarity === 'higher-is-worse' || value.scorePolarity === 'higher-is-better'
+      ? value.scorePolarity
+      : undefined;
+  const sentiment =
+    value.sentiment === 'negative' || value.sentiment === 'positive' || value.sentiment === 'neutral'
+      ? value.sentiment
+      : undefined;
   const evidenceSnippets = normalizeEvidence(value.evidenceSnippets);
   if (evidenceSnippets.length === 0) return null;
   return {
@@ -221,6 +229,8 @@ const normalizeSection = (
     summary,
     plainSummary,
     score,
+    scorePolarity,
+    sentiment,
     evidenceSnippets,
     // recommended replies removed
   };
@@ -254,8 +264,40 @@ export const normalizeAnalysisResult = (
     createdAt: cleanString(source.createdAt, new Date().toISOString()),
     version: cleanString(source.version, ''),
     gaslightingRiskScore: clamp01(source.gaslightingRiskScore, 0),
+    gaslightingRiskPolarity:
+      source.gaslightingRiskPolarity === 'higher-is-worse' || source.gaslightingRiskPolarity === 'higher-is-better'
+        ? source.gaslightingRiskPolarity
+        : undefined,
+    gaslightingRiskSentiment:
+      source.gaslightingRiskSentiment === 'negative' ||
+      source.gaslightingRiskSentiment === 'positive' ||
+      source.gaslightingRiskSentiment === 'neutral'
+        ? source.gaslightingRiskSentiment
+        : undefined,
     conflictIntensityScore: clamp01(source.conflictIntensityScore, 0),
+    conflictIntensityPolarity:
+      source.conflictIntensityPolarity === 'higher-is-worse' ||
+      source.conflictIntensityPolarity === 'higher-is-better'
+        ? source.conflictIntensityPolarity
+        : undefined,
+    conflictIntensitySentiment:
+      source.conflictIntensitySentiment === 'negative' ||
+      source.conflictIntensitySentiment === 'positive' ||
+      source.conflictIntensitySentiment === 'neutral'
+        ? source.conflictIntensitySentiment
+        : undefined,
     supportivenessScore: clamp01(source.supportivenessScore, 0),
+    supportivenessPolarity:
+      source.supportivenessPolarity === 'higher-is-worse' ||
+      source.supportivenessPolarity === 'higher-is-better'
+        ? source.supportivenessPolarity
+        : undefined,
+    supportivenessSentiment:
+      source.supportivenessSentiment === 'negative' ||
+      source.supportivenessSentiment === 'positive' ||
+      source.supportivenessSentiment === 'neutral'
+        ? source.supportivenessSentiment
+        : undefined,
     apologyFrequencyScore: clamp01(source.apologyFrequencyScore, 0.5),
     otherPatternScores: isPlainObject(source.otherPatternScores)
       ? (source.otherPatternScores as Record<string, number>)

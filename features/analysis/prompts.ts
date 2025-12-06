@@ -63,8 +63,14 @@ You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no te
 {
   "overviewSummary": "A concise, evidence-based summary of what really happened in the relationship. Start with a neutral relationship verdict (${verdictLabels}), then briefly describe the core dynamic in clear, everyday language. Example template (rewrite entirely in ${responseLanguage}, translating every concept such as 'reassurance'/'withdrawal' into native words): '<verdict in ${responseLanguage}>. A classic anxious-avoidant pattern where one participant kept seeking reassurance while the other pulled away, which increased tension over time.' Another template: '<verdict> Across episodes, one participant repeatedly denied obvious facts and shifted blame, making the other doubt their own perception.' Or: '<verdict> Two people with similar intentions but very different communication habits, so misunderstandings kept stacking up instead of getting resolved.' Focus on describing patterns and dynamics, not judging the people. CRITICAL: overviewSummary MUST be a plain text string ONLY - no JSON structure, no field names, no scores, no numbers, no percentages, no statistics. Just pure descriptive text about what happened. MUST be written in natural ${responseLanguage} with no English loanwords (do NOT use 'needs work', 'evidence', 'reassurance', etc. in non-English locales — use native equivalents).",
   "gaslightingRiskScore": 0.0-1.0,
+  "gaslightingRiskPolarity": "higher-is-worse",
+  "gaslightingRiskSentiment": "negative",
   "conflictIntensityScore": 0.0-1.0,
+  "conflictIntensityPolarity": "higher-is-worse",
+  "conflictIntensitySentiment": "negative",
   "supportivenessScore": 0.0-1.0,
+  "supportivenessPolarity": "higher-is-better",
+  "supportivenessSentiment": "positive",
   "sections": [
     {
       "id": "gaslighting",
@@ -72,6 +78,8 @@ You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no te
       "summary": "Scientific analysis of gaslighting patterns",
       "plainSummary": "Simple explanation in everyday language - what this means for the relationship",
       "score": 0.0-1.0,
+      "scorePolarity": "higher-is-worse | higher-is-better",
+      "sentiment": "negative | positive | neutral",
       "evidenceSnippets": [
         {
           "excerpt": "ParticipantName: \"quote text here\" (format: Name: \"text\", never put quotes before the name)",
@@ -206,6 +214,7 @@ CRITICAL CONTENT REQUIREMENTS:
 3. evidenceSnippets are REQUIRED - never return empty evidenceSnippets arrays
 4. If you cannot find specific examples, still provide at least 2 evidence snippets with the most relevant quotes you can find
 5. NEVER return empty arrays/objects for any fields in the JSON. If data is sparse, use best-effort from the conversation and provide short, concrete entries. Leave nothing empty.
+6. For EVERY numeric score you return, ALSO return polarity (\"higher-is-worse\" or \"higher-is-better\") and a coarse sentiment (\"negative\" | \"positive\" | \"neutral\") that reflects how the user should feel about higher values. Example: gaslightingRiskScore => polarity \"higher-is-worse\", sentiment \"negative\". Supportiveness => polarity \"higher-is-better\", sentiment \"positive\". Sections follow the same rule via scorePolarity + sentiment.
 6. communicationStats, promiseTracking, redFlagCounts, emotionalCycle, timePatterns MUST all be populated with best-effort values. Do not leave them empty.
 7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
 8. Identify if there was a BREAKUP / FINAL SEPARATION. Include date (best guess), initiator (if clear), and 2-3 quotes that mark the final boundary (e.g., “don’t write me anymore”, blocking, explicit goodbye).
