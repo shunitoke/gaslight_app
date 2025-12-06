@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Shield, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import { CardBase } from '@/components/ui/card';
+import { Card, CardBase } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/features/i18n';
 import { WALLET_ADDRESSES, getQrImageUrl, type WalletInfo } from '@/lib/donations';
