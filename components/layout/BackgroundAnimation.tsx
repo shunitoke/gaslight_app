@@ -4,99 +4,102 @@ import React, { memo } from 'react';
 import { Ripple } from '../ui/ripple';
 import { useAnimation } from '../../contexts/AnimationContext';
 
-function BackgroundAnimationComponent() {
-  const { animationsEnabled, isPageVisible, prefersReducedMotion } = useAnimation();
+type BackgroundAnimationProps = {
+  variant?: 'ripple' | 'blob';
+};
 
-  // For blobs we want them alive while tab is visible (desktop), even during processing.
-  const blobAnimationEnabled = isPageVisible && !prefersReducedMotion;
+function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimationProps) {
+  const { isPageVisible, prefersReducedMotion, isProcessing } = useAnimation();
+  const [isDesktop, setIsDesktop] = React.useState(false);
 
-  // Если анимации отключены, не рендерим ripple вообще (экономия памяти)
-  // Blob анимации будут паузиться через CSS
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const handleChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    setIsDesktop(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const baseAllowed = isPageVisible && !prefersReducedMotion && isDesktop;
+  const showRipple = baseAllowed && !isProcessing && variant === 'ripple';
+  const showBlob = baseAllowed && (variant === 'blob' || isProcessing);
+
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-background">
-      {/* Ripple effects - reduced on mobile for performance */}
-      {/* Полностью удаляем из DOM когда не нужны для экономии ресурсов */}
-      {animationsEnabled && (
+      {variant === 'ripple' && showRipple && (
         <>
-          {/* Center ripple - primary color - only on desktop */}
           <Ripple
             mainCircleSize={200}
             mainCircleOpacity={0.5}
             numCircles={8}
             position="center"
             color="primary"
-            className="opacity-90 dark:opacity-70 hidden md:block"
+            className="opacity-90 dark:opacity-70"
           />
-          
-          {/* Top-left ripple - only on desktop */}
           <Ripple
             mainCircleSize={170}
             mainCircleOpacity={0.4}
             numCircles={6}
             position="top-left"
             color="primary"
-            className="opacity-80 dark:opacity-60 hidden md:block"
+            className="opacity-80 dark:opacity-60"
           />
-          
-          {/* Top-right ripple - only on desktop */}
           <Ripple
             mainCircleSize={170}
             mainCircleOpacity={0.4}
             numCircles={6}
             position="top-right"
             color="accent"
-            className="opacity-80 dark:opacity-60 hidden md:block"
+            className="opacity-80 dark:opacity-60"
           />
-          
-          {/* Bottom-left ripple - only on desktop */}
           <Ripple
             mainCircleSize={170}
             mainCircleOpacity={0.4}
             numCircles={6}
             position="bottom-left"
             color="secondary"
-            className="opacity-80 dark:opacity-60 hidden md:block"
+            className="opacity-80 dark:opacity-60"
           />
         </>
       )}
-      
-      {/* Optimized blobs - smaller and fewer on mobile */}
-      {/* Паузим через CSS animation-play-state вместо удаления из DOM */}
-      {/* Desktop: full size and animation */}
-      <div 
-        className="absolute top-0 left-1/4 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 animate-blob md:animate-blob"
-        style={{
-          background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
-          transform: 'translate3d(0,0,0)',
-          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px',
-          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
-        } as React.CSSProperties}
-      />
-      <div 
-        className="absolute top-0 right-1/4 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 animate-blob animation-delay-2000 md:animate-blob"
-        style={{
-          background: 'radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)',
-          transform: 'translate3d(0,0,0)',
-          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px',
-          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
-        } as React.CSSProperties}
-      />
-      {/* Third blob - hidden on mobile for performance */}
-      <div 
-        className="absolute -bottom-32 left-1/3 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 hidden md:block animate-blob animation-delay-4000"
-        style={{
-          background: 'radial-gradient(circle, hsl(var(--secondary)) 0%, transparent 70%)',
-          transform: 'translate3d(0,0,0)',
-          willChange: blobAnimationEnabled ? 'transform, opacity' : 'auto',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px',
-          animationPlayState: blobAnimationEnabled ? 'running' : 'paused',
-        } as React.CSSProperties}
-      />
+
+      {showBlob && (
+        <>
+          <div
+            className="absolute top-0 left-1/4 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 animate-blob"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
+              transform: 'translate3d(0,0,0)',
+              willChange: 'transform, opacity',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px',
+              animationPlayState: 'running',
+            } as React.CSSProperties}
+          />
+          <div
+            className="absolute top-0 right-1/4 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 animate-blob animation-delay-2000"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)',
+              transform: 'translate3d(0,0,0)',
+              willChange: 'transform, opacity',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px',
+              animationPlayState: 'running',
+            } as React.CSSProperties}
+          />
+          <div
+            className="absolute -bottom-32 left-1/3 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full opacity-40 dark:opacity-20 animate-blob animation-delay-4000"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--secondary)) 0%, transparent 70%)',
+              transform: 'translate3d(0,0,0)',
+              willChange: 'transform, opacity',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px',
+              animationPlayState: 'running',
+            } as React.CSSProperties}
+          />
+        </>
+      )}
     </div>
   );
 }

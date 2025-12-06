@@ -144,6 +144,7 @@ export default function HomePage() {
   const [pastedText, setPastedText] = useState('');
   const [showExportHelp, setShowExportHelp] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
+  const [animationLocked, setAnimationLocked] = useState(false);
 
   // Prefetch analysis route so navigation feels as seamless as static pages
   useEffect(() => {
@@ -152,8 +153,8 @@ export default function HomePage() {
 
   // Отключаем анимации при загрузке/анализе для экономии ресурсов
   useEffect(() => {
-    setProcessing(uploading || analyzing);
-  }, [uploading, analyzing, setProcessing]);
+    setProcessing(uploading || analyzing || animationLocked);
+  }, [uploading, analyzing, animationLocked, setProcessing]);
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleScrollToUpload = useCallback(() => {
@@ -181,6 +182,7 @@ export default function HomePage() {
     sessionStorage.removeItem('currentConversationId');
     
     setUploading(true);
+    setAnimationLocked(true);
     setUploadProgress(0);
     setError(null);
     let progressInterval: NodeJS.Timeout | null = null;

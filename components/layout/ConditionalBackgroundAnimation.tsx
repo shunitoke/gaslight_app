@@ -10,15 +10,10 @@ import { BackgroundAnimation } from './BackgroundAnimation';
 export function ConditionalBackgroundAnimation() {
   const pathname = usePathname();
   
-  // Only show animations on homepage
-  // Exclude: /admin, /analysis, /terms, and API routes
-  const shouldShowAnimations = pathname === '/';
-  
-  if (!shouldShowAnimations) {
-    return null;
-  }
-  
-  return <BackgroundAnimation />;
+  const isHome = pathname === '/';
+  const variant = isHome ? 'ripple' : 'blob';
+
+  return <BackgroundAnimation variant={variant} />;
 }
 
 
