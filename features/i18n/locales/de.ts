@@ -230,7 +230,6 @@ export const deBundle: LocaleBundle = {
     calendar_title: 'Konversationskalender',
     calendar_description:
       'Wichtige Daten sind rot hervorgehoben. Bewegen Sie die Maus über Daten, um Details anzuzeigen.',
-    verdict_problematic: 'Problematisch',
     // Tages-Aktivitätsdiagramm
     activity_chart_title: 'Aktivität nach Tagen',
     activity_chart_description:
