@@ -230,7 +230,6 @@ export const frBundle: LocaleBundle = {
     calendar_title: 'Calendrier de conversation',
     calendar_description:
       'Les dates importantes sont surlignées en rouge. Survolez les dates pour voir les détails.',
-    verdict_problematic: 'Problématiques',
     // Graphique d'activité par jour
     activity_chart_title: 'Activité par jour',
     activity_chart_description:

@@ -230,7 +230,6 @@ export const ptBundle: LocaleBundle = {
     calendar_title: 'Calendário da conversa',
     calendar_description:
       'Datas importantes estão destacadas em vermelho. Passe o mouse sobre as datas para ver detalhes.',
-    verdict_problematic: 'Problemática',
     // Gráfico de atividade por dia
     activity_chart_title: 'Atividade por dia',
     activity_chart_description:

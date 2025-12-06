@@ -230,7 +230,6 @@ export const esBundle: LocaleBundle = {
     calendar_title: 'Calendario de conversación',
     calendar_description:
       'Las fechas importantes están resaltadas en rojo. Pase el mouse sobre las fechas para ver detalles.',
-    verdict_problematic: 'Problemática',
     // Gráfico de actividad por día
     activity_chart_title: 'Actividad por días',
     activity_chart_description:
