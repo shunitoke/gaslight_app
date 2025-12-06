@@ -434,8 +434,11 @@ export function AnalysisDashboard({
                 <Calendar
                   mode="single"
                   locale={dayPickerLocale}
-                  defaultMonth={new Date()}
+                  defaultMonth={dateRange.from}
                   numberOfMonths={2}
+                  yearFrom={dateRange.from.getFullYear()}
+                  yearTo={dateRange.to.getFullYear()}
+                  forceDropdownCaption
                   selected={undefined}
                   onSelect={(date) => {
                     if (!date || !onDateSelect) return;

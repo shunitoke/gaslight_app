@@ -18,11 +18,39 @@ function Calendar({
   formatters,
   components,
   buttonVariant = "ghost",
+  yearFrom,
+  yearTo,
+  forceDropdownCaption = false,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: "default" | "outline" | "ghost"
+  /**
+   * Optional year range. If provided (and valid), the caption switches to dropdowns.
+   */
+  yearFrom?: number
+  yearTo?: number
+  /**
+   * Force dropdown caption even without year range.
+   */
+  forceDropdownCaption?: boolean
 }) {
   const defaultClassNames = getDefaultClassNames()
+
+  const hasYearRange =
+    typeof yearFrom === "number" &&
+    typeof yearTo === "number" &&
+    Number.isFinite(yearFrom) &&
+    Number.isFinite(yearTo) &&
+    yearFrom <= yearTo
+
+  const resolvedCaptionLayout =
+    forceDropdownCaption || hasYearRange ? "dropdown" : captionLayout
+
+  const localeCode =
+    typeof props.locale === "object" && props.locale && "code" in props.locale
+      ? // @ts-expect-error date-fns locale has code
+        props.locale.code || "default"
+      : "default"
 
   const getButtonVariantClasses = (
     variant: "default" | "outline" | "ghost" = "ghost"
@@ -47,10 +75,12 @@ function Calendar({
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
       )}
-      captionLayout={captionLayout}
+      captionLayout={resolvedCaptionLayout}
+      fromYear={hasYearRange ? yearFrom : props.fromYear}
+      toYear={hasYearRange ? yearTo : props.toYear}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          date.toLocaleString(localeCode, { month: "short" }),
         ...formatters,
       }}
       classNames={{
