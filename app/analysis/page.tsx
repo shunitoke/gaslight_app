@@ -3081,47 +3081,48 @@ export default function AnalysisPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Beta banner / donations */}
-        <CardBase className="mt-6 p-4 sm:p-5 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 border border-primary/20 shadow-md">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary font-semibold text-xs">
-            <span>β</span>
-            <span>{t('donation_beta_label')}</span>
-          </div>
-          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="space-y-1">
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground">
-                {t('donation_title')}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t('donation_text')}
-              </p>
+        {/* Beta banner / donations (new style) */}
+        <Card className="mt-6 w-full bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md">
+          <div className="flex flex-col gap-3 p-4 sm:p-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs w-fit">
+              <span>β</span>
+              <span>❤️</span>
+              <span>{t('donation_beta_label')}</span>
             </div>
-            <div className="self-start sm:self-center px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
-              {t('donation_crypto_only')}
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-4">
-            {WALLET_ADDRESSES.map((wallet) => (
-              <div
-                key={wallet.id}
-                className="p-3 rounded-lg border border-border/70 bg-background/80 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150"
-              >
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="whitespace-nowrap"
-                    onClick={() => setSelectedWallet(wallet)}
-                  >
-                    {t('donation_show_qr')}
-                  </Button>
-                </div>
-                <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('donation_title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('donation_text')}</p>
               </div>
-            ))}
+              <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/15 text-destructive text-xs font-semibold">
+                {t('donation_crypto_only')}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              {WALLET_ADDRESSES.map((wallet) => (
+                <div
+                  key={wallet.id}
+                  className="p-3 rounded-lg border border-destructive/25 bg-background/80 shadow-sm hover:border-destructive/60 hover:shadow-md transition-all duration-150"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap"
+                      onClick={() => setSelectedWallet(wallet)}
+                    >
+                      {t('donation_show_qr')}
+                    </Button>
+                  </div>
+                  <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </CardBase>
+        </Card>
 
         {selectedWallet && (
           <div
