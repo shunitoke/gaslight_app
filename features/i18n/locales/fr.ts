@@ -86,7 +86,7 @@ export const frBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
-    platform_generic: 'TXT libre / Autre',
+    platform_generic: 'TXT / SMS / autre plateforme',
     recommended: 'Recommandé',
     selectFile: 'Sélectionner le fichier',
     clickToSelectFile: 'Cliquez pour sélectionner un fichier',

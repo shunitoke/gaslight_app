@@ -86,7 +86,7 @@ export const ruBundle: LocaleBundle = {
     platform_messenger: 'Facebook Messenger',
     platform_imessage: 'iMessage',
     platform_viber: 'Viber',
-    platform_generic: 'TXT / другая платформа',
+    platform_generic: 'TXT / SMS / другая платформа',
     recommended: 'Рекомендуется',
     selectFile: 'Выберите файл',
     clickToSelectFile: 'Нажмите, чтобы выбрать файл',
