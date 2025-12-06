@@ -7,7 +7,7 @@ import { cookies, headers } from 'next/headers';
 
 import { Footer } from '../components/layout/Footer';
 import { Header } from '../components/layout/Header';
-import { ConditionalBackgroundAnimation } from '../components/layout/ConditionalBackgroundAnimation';
+import { ConditionalBackgroundClient } from '../components/layout/ConditionalBackgroundClient';
 import { PWAInstallPrompt } from '../components/PWAInstallPrompt';
 import { PWAInstaller } from '../components/PWAInstaller';
 import { LanguageProvider, LOCALE_STORAGE_KEY, supportedLocales } from '../features/i18n';
@@ -156,7 +156,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={`${inter.className} ${playfair.variable} bg-background text-foreground`} suppressHydrationWarning>
         <AnimationProvider>
-          <ConditionalBackgroundAnimation />
+          <ConditionalBackgroundClient />
           <PWAInstaller />
           <ThemeProvider>
             <LanguageProvider initialLocale={initialLocale as SupportedLocale}>

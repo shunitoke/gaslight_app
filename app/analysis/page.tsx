@@ -3196,21 +3196,16 @@ export default function AnalysisPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Donations (copied from main) */}
-        <Card className="mx-auto w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md mt-6 p-0 sm:p-0">
-          {/* Mobile: compact grid 3x3, only labels */}
-          <div className="sm:hidden p-4 space-y-3">
+        {/* Donations (copied 1:1 from HomePageClient) */}
+        <CardBase className="w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md p-0">
+          <div className="sm:hidden px-4 py-3 space-y-2.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
               <span>β ❤️</span>
               <span>{t('donation_beta_label')}</span>
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-semibold text-foreground">
-                {t('donation_title')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('donation_text')}
-              </p>
+              <h3 className="text-base font-semibold text-foreground">{t('donation_title')}</h3>
+              <p className="text-xs text-muted-foreground">{t('donation_text')}</p>
               <div className="inline-flex px-2 py-1 rounded bg-destructive/20 text-destructive text-[11px] font-semibold">
                 {t('donation_crypto_only')}
               </div>
@@ -3234,26 +3229,21 @@ export default function AnalysisPage() {
             </details>
           </div>
 
-          {/* Desktop: collapsible full view */}
-          <div className="hidden sm:block p-5">
+          <div className="hidden sm:block px-5 py-4 space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/20 text-destructive font-semibold text-xs">
               <span>β ❤️</span>
               <span>{t('donation_beta_label')}</span>
             </div>
-            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
               <div className="space-y-1">
-                <h3 className="text-lg sm:text-xl font-semibold text-foreground">
-                  {t('donation_title')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('donation_text')}
-                </p>
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('donation_title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('donation_text')}</p>
               </div>
               <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-semibold">
                 {t('donation_crypto_only')}
               </div>
             </div>
-            <details className="mt-4 group">
+            <details className="mt-3 group">
               <summary className="cursor-pointer text-sm font-semibold text-destructive flex items-center gap-2 select-none">
                 <span className="group-open:rotate-90 transition-transform">›</span>
                 {t('donation_show_qr')}
@@ -3281,7 +3271,7 @@ export default function AnalysisPage() {
               </div>
             </details>
           </div>
-        </Card>
+        </CardBase>
 
         {selectedWallet && (
           <div

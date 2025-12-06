@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   typedRoutes: true,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts']
+  },
   
   // Performance optimizations
   compress: true,
