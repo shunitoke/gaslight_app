@@ -242,27 +242,12 @@ export async function POST(request: Request) {
                   contentType === 'application/zip' ||
                   contentType === 'application/x-zip-compressed';
 
-    if (isZip && !features.canImportZip) {
-      logError('zip_requires_premium', { fileName, tier: subscriptionTier });
-      return NextResponse.json(
-        { 
-          error: 'ZIP file imports require a premium subscription. Please upgrade to analyze ZIP exports with media.',
-          requiresPremium: true,
-          feature: 'zip_import'
-        },
-        { status: 403 }
-      );
-    }
-
     // Content type validation (same as direct upload - applies to all platforms including generic)
-    const allowedTypes = ['application/json', 'text/plain'];
-    if (subscriptionTier === 'premium') {
-      allowedTypes.push('application/zip', 'application/x-zip-compressed');
-    }
+    const allowedTypes = ['application/json', 'text/plain', 'application/zip', 'application/x-zip-compressed'];
     
     const isAllowedType = !contentType || allowedTypes.includes(contentType) || 
                           fileName?.match(/\.(json|txt)$/i) || 
-                          (isZip && features.canImportZip);
+                          isZip;
     
     if (!isAllowedType) {
       logError('invalid_file_type_blob', { fileName, contentType, platform });

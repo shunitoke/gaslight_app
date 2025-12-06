@@ -4,7 +4,6 @@
 export type SubscriptionTier = 'free' | 'premium';
 
 export type SubscriptionFeatures = {
-  canImportZip: boolean;
   canAnalyzeMedia: boolean;
   canUseEnhancedAnalysis: boolean;
   maxMessagesPerAnalysis: number;
@@ -61,7 +60,6 @@ export async function getSubscriptionTier(request?: Request): Promise<Subscripti
 export function getSubscriptionFeatures(tier: SubscriptionTier): SubscriptionFeatures {
   if (tier === 'premium') {
     return {
-      canImportZip: true,
       canAnalyzeMedia: true,
       canUseEnhancedAnalysis: true,
       maxMessagesPerAnalysis: 500000, // 500k messages
@@ -71,7 +69,6 @@ export function getSubscriptionFeatures(tier: SubscriptionTier): SubscriptionFea
 
   // Free tier
   return {
-    canImportZip: false,
     canAnalyzeMedia: false,
     canUseEnhancedAnalysis: false,
     maxMessagesPerAnalysis: 50000, // 50k messages

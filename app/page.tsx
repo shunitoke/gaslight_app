@@ -1545,10 +1545,41 @@ export default function HomePage() {
       <TestimonialsSection />
 
       {/* Donations */}
-      <Card className="w-full max-w-4xl bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 border border-primary/20 shadow-md">
-        <div className="p-4 sm:p-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary font-semibold text-xs">
-            <span>β</span>
+      <Card className="w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md">
+        {/* Mobile: compact grid 3x3, only labels */}
+        <div className="sm:hidden p-4 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
+            <span>β ❤️</span>
+            <span>{t('donation_beta_label')}</span>
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">
+              {t('donation_title')}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {t('donation_text')}
+            </p>
+            <div className="inline-flex px-2 py-1 rounded bg-destructive/20 text-destructive text-[11px] font-semibold">
+              {t('donation_crypto_only')}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {WALLET_ADDRESSES.map((wallet) => (
+              <button
+                key={wallet.id}
+                onClick={() => setSelectedWallet(wallet)}
+                className="aspect-square rounded-lg border border-border/70 bg-background/90 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150 flex items-center justify-center text-center font-semibold text-foreground text-[11px] px-1"
+              >
+                {wallet.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: collapsible full view */}
+        <div className="hidden sm:block p-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/20 text-destructive font-semibold text-xs">
+            <span>β ❤️</span>
             <span>{t('donation_beta_label')}</span>
           </div>
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1560,31 +1591,37 @@ export default function HomePage() {
                 {t('donation_text')}
               </p>
             </div>
-            <div className="self-start sm:self-center px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
+            <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-semibold">
               {t('donation_crypto_only')}
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-4">
-            {WALLET_ADDRESSES.map((wallet) => (
-              <div
-                key={wallet.id}
-                className="p-3 rounded-lg border border-border/70 bg-background/80 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150"
-              >
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="whitespace-nowrap"
-                    onClick={() => setSelectedWallet(wallet)}
-                  >
-                    {t('donation_show_qr')}
-                  </Button>
+          <details className="mt-4 group">
+            <summary className="cursor-pointer text-sm font-semibold text-destructive flex items-center gap-2 select-none">
+              <span className="group-open:rotate-90 transition-transform">›</span>
+              {t('donation_show_qr')}
+            </summary>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-3">
+              {WALLET_ADDRESSES.map((wallet) => (
+                <div
+                  key={wallet.id}
+                  className="p-3 rounded-lg border border-border/70 bg-background/80 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap"
+                      onClick={() => setSelectedWallet(wallet)}
+                    >
+                      {t('donation_show_qr')}
+                    </Button>
+                  </div>
+                  <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
                 </div>
-                <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </details>
         </div>
       </Card>
 
