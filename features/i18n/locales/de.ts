@@ -15,6 +15,8 @@ export const deBundle: LocaleBundle = {
     footer_disclaimer: 'Keine Therapie, kein Klatsch — nur KI-Klarheit.',
     footer_visitors_label: 'Eindeutige Besucher',
     footer_visitors_loading: 'Besucher werden gezählt...',
+    footer_analyses_label: 'Durchgeführte Analysen',
+    footer_analyses_loading: 'Analysen werden gezählt...',
     language_label: 'Sprache',
     uploadExport: 'Chat-Export hochladen',
     uploadExportDescription: 'Wählen Sie Ihre Chat-Exportdatei aus, um mit der Analyse zu beginnen',

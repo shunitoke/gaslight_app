@@ -16,6 +16,8 @@ export const enBundle: LocaleBundle = {
     footer_disclaimer: 'Not therapy. Not gossip. Just AI clarity.',
     footer_visitors_label: 'Unique visitors',
     footer_visitors_loading: 'Counting visitors...',
+    footer_analyses_label: 'Analyses completed',
+    footer_analyses_loading: 'Counting analyses...',
     language_label: 'Language',
     uploadExport: 'Upload Chat Export',
     uploadExportDescription: 'Select your chat export file to begin analysis.',

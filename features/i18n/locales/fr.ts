@@ -15,6 +15,8 @@ export const frBundle: LocaleBundle = {
     footer_disclaimer: 'Pas de thérapie, pas de commérages — juste de la clarté IA.',
     footer_visitors_label: 'Visiteurs uniques',
     footer_visitors_loading: 'Comptage des visiteurs...',
+    footer_analyses_label: 'Analyses réalisées',
+    footer_analyses_loading: 'Comptage des analyses...',
     language_label: 'Langue',
     uploadExport: "Télécharger l'export de chat",
     uploadExportDescription: 'Sélectionnez votre fichier d\'export de chat pour commencer l\'analyse',

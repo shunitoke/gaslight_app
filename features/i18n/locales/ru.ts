@@ -15,6 +15,8 @@ export const ruBundle: LocaleBundle = {
     footer_disclaimer: 'Не терапия и не сплетни — только ясность от ИИ.',
     footer_visitors_label: 'Уникальные посетители',
     footer_visitors_loading: 'Считаем посетителей...',
+    footer_analyses_label: 'Проведено анализов',
+    footer_analyses_loading: 'Считаем анализы...',
     language_label: 'Язык',
     uploadExport: 'Загрузить экспорт чата',
     uploadExportDescription: 'Выберите файл экспорта чата, чтобы начать анализ.',

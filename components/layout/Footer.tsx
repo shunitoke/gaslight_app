@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { Users } from 'lucide-react';
+import { LineChart, Users } from 'lucide-react';
 
 import { useLanguage } from '../../features/i18n';
 
@@ -22,6 +22,7 @@ const GitHubIcon = () => (
 export const Footer = () => {
   const { t } = useLanguage();
   const [visitorCount, setVisitorCount] = React.useState<number | null>(null);
+  const [analysisCount, setAnalysisCount] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -41,7 +42,23 @@ export const Footer = () => {
       }
     };
 
+    const loadAnalyses = async () => {
+      try {
+        const response = await fetch('/api/analyses', { cache: 'no-store' });
+        if (!response.ok) {
+          return;
+        }
+        const data = await response.json();
+        if (!cancelled && typeof data.total === 'number') {
+          setAnalysisCount(data.total);
+        }
+      } catch {
+        // Ignore errors silently; footer counter is non-critical
+      }
+    };
+
     loadVisitors();
+    loadAnalyses();
 
     return () => {
       cancelled = true;
@@ -52,6 +69,10 @@ export const Footer = () => {
     visitorCount !== null
       ? `${t('footer_visitors_label')}: ${visitorCount.toLocaleString()}`
       : t('footer_visitors_loading');
+  const analysesLabel =
+    analysisCount !== null
+      ? `${t('footer_analyses_label')}: ${analysisCount.toLocaleString()}`
+      : t('footer_analyses_loading');
 
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur-md animate-fade-in">
@@ -78,9 +99,15 @@ export const Footer = () => {
       </div>
 
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 pb-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
-          <Users size={14} className="text-muted-foreground" />
-          <span className="whitespace-nowrap">{visitorLabel}</span>
+        <div className="flex flex-wrap gap-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
+            <Users size={14} className="text-muted-foreground" />
+            <span className="whitespace-nowrap">{visitorLabel}</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
+            <LineChart size={14} className="text-muted-foreground" />
+            <span className="whitespace-nowrap">{analysesLabel}</span>
+          </div>
         </div>
       </div>
     </footer>

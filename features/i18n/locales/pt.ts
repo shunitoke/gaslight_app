@@ -15,6 +15,8 @@ export const ptBundle: LocaleBundle = {
     footer_disclaimer: 'Não é terapia, não é fofoca — apenas clareza IA.',
     footer_visitors_label: 'Visitantes únicos',
     footer_visitors_loading: 'Contando visitantes...',
+    footer_analyses_label: 'Análises concluídas',
+    footer_analyses_loading: 'Contando análises...',
     language_label: 'Idioma',
     uploadExport: 'Carregar exportação de chat',
     uploadExportDescription: 'Selecione seu arquivo de exportação de chat para começar a análise',
