@@ -142,23 +142,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (isZip && !features.canImportZip) {
-      logError('zip_requires_premium', { fileName: file.name, tier: subscriptionTier });
-      return NextResponse.json(
-        { 
-          error: 'ZIP file imports require a premium subscription. Please upgrade to analyze ZIP exports with media.',
-          requiresPremium: true,
-          feature: 'zip_import'
-        },
-        { status: 403 }
-      );
-    }
-
     // Content type validation
-    const allowedTypes = ['application/json', 'text/plain'];
-    if (subscriptionTier === 'premium') {
-      allowedTypes.push('application/zip', 'application/x-zip-compressed');
-    }
+    const allowedTypes = ['application/json', 'text/plain', 'application/zip', 'application/x-zip-compressed'];
     
     if (file.type && !allowedTypes.includes(file.type) && !file.name.match(/\.(json|txt)$/i) && !(isZip && features.canImportZip)) {
       logError('invalid_file_type', { fileName: file.name, contentType: file.type });
