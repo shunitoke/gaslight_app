@@ -145,12 +145,10 @@ export async function POST(request: Request) {
     // Content type validation
     const allowedTypes = ['application/json', 'text/plain', 'application/zip', 'application/x-zip-compressed'];
     
-    if (file.type && !allowedTypes.includes(file.type) && !file.name.match(/\.(json|txt)$/i) && !(isZip && features.canImportZip)) {
+    if (file.type && !allowedTypes.includes(file.type) && !file.name.match(/\.(json|txt)$/i) && !isZip) {
       logError('invalid_file_type', { fileName: file.name, contentType: file.type });
       return NextResponse.json(
-        { error: subscriptionTier === 'free' 
-          ? 'Invalid file type. Free tier supports .json and .txt files only. Upgrade to premium for ZIP imports.'
-          : 'Invalid file type. Only .json, .txt, and .zip files are allowed.' },
+        { error: 'Invalid file type. Only .json, .txt, and .zip files are allowed.' },
         { status: 400 }
       );
     }
