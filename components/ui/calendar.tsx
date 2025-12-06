@@ -48,8 +48,7 @@ function Calendar({
 
   const localeCode =
     typeof props.locale === "object" && props.locale && "code" in props.locale
-      ? // @ts-expect-error date-fns locale has code
-        props.locale.code || "default"
+      ? ((props.locale as { code?: string }).code ?? "default")
       : "default"
 
   const getButtonVariantClasses = (
