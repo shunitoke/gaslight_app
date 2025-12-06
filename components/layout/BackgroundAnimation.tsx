@@ -24,9 +24,8 @@ function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimatio
   const showRipple = baseAllowed && isDesktop && !isProcessing && variant === 'ripple';
   const showBlob = baseAllowed && isDesktop && (variant === 'blob' || isProcessing);
 
-  // Mobile: render static (paused) shapes to avoid GPU cost
+  // Mobile: render static blob only to avoid GPU cost
   const showStaticMobile = baseAllowed && !isDesktop;
-  const staticMobileVariant = isProcessing || variant === 'blob' ? 'blob' : 'ripple';
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-background">
@@ -105,48 +104,7 @@ function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimatio
         </>
       )}
 
-      {showStaticMobile && staticMobileVariant === 'ripple' && (
-        <>
-          <Ripple
-            mainCircleSize={200}
-            mainCircleOpacity={0.5}
-            numCircles={8}
-            position="center"
-            color="primary"
-            paused
-            className="opacity-90 dark:opacity-70"
-          />
-          <Ripple
-            mainCircleSize={170}
-            mainCircleOpacity={0.4}
-            numCircles={6}
-            position="top-left"
-            color="primary"
-            paused
-            className="opacity-80 dark:opacity-60"
-          />
-          <Ripple
-            mainCircleSize={170}
-            mainCircleOpacity={0.4}
-            numCircles={6}
-            position="top-right"
-            color="accent"
-            paused
-            className="opacity-80 dark:opacity-60"
-          />
-          <Ripple
-            mainCircleSize={170}
-            mainCircleOpacity={0.4}
-            numCircles={6}
-            position="bottom-left"
-            color="secondary"
-            paused
-            className="opacity-80 dark:opacity-60"
-          />
-        </>
-      )}
-
-      {showStaticMobile && staticMobileVariant === 'blob' && (
+      {showStaticMobile && (
         <>
           <div
             className="absolute top-0 left-1/4 w-[240px] h-[240px] rounded-full opacity-25 dark:opacity-15"
