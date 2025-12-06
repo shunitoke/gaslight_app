@@ -68,7 +68,7 @@ export const enBundle: LocaleBundle = {
     imported: 'Imported',
     messages: 'messages',
     privacyNote: 'Your data is processed ephemerally and never stored permanently.',
-    fileUploadHelp: 'Current version works best with small text/json exports. Free tier: .json and .txt only. Premium: .zip with media analysis will arrive in the next version.',
+    fileUploadHelp: 'Current version works best with small exports (.json, .txt, .zip). Voice notes and full media analysis will arrive in the next version.',
     premium_badge: 'Premium',
     free_badge: 'Free',
     premium_hint:
