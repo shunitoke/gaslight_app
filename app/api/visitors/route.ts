@@ -12,7 +12,7 @@ const VISITOR_SET_KEY = 'visitors:unique';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 export async function GET() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const existingId = cookieStore.get(VISITOR_COOKIE)?.value;
   const visitorId = existingId || randomUUID();
 

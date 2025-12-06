@@ -1568,17 +1568,23 @@ export default function HomePage() {
               {t('donation_crypto_only')}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            {WALLET_ADDRESSES.map((wallet) => (
-              <button
-                key={wallet.id}
-                onClick={() => setSelectedWallet(wallet)}
-                className="aspect-square rounded-lg border border-border/70 bg-background/90 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150 flex items-center justify-center text-center font-semibold text-foreground text-[11px] px-1"
-              >
-                {wallet.label}
-              </button>
-            ))}
-          </div>
+          <details className="group mt-2">
+            <summary className="cursor-pointer text-xs font-semibold text-destructive flex items-center gap-1.5 select-none">
+              <span className="group-open:rotate-90 transition-transform">›</span>
+              {t('donation_show_qr')}
+            </summary>
+            <div className="grid grid-cols-3 gap-2 text-xs mt-2">
+              {WALLET_ADDRESSES.map((wallet) => (
+                <button
+                  key={wallet.id}
+                  onClick={() => setSelectedWallet(wallet)}
+                  className="aspect-square rounded-lg border border-border/70 bg-background/90 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150 flex items-center justify-center text-center font-semibold text-foreground text-[11px] px-1"
+                >
+                  {wallet.label}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
 
         {/* Desktop: collapsible full view */}
