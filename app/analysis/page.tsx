@@ -3197,7 +3197,7 @@ export default function AnalysisPage() {
         </Tabs>
 
         {/* Donations (copied 1:1 from HomePageClient) */}
-        <CardBase className="w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md p-0">
+        <CardBase className="mx-auto w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md p-0">
           <div className="sm:hidden px-4 py-3 space-y-2.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
               <span>β ❤️</span>
