@@ -1729,7 +1729,7 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-6 px-4 sm:py-8 sm:px-6">
+    <div className="min-h-screen bg-background py-6 px-4 sm:py-8 sm:px-6 overflow-x-hidden">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -1795,32 +1795,146 @@ export default function AnalysisPage() {
 
         {/* Main Report Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="overview">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2 mb-5 sm:mb-6 p-1 bg-muted rounded-lg relative z-10">
+          <TabsTrigger
+            value="overview"
+            className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
+          >
               {locale === 'ru' ? 'Обзор' : 'Overview'}
             </TabsTrigger>
-            <TabsTrigger value="patterns">
+          <TabsTrigger
+            value="patterns"
+            className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
+          >
               {locale === 'ru' ? 'Паттерны' : 'Patterns'}
             </TabsTrigger>
-            <TabsTrigger value="statistics">
+          <TabsTrigger
+            value="statistics"
+            className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
+          >
               {locale === 'ru' ? 'Статистика' : 'Statistics'}
             </TabsTrigger>
-            <TabsTrigger value="insights">
+          <TabsTrigger
+            value="insights"
+            className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
+          >
               {locale === 'ru' ? 'Инсайты' : 'Insights'}
             </TabsTrigger>
           </TabsList>
 
           {/* OVERVIEW TAB */}
-          <TabsContent value="overview" className="space-y-4 sm:space-y-5">
-            {/* Relationship Health Overview with inline radar chart */}
-            <CardBase className="p-4 sm:p-5">
-          <div className="mb-4 sm:mb-5 flex items-center justify-between gap-3">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-5 pt-4 sm:pt-0">
+            {/* Mobile-first simplified layout */}
+            <div className="md:hidden space-y-5 mt-4">
+              <CardBase className="p-3 space-y-3 overflow-hidden">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <h2 className="text-base font-semibold text-foreground leading-snug">
+                      {t('relationship_health_title') || 'Relationship Health Overview'}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {t('analysisReport')}
+                    </p>
+                  </div>
+                  {analysis && (
+                    <div className="flex items-center gap-2">
+                      <div className={`text-lg font-bold ${getToneTextColor(safetyBadgeTone)}`}>
+                        {(emotionalSafetyIndex * 100).toFixed(0)}%
+                      </div>
+                      <Badge variant="outline" tone={safetyBadgeTone} size="sm">
+                        {getSafetyLevelText(safetyLevel)}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </CardBase>
+
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  {
+                    label: t('gaslightingRisk'),
+                    percent: gaslightingPercent,
+                    tone: gaslightingTone,
+                    level: getLevelLabel(gaslightingLevel, locale),
+                    progress: analysis?.gaslightingRiskScore ? analysis.gaslightingRiskScore * 100 : 0,
+                    indicator: getNegativeProgressColor(analysis?.gaslightingRiskScore ? analysis.gaslightingRiskScore * 100 : 0),
+                  },
+                  {
+                    label: t('conflictIntensity'),
+                    percent: conflictPercent,
+                    tone: conflictTone,
+                    level: getLevelLabel(conflictLevel, locale),
+                    progress: analysis?.conflictIntensityScore ? analysis.conflictIntensityScore * 100 : 0,
+                    indicator: getNegativeProgressColor(analysis?.conflictIntensityScore ? analysis.conflictIntensityScore * 100 : 0),
+                  },
+                  {
+                    label: t('supportiveness'),
+                    percent: supportPercent,
+                    tone: supportTone,
+                    level: getLevelLabel(supportLevel, locale),
+                    progress: analysis?.supportivenessScore ? analysis.supportivenessScore * 100 : 0,
+                    indicator: getPositiveProgressColor(analysis?.supportivenessScore ? analysis.supportivenessScore * 100 : 0),
+                  },
+                  {
+                    label: locale === 'ru' ? 'Разрешение конфликтов' : 'Conflict Resolution',
+                    percent: resolutionPercent,
+                    tone: resolutionTone,
+                    level: getLevelLabel(resolutionLevel, locale),
+                    progress: analysis?.communicationStats?.resolutionRate ?? 0,
+                    indicator: getPositiveProgressColor(analysis?.communicationStats?.resolutionRate ?? 0),
+                  },
+                ].map((item, idx) => (
+                  <CardBase
+                    key={idx}
+                    className="p-3 space-y-1 overflow-hidden"
+                    style={{ backgroundColor: 'hsl(var(--card) / 0.95)' }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className={`text-lg font-bold ${getToneTextColor(item.tone)}`}>
+                        {item.percent.toFixed(0)}%
+                      </div>
+                      <Badge variant="outline" tone={item.tone} size="sm">
+                        {item.level}
+                      </Badge>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-xs text-muted-foreground truncate">{item.label}</div>
+                      <Progress
+                        value={item.progress}
+                        className="h-2"
+                        indicatorClassName={item.indicator}
+                      />
+                    </div>
+                  </CardBase>
+                ))}
+              </div>
+
+              <CardBase className="p-3 overflow-hidden">
+                <div className="w-full max-w-[280px] mx-auto">
+                  <AnalysisRadarChart
+                    analysis={analysis}
+                    variant="compact"
+                    primaryMetricColor={(() => {
+                      if (emotionalSafetyIndex >= 0.7) return 'hsl(142 71% 45%)';
+                      if (emotionalSafetyIndex >= 0.4) return 'hsl(45 93% 47%)';
+                      return 'hsl(0 72% 51%)';
+                    })()}
+                    className="max-w-[280px] mx-auto"
+                  />
+                </div>
+              </CardBase>
+            </div>
+
+            {/* Desktop / tablet layout */}
+            <div className="hidden md:block">
+            <CardBase className="p-4 sm:p-5 overflow-hidden mt-1">
+          <div className="mb-4 sm:mb-5 flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <h2 className="text-lg sm:text-2xl font-bold text-foreground tracking-tight leading-snug">
               {t('relationship_health_title') || 'Relationship Health Overview'}
             </h2>
             {analysis && (
-              <div className="flex items-center gap-2">
-                <div className={`text-lg sm:text-xl font-bold ${getToneTextColor(safetyBadgeTone)}`}>
+              <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
+                <div className={`text-base sm:text-xl font-bold ${getToneTextColor(safetyBadgeTone)}`}>
                   {(emotionalSafetyIndex * 100).toFixed(0)}%
                 </div>
                 <Badge
@@ -1834,20 +1948,20 @@ export default function AnalysisPage() {
             )}
           </div>
 
-          <div className="md:flex md:justify-end md:items-start">
-            <div className="grid gap-4 sm:gap-5 md:grid-cols-2 items-stretch w-full md:pl-6">
+          <div className="md:flex md:justify-end md:items-start min-w-0 w-full">
+            <div className="grid gap-4 sm:gap-5 md:grid-cols-2 items-stretch w-full max-w-full min-w-0 md:pl-6">
               {/* Textual metrics in 2x2 grid */}
               <div className="flex flex-col justify-between">
-                <div className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3 h-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 h-full min-w-0">
                   {/* Gaslighting Risk */}
                   <CardBase 
-                    className="p-3 sm:p-4 h-full"
+                    className="p-3 sm:p-4 h-full w-full max-w-full min-w-0 break-words overflow-hidden"
                     style={{
                       backgroundColor: 'hsl(var(--card) / 0.95)',
                     }}
                   >
                     <div className="flex flex-col justify-between gap-1.5 h-full">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(gaslightingTone)}`}
                         >
@@ -1876,13 +1990,13 @@ export default function AnalysisPage() {
 
                   {/* Conflict Intensity */}
                   <CardBase 
-                    className="p-3 sm:p-4 h-full"
+                    className="p-3 sm:p-4 h-full w-full max-w-full min-w-0 break-words overflow-hidden"
                     style={{
                       backgroundColor: 'hsl(var(--card) / 0.95)',
                     }}
                   >
                     <div className="flex flex-col justify-between gap-1.5 h-full">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(conflictTone)}`}
                         >
@@ -1911,13 +2025,13 @@ export default function AnalysisPage() {
 
                   {/* Supportiveness */}
                   <CardBase 
-                    className="p-3 sm:p-4 h-full"
+                    className="p-3 sm:p-4 h-full w-full max-w-full min-w-0 break-words overflow-hidden"
                     style={{
                       backgroundColor: 'hsl(var(--card) / 0.95)',
                     }}
                   >
                     <div className="flex flex-col justify-between gap-1.5 h-full">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(supportTone)}`}
                         >
@@ -1946,13 +2060,13 @@ export default function AnalysisPage() {
 
                   {/* Conflict Resolution */}
                   <CardBase 
-                    className="p-3 sm:p-4 h-full"
+                    className="p-3 sm:p-4 h-full w-full max-w-full min-w-0 break-words overflow-hidden"
                     style={{
                       backgroundColor: 'hsl(var(--card) / 0.95)',
                     }}
                   >
                     <div className="flex flex-col justify-between gap-1.5 h-full">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(resolutionTone)}`}
                         >
@@ -1982,8 +2096,8 @@ export default function AnalysisPage() {
               </div>
 
               {/* Inline radar chart */}
-              <div className="flex items-center justify-center md:justify-end md:items-start">
-                <div className="w-full max-w-md md:max-w-full h-full">
+              <div className="flex items-center justify-center md:justify-end md:items-start mt-4 md:mt-0 w-full px-1">
+                <div className="w-full max-w-[360px] sm:max-w-md md:max-w-full h-full mx-auto md:mx-0">
                   <AnalysisRadarChart 
                     analysis={analysis} 
                     variant="compact"
@@ -2005,6 +2119,7 @@ export default function AnalysisPage() {
             </div>
           </div>
         </CardBase>
+            </div>
 
 
             {analysis.participantProfiles && analysis.participantProfiles.length > 0 && (
@@ -2191,7 +2306,7 @@ export default function AnalysisPage() {
           </TabsContent>
 
           {/* PATTERNS TAB */}
-          <TabsContent value="patterns" className="space-y-4 sm:space-y-5">
+          <TabsContent value="patterns" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
             <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
               {analysis.sections.map((section: AnalysisSection, index: number) => {
                 const sectionScore = section.score ?? 0;
@@ -2351,7 +2466,7 @@ export default function AnalysisPage() {
           </TabsContent>
 
           {/* STATISTICS TAB */}
-          <TabsContent value="statistics" className="space-y-4 sm:space-y-5">
+          <TabsContent value="statistics" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
             {/* PART 2: STATISTICAL BREAKDOWN */}
         {analysis.communicationStats && (
           <CardBase className="p-3 sm:p-4">
@@ -2449,25 +2564,25 @@ export default function AnalysisPage() {
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">
                   {locale === 'ru' ? 'Красные флаги' : 'Red Flags'}
                 </h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🟡</span>
-                    <div>
-                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                    <span className="text-xl sm:text-2xl">🟡</span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
                       <p className="text-sm font-semibold">{analysis.redFlagCounts.yellow}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🟠</span>
-                    <div>
-                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
+                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                    <span className="text-xl sm:text-2xl">🟠</span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
                       <p className="text-sm font-semibold">{analysis.redFlagCounts.orange}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🔴</span>
-                    <div>
-                      <p className="text-xs text-muted-foreground">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
+                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                    <span className="text-xl sm:text-2xl">🔴</span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
                       <p className="text-sm font-semibold">{analysis.redFlagCounts.red}</p>
                     </div>
                   </div>
@@ -2624,7 +2739,7 @@ export default function AnalysisPage() {
           </TabsContent>
 
           {/* INSIGHTS TAB */}
-          <TabsContent value="insights" className="space-y-4 sm:space-y-5">
+          <TabsContent value="insights" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
             {/* PART 6: FRAMEWORK DIAGNOSIS */}
             {analysis.frameworkDiagnosis && (
           <CardBase className="p-3 sm:p-4">
@@ -3081,46 +3196,90 @@ export default function AnalysisPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Beta banner / donations (new style) */}
-        <Card className="mt-6 w-full bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md">
-          <div className="flex flex-col gap-3 p-4 sm:p-5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs w-fit">
-              <span>β</span>
-              <span>❤️</span>
+        {/* Donations (copied from main) */}
+        <Card className="w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md mt-6">
+          {/* Mobile: compact grid 3x3, only labels */}
+          <div className="sm:hidden p-4 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
+              <span>β ❤️</span>
               <span>{t('donation_beta_label')}</span>
             </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="space-y-1">
-                <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('donation_title')}</h3>
-                <p className="text-sm text-muted-foreground">{t('donation_text')}</p>
-              </div>
-              <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/15 text-destructive text-xs font-semibold">
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-foreground">
+                {t('donation_title')}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {t('donation_text')}
+              </p>
+              <div className="inline-flex px-2 py-1 rounded bg-destructive/20 text-destructive text-[11px] font-semibold">
                 {t('donation_crypto_only')}
               </div>
             </div>
+            <details className="group mt-2">
+              <summary className="cursor-pointer text-xs font-semibold text-destructive flex items-center gap-1.5 select-none">
+                <span className="group-open:rotate-90 transition-transform">›</span>
+                {t('donation_show_qr')}
+              </summary>
+              <div className="grid grid-cols-3 gap-2 text-xs mt-2">
+                {WALLET_ADDRESSES.map((wallet) => (
+                  <button
+                    key={wallet.id}
+                    onClick={() => setSelectedWallet(wallet)}
+                    className="aspect-square rounded-lg border border-border/70 bg-background/90 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150 flex items-center justify-center text-center font-semibold text-foreground text-[11px] px-1"
+                  >
+                    {wallet.label}
+                  </button>
+                ))}
+              </div>
+            </details>
+          </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-              {WALLET_ADDRESSES.map((wallet) => (
-                <div
-                  key={wallet.id}
-                  className="p-3 rounded-lg border border-destructive/25 bg-background/80 shadow-sm hover:border-destructive/60 hover:shadow-md transition-all duration-150"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="whitespace-nowrap"
-                      onClick={() => setSelectedWallet(wallet)}
-                    >
-                      {t('donation_show_qr')}
-                    </Button>
-                  </div>
-                  <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
-                </div>
-              ))}
+          {/* Desktop: collapsible full view */}
+          <div className="hidden sm:block p-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/20 text-destructive font-semibold text-xs">
+              <span>β ❤️</span>
+              <span>{t('donation_beta_label')}</span>
             </div>
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                  {t('donation_title')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('donation_text')}
+                </p>
+              </div>
+              <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-semibold">
+                {t('donation_crypto_only')}
+              </div>
+            </div>
+            <details className="mt-4 group">
+              <summary className="cursor-pointer text-sm font-semibold text-destructive flex items-center gap-2 select-none">
+                <span className="group-open:rotate-90 transition-transform">›</span>
+                {t('donation_show_qr')}
+              </summary>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-3">
+                {WALLET_ADDRESSES.map((wallet) => (
+                  <div
+                    key={wallet.id}
+                    className="p-3 rounded-lg border border-border/70 bg-background/80 shadow-sm hover:border-primary/60 hover:shadow-md transition-all duration-150"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="text-sm font-semibold text-foreground">{wallet.label}</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                        onClick={() => setSelectedWallet(wallet)}
+                      >
+                        {t('donation_show_qr')}
+                      </Button>
+                    </div>
+                    <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         </Card>
 
@@ -3132,9 +3291,7 @@ export default function AnalysisPage() {
             <Card className="w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-start justify-between p-4 pb-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">
-                    {t('donation_qr_for_wallet')}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('donation_qr_for_wallet')}</p>
                   <p className="text-base font-semibold text-foreground">{selectedWallet.label}</p>
                 </div>
                 <button

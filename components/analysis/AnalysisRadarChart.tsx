@@ -23,9 +23,13 @@ type AnalysisRadarChartProps = {
    * If not provided, uses the color of the metric with highest score
    */
   primaryMetricColor?: string
+  /**
+   * Optional className for the outer container (useful for mobile sizing)
+   */
+  className?: string
 }
 
-export function AnalysisRadarChart({ analysis, variant = "default", primaryMetricColor }: AnalysisRadarChartProps) {
+export function AnalysisRadarChart({ analysis, variant = "default", primaryMetricColor, className }: AnalysisRadarChartProps) {
   const { t, locale } = useLanguage()
   const isCompact = variant === "compact"
 
@@ -99,7 +103,7 @@ export function AnalysisRadarChart({ analysis, variant = "default", primaryMetri
   } satisfies ChartConfig
 
   return (
-    <div className={cn("w-full flex flex-col", isCompact && "")}>
+    <div className={cn("w-full flex flex-col", isCompact && "", className)}>
       {!isCompact && (
         <div className="text-center mb-2 sm:mb-3">
           <h3 className="text-base sm:text-lg font-semibold text-foreground">
