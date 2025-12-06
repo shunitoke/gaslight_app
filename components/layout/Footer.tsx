@@ -86,6 +86,12 @@ export const Footer = () => {
             {t('terms_title')}
           </Link>
           <Link
+            href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
+            className="underline-offset-4 hover:underline transition-all duration-200 hover:text-foreground"
+          >
+            {t('footer_report_bug')}
+          </Link>
+          <Link
             href="https://github.com/shunitoke/gaslight_app"
             target="_blank"
             rel="noopener noreferrer"

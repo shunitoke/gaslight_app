@@ -17,6 +17,7 @@ export const deBundle: LocaleBundle = {
     footer_visitors_loading: 'Besucher werden gezählt...',
     footer_analyses_label: 'Durchgeführte Analysen',
     footer_analyses_loading: 'Analysen werden gezählt...',
+    footer_report_bug: 'Fehler melden',
     language_label: 'Sprache',
     uploadExport: 'Chat-Export hochladen',
     uploadExportDescription: 'Wählen Sie Ihre Chat-Exportdatei aus, um mit der Analyse zu beginnen',

@@ -18,6 +18,7 @@ export const enBundle: LocaleBundle = {
     footer_visitors_loading: 'Counting visitors...',
     footer_analyses_label: 'Analyses completed',
     footer_analyses_loading: 'Counting analyses...',
+    footer_report_bug: 'Report a bug',
     language_label: 'Language',
     uploadExport: 'Upload Chat Export',
     uploadExportDescription: 'Select your chat export file to begin analysis.',

@@ -25,14 +25,28 @@ export async function extractMediaFromWhatsAppZip(
     let chatText = '';
 
     // Extract chat text file
-    const chatFileNames = Object.keys(zip.files).filter(
-      (name) => name.toLowerCase() === '_chat.txt' || name.toLowerCase() === 'chat.txt'
-    );
-    if (chatFileNames.length > 0) {
-      const chatFile = zip.files[chatFileNames[0]];
+    const chatFileCandidates = Object.keys(zip.files).filter((name) => {
+      const lower = name.toLowerCase();
+      // Ignore directories and Media/ attachments
+      return !zip.files[name].dir && lower.endsWith('.txt') && !lower.startsWith('media/');
+    });
+
+    const preferredChatName =
+      chatFileCandidates.find((name) => {
+        const lower = name.toLowerCase();
+        return lower === '_chat.txt' || lower === 'chat.txt';
+      }) ||
+      // Prefer root-level txt if the canonical names are missing (Android exports often name it "WhatsApp Chat with ... .txt")
+      chatFileCandidates.find((name) => !name.includes('/')) ||
+      chatFileCandidates[0];
+
+    if (preferredChatName) {
+      const chatFile = zip.files[preferredChatName];
       if (chatFile) {
         chatText = await chatFile.async('string');
       }
+    } else {
+      logError('whatsapp_chat_file_missing', { conversationId });
     }
 
     // Extract media files from Media/ folder

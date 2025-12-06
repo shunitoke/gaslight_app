@@ -17,6 +17,7 @@ export const ptBundle: LocaleBundle = {
     footer_visitors_loading: 'Contando visitantes...',
     footer_analyses_label: 'Análises concluídas',
     footer_analyses_loading: 'Contando análises...',
+    footer_report_bug: 'Reportar um bug',
     language_label: 'Idioma',
     uploadExport: 'Carregar exportação de chat',
     uploadExportDescription: 'Selecione seu arquivo de exportação de chat para começar a análise',

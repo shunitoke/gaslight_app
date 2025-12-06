@@ -17,6 +17,7 @@ export const ruBundle: LocaleBundle = {
     footer_visitors_loading: 'Считаем посетителей...',
     footer_analyses_label: 'Проведено анализов',
     footer_analyses_loading: 'Считаем анализы...',
+    footer_report_bug: 'Сообщить об ошибке',
     language_label: 'Язык',
     uploadExport: 'Загрузить экспорт чата',
     uploadExportDescription: 'Выберите файл экспорта чата, чтобы начать анализ.',

@@ -10,10 +10,15 @@ type BackgroundAnimationProps = {
 
 function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimationProps) {
   const { isPageVisible, prefersReducedMotion, isProcessing } = useAnimation();
+  const [isHydrated, setIsHydrated] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(() => {
     if (typeof window === 'undefined') return true; // assume desktop on SSR to avoid mobile blob flash
     return window.matchMedia('(min-width: 768px)').matches;
   });
+
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -32,6 +37,8 @@ function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimatio
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-background">
+      {!isHydrated ? null : (
+        <>
       {variant === 'ripple' && showRipple && (
         <>
           <Ripple
@@ -136,6 +143,8 @@ function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimatio
               transform: 'translate3d(0,0,0)',
             } as React.CSSProperties}
           />
+        </>
+      )}
         </>
       )}
     </div>
