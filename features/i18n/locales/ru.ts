@@ -13,6 +13,8 @@ export const ruBundle: LocaleBundle = {
     hero_copy: 'Загрузите переписку, чтобы получить беспристрастный анализ отношений на основе ИИ.',
     hero_confidential: 'Полностью конфиденциально.',
     footer_disclaimer: 'Не терапия и не сплетни — только ясность от ИИ.',
+    footer_visitors_label: 'Уникальные посетители',
+    footer_visitors_loading: 'Считаем посетителей...',
     language_label: 'Язык',
     uploadExport: 'Загрузить экспорт чата',
     uploadExportDescription: 'Выберите файл экспорта чата, чтобы начать анализ.',

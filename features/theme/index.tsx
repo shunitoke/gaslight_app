@@ -33,10 +33,26 @@ function detectSystemColorScheme(): ColorScheme {
 }
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  // Initialize with 'alternative' (blue) to ensure server/client match.
-  // System preference / stored values are applied immediately after mount.
-  const [colorTheme, setColorThemeState] = useState<ColorTheme>('alternative');
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>('light');
+  // Initialize from localStorage / document to avoid flicker on first paint
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>(() => {
+    if (typeof window === 'undefined') return 'alternative';
+    const stored =
+      localStorage.getItem(COLOR_THEME_STORAGE_KEY) ??
+      localStorage.getItem('gaslite-color-theme');
+    if (stored === 'default' || stored === 'alternative') return stored;
+    const current = document.documentElement.getAttribute('data-color-theme');
+    return current === 'alternative' ? 'alternative' : 'alternative';
+  });
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored =
+      (localStorage.getItem(COLOR_SCHEME_STORAGE_KEY) ??
+        localStorage.getItem('gaslite-color-scheme')) as ColorScheme | null;
+    if (stored === 'dark' || stored === 'light') return stored;
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) return 'dark';
+    return detectSystemColorScheme();
+  });
 
   // Load from localStorage immediately on mount (inline script / SSR already applied, we just sync state)
   useEffect(() => {

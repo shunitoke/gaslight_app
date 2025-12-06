@@ -1030,6 +1030,11 @@ export default function HomePage() {
     { id: 'm10', side: 'left' as const, text: t('hero_preview_msg5_left') } // abuser: "Everyone else thinks I'm fine"
   ].filter((m) => m.text), [t, locale]);
 
+  const previewSignature = React.useMemo(
+    () => previewScript.map((m) => `${m.id}:${m.text}`).join('|'),
+    [previewScript]
+  );
+
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [visibleMessages, setVisibleMessages] = useState<typeof previewScript>([]);
   const [messageKey, setMessageKey] = useState(0);
@@ -1040,7 +1045,7 @@ export default function HomePage() {
     setCurrentMessageIndex(0);
     setVisibleMessages([previewScript[0]]);
     setMessageKey((k) => k + 1);
-  }, [locale, previewScript]);
+  }, [previewSignature]);
 
   // Sequential message flow: add next message in order
   useEffect(() => {

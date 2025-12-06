@@ -76,55 +76,46 @@ export const LanguageProvider = ({
   children: React.ReactNode;
   initialLocale?: SupportedLocale;
 }) => {
-  // Initialize locale: always use initialLocale from server to match SSR
-  // This prevents hydration mismatch - server and client start with same language
   const [locale, setLocale] = useState<SupportedLocale>(() => {
-    // Always use server-provided locale to match SSR
     if (initialLocale && supportedLocales.includes(initialLocale)) {
       return initialLocale;
+    }
+    if (typeof window !== 'undefined') {
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlLang && supportedLocales.includes(htmlLang as SupportedLocale)) {
+        return htmlLang as SupportedLocale;
+      }
+      const stored =
+        localStorage.getItem(LOCALE_STORAGE_KEY) ??
+        localStorage.getItem('gaslite-locale') ??
+        localStorage.getItem('app-locale');
+      if (stored && supportedLocales.includes(stored as SupportedLocale)) {
+        return stored as SupportedLocale;
+      }
     }
     return defaultLocale;
   });
 
-  // On mount, check if user has changed language preference
-  // Only run once on mount to avoid infinite loops
+  // Sync from storage once after mount
   React.useEffect(() => {
-    // Check localStorage (user preference) - only change if different from initial
+    if (typeof window === 'undefined') return;
     const stored =
       localStorage.getItem(LOCALE_STORAGE_KEY) ??
       localStorage.getItem('gaslite-locale') ??
       localStorage.getItem('app-locale');
-
-    if (stored && supportedLocales.includes(stored as SupportedLocale)) {
-      const storedLocale = stored as SupportedLocale;
-      // Only update if stored preference differs from initial locale
-      if (storedLocale !== initialLocale) {
-        setLocale(storedLocale);
-      }
+    if (stored && supportedLocales.includes(stored as SupportedLocale) && stored !== locale) {
+      setLocale(stored as SupportedLocale);
     }
-    // Only run once on mount - remove locale from deps to prevent infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // run once
 
-  // Save to localStorage immediately when locale changes and update HTML lang attribute
+  // Persist locale and keep <html lang> in sync
   React.useEffect(() => {
-    // Save immediately to localStorage
     try {
       localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-    
-    // Mirror to cookie so the server can SSR the correct lang attribute
-    try {
       document.cookie = `${LOCALE_STORAGE_KEY}=${locale}; path=/; max-age=31536000; samesite=lax`;
-    } catch (e) {
-      // Ignore cookie errors
-    }
-    
-    // Keep <html lang="..."> in sync with current locale for a11y/SEO.
-    if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('lang', locale);
+    } catch {
+      // ignore storage errors
     }
   }, [locale]);
 

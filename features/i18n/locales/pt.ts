@@ -13,6 +13,8 @@ export const ptBundle: LocaleBundle = {
     hero_copy: 'Carregue suas conversas para obter uma análise imparcial de relacionamentos alimentada por IA.',
     hero_confidential: 'Totalmente confidencial.',
     footer_disclaimer: 'Não é terapia, não é fofoca — apenas clareza IA.',
+    footer_visitors_label: 'Visitantes únicos',
+    footer_visitors_loading: 'Contando visitantes...',
     language_label: 'Idioma',
     uploadExport: 'Carregar exportação de chat',
     uploadExportDescription: 'Selecione seu arquivo de exportação de chat para começar a análise',

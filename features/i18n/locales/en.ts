@@ -14,6 +14,8 @@ export const enBundle: LocaleBundle = {
       'Upload chats to get an impartial, AI-powered relationship analysis.',
     hero_confidential: 'Completely confidential.',
     footer_disclaimer: 'Not therapy. Not gossip. Just AI clarity.',
+    footer_visitors_label: 'Unique visitors',
+    footer_visitors_loading: 'Counting visitors...',
     language_label: 'Language',
     uploadExport: 'Upload Chat Export',
     uploadExportDescription: 'Select your chat export file to begin analysis.',

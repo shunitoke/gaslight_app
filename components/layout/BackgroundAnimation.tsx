@@ -10,7 +10,10 @@ type BackgroundAnimationProps = {
 
 function BackgroundAnimationComponent({ variant = 'ripple' }: BackgroundAnimationProps) {
   const { isPageVisible, prefersReducedMotion, isProcessing } = useAnimation();
-  const [isDesktop, setIsDesktop] = React.useState(false);
+  const [isDesktop, setIsDesktop] = React.useState(() => {
+    if (typeof window === 'undefined') return true; // assume desktop on SSR to avoid mobile blob flash
+    return window.matchMedia('(min-width: 768px)').matches;
+  });
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
