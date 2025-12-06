@@ -230,6 +230,7 @@ export const deBundle: LocaleBundle = {
     calendar_title: 'Konversationskalender',
     calendar_description:
       'Wichtige Daten sind rot hervorgehoben. Bewegen Sie die Maus über Daten, um Details anzuzeigen.',
+    verdict_problematic: 'Problematisch',
     // Tages-Aktivitätsdiagramm
     activity_chart_title: 'Aktivität nach Tagen',
     activity_chart_description:
@@ -242,6 +243,7 @@ export const deBundle: LocaleBundle = {
     important_dates_list_title: 'Wichtige Daten',
     message_intensity_label: 'Nachrichtenintensität',
     more_dates: 'weitere Daten',
+    verdict_problematic: 'Problematisch',
     participant_profiles_title: '👥 Teilnehmerprofile',
     participant_profiles_description: 'Kurze Kommunikationsprofile für jeden Teilnehmer.',
     reality_check_title: '✅ Realitätscheck',
@@ -251,6 +253,10 @@ export const deBundle: LocaleBundle = {
     hard_truth_title: '⚡ Harte Wahrheit',
     hard_truth_verdict: 'Urteil',
     hard_truth_abusive: 'Missbräuchliche Verhaltensweisen',
+    hard_truth_abusive_label: 'Missbräuchlich',
+    hard_truth_toxic_label: 'Toxisch',
+    hard_truth_needs_work_label: 'Verbesserungsbedürftig',
+    hard_truth_healthy_label: 'Gesund',
     what_you_should_know_title: '💡 Was du wissen solltest',
     wysk_could_have_done: 'Was man anders hätte tun können',
     wysk_comm_tools: 'Kommunikationstools',

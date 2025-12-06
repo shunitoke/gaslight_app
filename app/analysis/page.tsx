@@ -983,7 +983,7 @@ export default function AnalysisPage() {
       if (analysis.realityCheck.whatParticipantWasRightAbout?.length) {
         report += `${t('reality_check_right') ?? 'What was right'}:\n`;
         analysis.realityCheck.whatParticipantWasRightAbout.forEach((item) => {
-          report += `- ${replaceParticipantIds(item.participant)}: ${replaceParticipantIds(item.thought)} (evidence: ${replaceParticipantIds(item.evidence)})\n`;
+          report += `- ${replaceParticipantIds(item.participant)}: ${replaceParticipantIds(item.thought)} (${t('evidence') ?? 'Evidence'}: ${replaceParticipantIds(item.evidence)})\n`;
         });
       }
       if (analysis.realityCheck.whatParticipantWasWrongAbout?.length) {
@@ -2480,7 +2480,7 @@ export default function AnalysisPage() {
             {/* PART 3: PATTERN ANALYSIS (extended) */}
             {(analysis.emotionalCycle || analysis.timePatterns) && (
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
               {locale === 'ru' ? 'Анализ паттернов' : 'Pattern Analysis'}
             </h2>
             {analysis.emotionalCycle && (
@@ -2880,11 +2880,15 @@ export default function AnalysisPage() {
                   analysis.hardTruth.verdict === 'needs_work' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
                   'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                 }`}>
-                  {analysis.hardTruth.verdict === 'abusive' ? (locale === 'ru' ? 'Абьюзивные' : 'Abusive') :
-                   analysis.hardTruth.verdict === 'toxic' ? (locale === 'ru' ? 'Токсичные' : 'Toxic') :
-                   analysis.hardTruth.verdict === 'problematic' ? (locale === 'ru' ? 'Проблемные' : 'Problematic') :
-                   analysis.hardTruth.verdict === 'needs_work' ? (locale === 'ru' ? 'Требует работы' : 'Needs work') :
-                   (locale === 'ru' ? 'Здоровые' : 'Healthy')}
+                  {analysis.hardTruth.verdict === 'abusive'
+                    ? t('hard_truth_abusive_label') ?? (locale === 'ru' ? 'Абьюзивные' : 'Abusive')
+                    : analysis.hardTruth.verdict === 'toxic'
+                    ? t('hard_truth_toxic_label') ?? (locale === 'ru' ? 'Токсичные' : 'Toxic')
+                    : analysis.hardTruth.verdict === 'problematic'
+                    ? t('verdict_problematic') ?? (locale === 'ru' ? 'Проблемные' : 'Problematic')
+                    : analysis.hardTruth.verdict === 'needs_work'
+                    ? t('hard_truth_needs_work_label') ?? (locale === 'ru' ? 'Требует работы' : 'Needs work')
+                    : t('hard_truth_healthy_label') ?? (locale === 'ru' ? 'Здоровые' : 'Healthy')}
                 </span>
               </div>
               <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">{replaceParticipantIds(analysis.hardTruth.message)}</p>

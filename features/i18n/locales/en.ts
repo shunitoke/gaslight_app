@@ -238,6 +238,7 @@ export const enBundle: LocaleBundle = {
     calendar_title: 'Conversation Calendar',
     calendar_description:
       'Important dates are highlighted in red. Hover over dates to view details.',
+    verdict_problematic: 'Problematic',
     important_dates_label: '🗓️ Important Dates',
     important_date: 'Important Date',
     important_dates_list_title: 'Important Dates',
@@ -252,6 +253,10 @@ export const enBundle: LocaleBundle = {
     hard_truth_title: '⚡ Hard truth',
     hard_truth_verdict: 'Verdict',
     hard_truth_abusive: 'Abusive behaviors',
+    hard_truth_abusive_label: 'Abusive',
+    hard_truth_toxic_label: 'Toxic',
+    hard_truth_needs_work_label: 'Needs work',
+    hard_truth_healthy_label: 'Healthy',
     what_you_should_know_title: '💡 What you should know',
     wysk_could_have_done: 'Could have done differently',
     wysk_comm_tools: 'Communication tools',

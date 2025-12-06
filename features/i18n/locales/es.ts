@@ -230,6 +230,7 @@ export const esBundle: LocaleBundle = {
     calendar_title: 'Calendario de conversación',
     calendar_description:
       'Las fechas importantes están resaltadas en rojo. Pase el mouse sobre las fechas para ver detalles.',
+    verdict_problematic: 'Problemática',
     // Gráfico de actividad por día
     activity_chart_title: 'Actividad por días',
     activity_chart_description:
@@ -242,6 +243,7 @@ export const esBundle: LocaleBundle = {
     important_dates_list_title: 'Fechas importantes',
     message_intensity_label: 'Intensidad de mensajes',
     more_dates: 'fechas adicionales',
+    verdict_problematic: 'Problemática',
     participant_profiles_title: 'Perfiles de participantes',
     participant_profiles_description: 'Perfiles de comunicación breves para cada participante.',
     reality_check_title: 'Verificación de la realidad',
@@ -251,6 +253,10 @@ export const esBundle: LocaleBundle = {
     hard_truth_title: 'Verdad dura',
     hard_truth_verdict: 'Veredicto',
     hard_truth_abusive: 'Conductas abusivas',
+    hard_truth_abusive_label: 'Abusivas',
+    hard_truth_toxic_label: 'Tóxicas',
+    hard_truth_needs_work_label: 'Requiere trabajo',
+    hard_truth_healthy_label: 'Saludables',
     what_you_should_know_title: 'Lo que debes saber',
     wysk_could_have_done: 'Qué se pudo hacer diferente',
     wysk_comm_tools: 'Herramientas de comunicación',
