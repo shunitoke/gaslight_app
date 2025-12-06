@@ -67,52 +67,57 @@ export const Footer = () => {
 
   const visitorLabel =
     visitorCount !== null
-      ? `${t('footer_visitors_label')}: ${visitorCount.toLocaleString()}`
+      ? `${t('footer_visitors_label')} ${visitorCount.toLocaleString()}`
       : t('footer_visitors_loading');
   const analysesLabel =
     analysisCount !== null
-      ? `${t('footer_analyses_label')}: ${analysisCount.toLocaleString()}`
+      ? `${t('footer_analyses_label')} ${analysisCount.toLocaleString()}`
       : t('footer_analyses_loading');
+  const currentYear = React.useMemo(() => new Date().getFullYear(), []);
 
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur-md animate-fade-in">
-      <div className="mx-auto flex max-w-5xl flex-col gap-2 px-4 sm:px-6 py-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <span>{t('footer_disclaimer')}</span>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/terms"
-            className="underline-offset-4 hover:underline transition-all duration-200 hover:text-foreground"
-          >
-            {t('terms_title')}
-          </Link>
-          <Link
-            href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
-            className="underline-offset-4 hover:underline transition-all duration-200 hover:text-foreground"
-          >
-            {t('footer_report_bug')}
-          </Link>
-          <Link
-            href="https://github.com/shunitoke/gaslight_app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 underline-offset-4 hover:underline transition-all duration-200 hover:text-foreground"
-          >
-            <GitHubIcon />
-            <span>GitHub</span>
-          </Link>
-          <span>&copy; {new Date().getFullYear()} Texts with My Ex</span>
-        </div>
-      </div>
-
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 pb-4">
-        <div className="flex flex-wrap gap-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
-            <Users size={14} className="text-muted-foreground" />
-            <span className="whitespace-nowrap">{visitorLabel}</span>
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-5 space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-3 text-sm text-muted-foreground max-w-prose">
+            <span className="leading-relaxed">{t('footer_disclaimer')}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/terms"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+              >
+                {t('terms_title')}
+              </Link>
+              <Link
+                href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
+                aria-label={t('footer_report_bug')}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+              >
+                {t('footer_report_bug')}
+              </Link>
+              <Link
+                href="https://github.com/shunitoke/gaslight_app"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub repository"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+              >
+                <GitHubIcon />
+                <span>GitHub</span>
+              </Link>
+              <span className="text-muted-foreground">&copy; {currentYear} Texts with My Ex</span>
+            </div>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
-            <LineChart size={14} className="text-muted-foreground" />
-            <span className="whitespace-nowrap">{analysesLabel}</span>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
+              <Users size={14} className="text-muted-foreground" />
+              <span className="whitespace-nowrap">{visitorLabel}</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
+              <LineChart size={14} className="text-muted-foreground" />
+              <span className="whitespace-nowrap">{analysesLabel}</span>
+            </div>
           </div>
         </div>
       </div>
