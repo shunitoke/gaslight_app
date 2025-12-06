@@ -1550,7 +1550,7 @@ export default function HomePage() {
       <TestimonialsSection />
 
       {/* Donations */}
-      <Card className="w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md">
+      <Card className="mx-auto w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md p-0 sm:p-0">
         {/* Mobile: compact grid 3x3, only labels */}
         <div className="sm:hidden p-4 space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
