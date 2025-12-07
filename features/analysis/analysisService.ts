@@ -1622,16 +1622,19 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
         .filter(Boolean) as string[]
     );
 
-    const filteredImportantDates =
-      allImportantDates.size > 0
-        ? allowedDates.size > 0
-          ? Array.from(allImportantDates.values()).filter((d) => {
-              if (!d || !d.date) return false;
-              const key = d.date.split('T')[0];
-              return allowedDates.has(key);
-            })
-          : Array.from(allImportantDates.values())
-        : undefined;
+    let filteredImportantDates: Array<import('./types').ImportantDate> | undefined = undefined;
+    if (allImportantDates.size > 0) {
+      if (allowedDates.size > 0) {
+        const byAllowed = Array.from(allImportantDates.values()).filter((d) => {
+          if (!d || !d.date) return false;
+          const key = d.date.split('T')[0];
+          return allowedDates.has(key);
+        });
+        filteredImportantDates = byAllowed.length > 0 ? byAllowed : Array.from(allImportantDates.values());
+      } else {
+        filteredImportantDates = Array.from(allImportantDates.values());
+      }
+    }
     
     const result: AnalysisResult = {
       id: analysisId,
