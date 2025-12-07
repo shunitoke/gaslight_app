@@ -154,7 +154,7 @@ export function MediaUpload({
           </div>
         </div>
 
-        <div className={cn('rounded-xl border border-border/60 bg-card/60 p-4 space-y-3')}>
+        <div className={cn('rounded-xl border border-border/60 bg-card/60 p-4 space-y-4')}>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Mic className="h-4 w-4" />
             {t('record_voice_title')}
@@ -162,27 +162,44 @@ export function MediaUpload({
           <p className="text-xs text-muted-foreground">
             {translate('record_voice_hint', { seconds: Math.round(maxRecordMs / 1000) })}
           </p>
-          <div className="flex items-center gap-3">
-            <Button
+          <div className="flex flex-col items-center gap-3">
+            <button
               type="button"
               onClick={isRecording ? stopRecording : startRecording}
-              variant={isRecording ? 'destructive' : 'default'}
               disabled={disabled || uploading}
-              className="flex-1"
+              className={cn(
+                'relative flex items-center justify-center h-20 w-20 rounded-full border transition-all duration-200',
+                'bg-primary/10 text-primary border-primary/50 shadow-sm',
+                !disabled && !uploading && 'hover:scale-105 hover:shadow-md hover:bg-primary/15',
+                (disabled || uploading) && 'opacity-60 cursor-not-allowed'
+              )}
+              aria-label={isRecording ? t('stop_recording', { seconds: recordSeconds }) : t('start_recording')}
             >
               {isRecording ? (
-                <>
-                  <MicOff className="mr-2 h-4 w-4" />
-                  {translate('stop_recording', { seconds: recordSeconds })}
-                </>
+                <MicOff className="h-10 w-10 animate-pulse" />
               ) : (
-                <>
-                  <Mic className="mr-2 h-4 w-4" />
-                  {t('start_recording')}
-                </>
+                <Mic className="h-10 w-10" />
               )}
-            </Button>
-            {isRecording && <span className="text-xs text-muted-foreground">{t('recording')}</span>}
+              {isRecording && (
+                <span className="absolute -bottom-5 text-xs text-muted-foreground">
+                  {t('recording')}
+                </span>
+              )}
+            </button>
+            {isRecording && (
+              <div className="text-xs text-muted-foreground">{translate('stop_recording', { seconds: recordSeconds })}</div>
+            )}
+            {!isRecording && (
+              <Button
+                type="button"
+                onClick={startRecording}
+                variant="default"
+                disabled={disabled || uploading}
+                className="w-full"
+              >
+                {t('start_recording')}
+              </Button>
+            )}
           </div>
         </div>
       </div>
