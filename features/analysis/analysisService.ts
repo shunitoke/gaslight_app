@@ -1624,11 +1624,13 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
 
     const filteredImportantDates =
       allImportantDates.size > 0
-        ? Array.from(allImportantDates.values()).filter((d) => {
-            if (!d || !d.date) return false;
-            const key = d.date.split('T')[0];
-            return allowedDates.has(key);
-          })
+        ? allowedDates.size > 0
+          ? Array.from(allImportantDates.values()).filter((d) => {
+              if (!d || !d.date) return false;
+              const key = d.date.split('T')[0];
+              return allowedDates.has(key);
+            })
+          : Array.from(allImportantDates.values())
         : undefined;
     
     const result: AnalysisResult = {
