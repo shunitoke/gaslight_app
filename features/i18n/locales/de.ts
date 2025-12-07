@@ -110,6 +110,8 @@ export const deBundle: LocaleBundle = {
     stop_recording: 'Stopp ({{seconds}}s)',
     recording: 'Aufnahme läuft...',
     mic_permission_error: 'Kein Mikrofonzugriff. Bitte Zugriff erlauben und erneut versuchen.',
+    progress_media_voice: 'Sprachnachricht wird analysiert...',
+    voice_coming_soon: 'Sprachtranskription kommt in der nächsten Version.',
     pasteLabel: 'Fügen Sie einen kurzen Auszug Ihrer Konversation ein',
     pastePlaceholder:
       'Fügen Sie hier Nachrichten ein (nur kurzer Ausschnitt, kein mehrjähriger Chat)...',

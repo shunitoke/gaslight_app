@@ -110,6 +110,8 @@ export const enBundle: LocaleBundle = {
     stop_recording: 'Stop ({{seconds}}s)',
     recording: 'Recording...',
     mic_permission_error: 'Could not access microphone. Please allow mic permissions and try again.',
+    progress_media_voice: 'Analyzing voice recording...',
+    voice_coming_soon: 'Voice transcription will arrive in the next version.',
     pasteLabel: 'Paste a short excerpt of your conversation',
     pastePlaceholder: 'Paste messages here (small excerpt only, not a full multi-year chat)...',
     pasteHelp: 'Works best for small excerpts. For long histories, please use chat export import.',

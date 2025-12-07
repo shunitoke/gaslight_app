@@ -110,6 +110,8 @@ export const ruBundle: LocaleBundle = {
     stop_recording: 'Стоп ({{seconds}}с)',
     recording: 'Идёт запись...',
     mic_permission_error: 'Нет доступа к микрофону. Разрешите доступ и попробуйте снова.',
+    progress_media_voice: 'Анализируем голосовую запись...',
+    voice_coming_soon: 'Голосовая расшифровка появится в следующей версии.',
     pasteLabel: 'Вставьте небольшой отрывок переписки',
     pastePlaceholder: 'Вставьте сюда сообщения (небольшой фрагмент, а не многолетнюю переписку)...',
     pasteHelp:

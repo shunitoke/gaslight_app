@@ -162,6 +162,7 @@ export default function HomePageClient() {
     totalChunks?: number;
     message?: string;
     isPremium?: boolean;
+    isVoiceRecording?: boolean;
   } | null>(null);
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [inputMode, setInputMode] = useState<'file' | 'paste' | 'media'>('file');
@@ -239,6 +240,7 @@ export default function HomePageClient() {
       media?: any[];
       participants?: Participant[];
       features?: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean };
+      isVoiceRecording?: boolean;
     }) => {
       setConversation(importData.conversation);
       setAnalyzing(true);
@@ -248,7 +250,8 @@ export default function HomePageClient() {
         progress: 0,
         status: 'starting',
         message: 'Starting AI analysis...',
-        isPremium: hasPremium
+        isPremium: hasPremium,
+        isVoiceRecording: importData.isVoiceRecording
       });
 
       sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
@@ -581,6 +584,7 @@ export default function HomePageClient() {
 
       const isAudio =
         file.type.startsWith('audio') ||
+        file.type === 'video/webm' || // some browsers label mic capture as video/webm
         Boolean(file.name.match(/\.(mp3|wav|ogg|opus|m4a|webm)$/i));
 
       let transcript: string | undefined;
@@ -624,7 +628,10 @@ export default function HomePageClient() {
       const importData = await importResponse.json();
       setUploading(false);
       await new Promise((resolve) => setTimeout(resolve, 300));
-      await startAnalysisWithImport(importData);
+      await startAnalysisWithImport({
+        ...importData,
+        isVoiceRecording: isAudio
+      });
     } catch (err) {
       const message = (err as Error).message || t('errorOccurred');
       setError(message);
@@ -1320,6 +1327,7 @@ export default function HomePageClient() {
                         totalChunks={analysisProgress.totalChunks}
                         message={analysisProgress.message}
                         isPremium={analysisProgress.isPremium}
+                        isVoiceRecording={analysisProgress.isVoiceRecording}
                       />
                     </div>
                   </>

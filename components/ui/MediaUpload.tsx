@@ -27,6 +27,7 @@ export function MediaUpload({
   maxRecordMs = DEFAULT_MAX_RECORD_MS
 }: MediaUploadProps) {
   const { t } = useLanguage();
+  const voiceComingSoon = true;
   const translate = useMemo(
     () => (key: string, params?: Record<string, string | number>) => {
       let msg = t(key);
@@ -162,11 +163,16 @@ export function MediaUpload({
           <p className="text-xs text-muted-foreground">
             {translate('record_voice_hint', { seconds: Math.round(maxRecordMs / 1000) })}
           </p>
+          {voiceComingSoon && (
+            <div className="text-xs text-amber-600 dark:text-amber-300 font-medium">
+              {t('voice_coming_soon')}
+            </div>
+          )}
           <div className="flex flex-col items-center gap-3">
             <button
               type="button"
               onClick={isRecording ? stopRecording : startRecording}
-              disabled={disabled || uploading}
+              disabled={disabled || uploading || voiceComingSoon}
               className={cn(
                 'relative flex items-center justify-center h-20 w-20 rounded-full border transition-all duration-200',
                 'bg-primary/10 text-primary border-primary/50 shadow-sm',
@@ -198,7 +204,7 @@ export function MediaUpload({
                 type="button"
                 onClick={startRecording}
                 variant="primary"
-                disabled={disabled || uploading}
+                disabled={disabled || uploading || voiceComingSoon}
                 className="w-full"
               >
                 {t('start_recording')}

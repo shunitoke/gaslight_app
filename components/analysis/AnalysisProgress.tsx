@@ -19,6 +19,7 @@ type AnalysisProgressProps = {
   totalChunks?: number;
   message?: string;
   isPremium?: boolean;
+  isVoiceRecording?: boolean;
 };
 
 type StepId = Exclude<AnalysisProgressProps['status'], 'completed' | 'error'>;
@@ -30,6 +31,7 @@ export function AnalysisProgress({
   totalChunks,
   message,
   isPremium,
+  isVoiceRecording
 }: AnalysisProgressProps) {
   const { t } = useLanguage();
 
@@ -37,7 +39,7 @@ export function AnalysisProgress({
     starting: t('progress_starting'),
     parsing: t('progress_parsing'),
     analyzing: t('progress_analyzing'),
-    media: t('progress_media'),
+    media: isVoiceRecording ? t('progress_media_voice') : t('progress_media'),
     chunking: t('progress_chunking'),
     finalizing: t('progress_finalizing'),
     completed: t('progress_completed'),

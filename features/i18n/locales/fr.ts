@@ -110,6 +110,8 @@ export const frBundle: LocaleBundle = {
     stop_recording: 'Arrêter ({{seconds}}s)',
     recording: 'Enregistrement en cours...',
     mic_permission_error: 'Accès au micro impossible. Autorisez le micro et réessayez.',
+    progress_media_voice: 'Analyse de la note vocale...',
+    voice_coming_soon: 'La transcription vocale arrivera dans la prochaine version.',
     pasteLabel: 'Collez un court extrait de votre conversation',
     pastePlaceholder:
       'Collez ici des messages (court extrait uniquement, pas une conversation de plusieurs années)...',

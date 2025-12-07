@@ -110,6 +110,8 @@ export const esBundle: LocaleBundle = {
     stop_recording: 'Detener ({{seconds}}s)',
     recording: 'Grabando...',
     mic_permission_error: 'No se pudo acceder al micrófono. Permite el acceso e inténtalo de nuevo.',
+    progress_media_voice: 'Analizando la grabación de voz...',
+    voice_coming_soon: 'La transcripción de voz llegará en la próxima versión.',
     pasteLabel: 'Pega un breve fragmento de tu conversación',
     pastePlaceholder:
       'Pega aquí los mensajes (solo un fragmento pequeño, no todo el chat de años)...',

@@ -110,6 +110,8 @@ export const ptBundle: LocaleBundle = {
     stop_recording: 'Parar ({{seconds}}s)',
     recording: 'Gravando...',
     mic_permission_error: 'Não foi possível acessar o microfone. Permita o acesso e tente novamente.',
+    progress_media_voice: 'Analisando a gravação de voz...',
+    voice_coming_soon: 'A transcrição de voz chegará na próxima versão.',
     pasteLabel: 'Cole um pequeno trecho da sua conversa',
     pastePlaceholder:
       'Cole as mensagens aqui (apenas um trecho pequeno, não todo o histórico de anos)...',
