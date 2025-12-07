@@ -99,6 +99,8 @@ export async function POST(request: Request) {
             'audio/webm',
             'audio/mp4',
             'audio/m4a',
+            // some browsers label mic blobs as video/webm even for audio-only
+            'video/webm',
           ],
           addRandomSuffix: false,
           tokenPayload: JSON.stringify({

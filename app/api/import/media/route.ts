@@ -18,6 +18,8 @@ const MAX_BYTES = 25 * 1024 * 1024;
 function guessType(fileName: string, contentType?: string | null): 'image' | 'audio' | 'other' {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   if (ALLOWED_IMAGE.includes(ext) || contentType?.startsWith('image/')) return 'image';
+  // Some browsers label mic recordings as video/webm even if audio-only
+  if (contentType === 'video/webm') return 'audio';
   if (ALLOWED_AUDIO.includes(ext) || contentType?.startsWith('audio/')) return 'audio';
   return 'other';
 }
