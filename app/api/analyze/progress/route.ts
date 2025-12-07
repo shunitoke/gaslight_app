@@ -10,7 +10,8 @@ import { logInfo, logWarn } from '../../../../lib/telemetry';
 import {
   isKvAvailable,
   getProgressFromKv,
-  setProgressInKv
+  setProgressInKv,
+  deleteProgressFromKv
 } from '../../../../lib/kv';
 import { progressStore } from '../../../../lib/progress';
 
@@ -90,6 +91,16 @@ export async function updateProgressStore(
       usingKv: isKvAvailable()
     });
   }
+}
+
+/**
+ * Delete progress state (KV + in-memory) and cleanup any blob
+ */
+export async function deleteProgressStore(conversationId: string) {
+  if (isKvAvailable()) {
+    await deleteProgressFromKv(conversationId);
+  }
+  progressStore.delete(conversationId);
 }
 
 /**

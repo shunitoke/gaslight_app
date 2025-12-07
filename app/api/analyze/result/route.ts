@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { getJob } from '../jobStore';
+import { getJob, deleteJob } from '../jobStore';
+import { deleteProgressStore } from '../progress/route';
 import { logWarn } from '../../../../lib/telemetry';
 
 export const runtime = 'nodejs';
@@ -40,17 +41,26 @@ export async function GET(request: Request) {
   }
 
   // Completed job with result
-  return NextResponse.json(
-    {
-      jobId: job.id,
-      status: job.status,
-      progress: job.progress,
-      conversation: job.result.conversation,
-      analysis: job.result.analysis,
-      activityByDay: job.result.activityByDay,
-    },
-    { status: 200 },
-  );
+  const payload = {
+    jobId: job.id,
+    status: job.status,
+    progress: job.progress,
+    conversation: job.result.conversation,
+    analysis: job.result.analysis,
+    activityByDay: job.result.activityByDay,
+  };
+
+  // Best-effort cleanup after delivery (progress + job)
+  try {
+    await Promise.allSettled([
+      deleteProgressStore(job.conversationId),
+      deleteJob(job.id, job.conversationId)
+    ]);
+  } catch {
+    // Swallow cleanup errors to not block response
+  }
+
+  return NextResponse.json(payload, { status: 200 });
 }
 
 

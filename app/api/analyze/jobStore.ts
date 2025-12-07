@@ -3,7 +3,8 @@ import {
   getJobFromKv,
   setJobInKv,
   getJobByConversationIdFromKv,
-  setJobIndex
+  setJobIndex,
+  deleteJobFromKv
 } from '../../../lib/kv';
 import { logInfo, logWarn } from '../../../lib/telemetry';
 
@@ -94,6 +95,21 @@ export async function setJobResult(jobId: string, result: AnalysisJobResult): Pr
 
 export function listJobs(): AnalysisJob[] {
   return Array.from(jobStore.values());
+}
+
+export async function deleteJob(jobId: string, conversationId?: string): Promise<void> {
+  if (isKvAvailable()) {
+    await deleteJobFromKv(jobId);
+  }
+  jobStore.delete(jobId);
+  if (conversationId) {
+    // cleanup any in-memory index (if added later)
+    for (const [id, job] of jobStore.entries()) {
+      if (job.conversationId === conversationId) {
+        jobStore.delete(id);
+      }
+    }
+  }
 }
 
 /**

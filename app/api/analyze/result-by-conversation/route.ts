@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getJobByConversationId } from '../jobStore';
-import { getProgressStore } from '../progress/route';
+import { getJobByConversationId, deleteJob } from '../jobStore';
+import { getProgressStore, deleteProgressStore } from '../progress/route';
 import { logWarn, logInfo } from '../../../../lib/telemetry';
 
 export const runtime = 'nodejs';
@@ -34,7 +34,17 @@ export async function GET(request: Request) {
         attempt: attempt + 1,
         sectionsCount: progress.result.analysis?.sections?.length || 0
       });
-      return NextResponse.json(progress.result, { status: 200 });
+      const response = NextResponse.json(progress.result, { status: 200 });
+      try {
+        const jobForCleanup = await getJobByConversationId(conversationId);
+        await Promise.allSettled([
+          deleteProgressStore(conversationId),
+          jobForCleanup?.id ? deleteJob(jobForCleanup.id, conversationId) : Promise.resolve()
+        ]);
+      } catch {
+        // ignore cleanup errors
+      }
+      return response;
     }
 
     // Fallback: try to find job by conversationId
@@ -48,7 +58,16 @@ export async function GET(request: Request) {
         attempt: attempt + 1,
         sectionsCount: job.result.analysis?.sections?.length || 0
       });
-      return NextResponse.json(job.result, { status: 200 });
+      const response = NextResponse.json(job.result, { status: 200 });
+      try {
+        await Promise.allSettled([
+          deleteProgressStore(conversationId),
+          deleteJob(job.id, conversationId)
+        ]);
+      } catch {
+        // ignore cleanup errors
+      }
+      return response;
     }
   }
 

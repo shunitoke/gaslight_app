@@ -11,6 +11,7 @@
  */
 
 import { logWarn, logInfo, logError } from './telemetry';
+import { deleteResultFromBlob } from './blob';
 
 // Redis client instance (singleton)
 let redisClient: any = null;
@@ -134,11 +135,11 @@ export async function getRedisClient() {
   return redisClient;
 }
 
-// TTL for progress data (2 hours - extended for long analyses)
-const PROGRESS_TTL = 2 * 60 * 60;
+// TTL for progress data (1 hour - extended to 2 hours when result present)
+const PROGRESS_TTL = 1 * 60 * 60;
 
-// TTL for job data (2 hours - extended for long analyses)
-const JOB_TTL = 2 * 60 * 60;
+// TTL for job data (1 hour - extended to 2 hours when completed)
+const JOB_TTL = 1 * 60 * 60;
 
 /**
  * Check if Redis is available (has REDIS_URL environment variable)
@@ -438,6 +439,84 @@ export async function setJobIndex(conversationId: string, jobId: string) {
       error: (error as Error).message
     });
     return false;
+  }
+}
+
+/**
+ * Delete progress from KV and cleanup blob if present
+ */
+export async function deleteProgressFromKv(conversationId: string): Promise<void> {
+  if (!isKvAvailable()) return;
+  try {
+    const redis = await getRedisClient();
+    if (!redis) return;
+
+    const key = `progress:${conversationId}`;
+    const existing = await redis.get(key);
+    let blobUrl: string | undefined;
+    if (existing) {
+      try {
+        const parsed = JSON.parse(existing as string);
+        if (parsed?.blobUrl) {
+          blobUrl = parsed.blobUrl;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    await redis.del(key);
+
+    if (blobUrl) {
+      try {
+        await deleteResultFromBlob(blobUrl);
+        logInfo('kv_progress_blob_deleted', { conversationId, blobUrl });
+      } catch (blobError) {
+        logWarn('kv_progress_blob_delete_error', {
+          conversationId,
+          blobUrl,
+          error: (blobError as Error).message
+        });
+      }
+    }
+  } catch (error) {
+    logWarn('kv_delete_progress_error', {
+      conversationId,
+      error: (error as Error).message
+    });
+  }
+}
+
+/**
+ * Delete job and its index mapping from KV
+ */
+export async function deleteJobFromKv(jobId: string): Promise<void> {
+  if (!isKvAvailable()) return;
+  try {
+    const redis = await getRedisClient();
+    if (!redis) return;
+
+    const key = `job:${jobId}`;
+    let conversationId: string | undefined;
+    try {
+      const existing = await redis.get(key);
+      if (existing) {
+        const parsed = JSON.parse(existing as string);
+        conversationId = parsed?.conversationId;
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    await redis.del(key);
+    if (conversationId) {
+      await redis.del(`job_index:${conversationId}`);
+    }
+  } catch (error) {
+    logWarn('kv_delete_job_error', {
+      jobId,
+      error: (error as Error).message
+    });
   }
 }
 

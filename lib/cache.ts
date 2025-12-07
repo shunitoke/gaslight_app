@@ -15,7 +15,7 @@ import { getRedisClient } from './kv';
 import type { AnalysisResult } from '../features/analysis/types';
 import type { Message } from '../features/analysis/types';
 
-const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const CACHE_KEY_PREFIX = 'analysis_cache:';
 const PROMPT_VERSION_KEY = 'prompt_version';
 
