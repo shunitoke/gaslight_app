@@ -18,6 +18,8 @@ let redisClient: any = null;
 let connectionPromise: Promise<any> | null = null;
 let isConnecting = false;
 let lastHealthCheck = 0;
+let hasLoggedReady = false;
+let hasLoggedConnected = false;
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 /**
@@ -94,20 +96,30 @@ export async function getRedisClient() {
         });
 
         client.on('connect', () => {
-          logInfo('redis_client_connecting', {});
+          if (!hasLoggedConnected) {
+            logInfo('redis_client_connecting', {});
+            hasLoggedConnected = true;
+          }
         });
 
         client.on('ready', () => {
-          logInfo('redis_client_ready', {});
+          if (!hasLoggedReady) {
+            logInfo('redis_client_ready', {});
+            hasLoggedReady = true;
+          }
           lastHealthCheck = Date.now();
         });
 
         client.on('reconnecting', () => {
           logInfo('redis_client_reconnecting', {});
+          hasLoggedReady = false; // allow ready log once after reconnect
         });
         
         await client.connect();
-        logInfo('redis_client_connected', { url: process.env.REDIS_URL?.replace(/:[^:@]+@/, ':****@') });
+        if (!hasLoggedConnected) {
+          logInfo('redis_client_connected', { url: process.env.REDIS_URL?.replace(/:[^:@]+@/, ':****@') });
+          hasLoggedConnected = true;
+        }
         
         // Verify connection with ping
         await client.ping();
