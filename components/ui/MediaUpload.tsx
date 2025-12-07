@@ -197,7 +197,7 @@ export function MediaUpload({
               <Button
                 type="button"
                 onClick={startRecording}
-                variant="default"
+                variant="primary"
                 disabled={disabled || uploading}
                 className="w-full"
               >
