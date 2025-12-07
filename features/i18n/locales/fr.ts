@@ -292,7 +292,7 @@ export const frBundle: LocaleBundle = {
       'Vous ne pouvez utiliser le Service que si vous avez au moins 18 ans et êtes légalement en mesure de conclure ces Conditions. Vous êtes responsable de vous assurer que vous avez le droit de télécharger et de traiter les chats que vous soumettez au Service.',
     terms_section3_title: '3. Traitement des données et confidentialité',
     terms_section3_content:
-      'Nous traitons vos chats téléchargés de manière éphémère dans le but de générer un rapport d\'analyse. Les données téléchargées et les rapports générés ne sont pas stockés plus longtemps que nécessaire pour fournir le Service et ne sont pas utilisés pour former des modèles tiers. Pour plus de détails, veuillez consulter notre Politique de confidentialité (lorsqu\'elle sera disponible).',
+      'Les conversations téléchargées sont transmises en clair à nos serveurs et à des fournisseurs tiers de modèles d\'IA pour générer votre rapport. Nous ne fournissons pas de chiffrement de bout en bout ; le contenu pourrait être techniquement accessible au personnel autorisé ou aux fournisseurs, même si l\'accès est restreint. Les données téléchargées et les rapports générés ne sont pas stockés plus longtemps que nécessaire pour fournir le Service et ne sont pas utilisés pour former des modèles tiers. Pour plus de détails, veuillez consulter notre Politique de confidentialité (lorsqu\'elle sera disponible).',
     terms_section4_title: '4. Paiements et abonnements',
     terms_section4_content:
       'Certaines fonctionnalités peuvent être proposées sur une base payante (par exemple, analyse premium ou analyse des médias). Les paiements sont traités via notre système de traitement des paiements. Les prix, les intervalles de facturation et les règles de remboursement sont indiqués à la caisse et peuvent être mis à jour de temps à autre.',
@@ -310,7 +310,7 @@ export const frBundle: LocaleBundle = {
       'Nous pouvons mettre à jour ces Conditions de temps à autre. La date de "dernière mise à jour" en haut de cette page indiquera quand les modifications entrent en vigueur. Votre utilisation continue du Service après toute modification signifie que vous acceptez les Conditions mises à jour.',
     terms_section9_title: '9. Contact',
     terms_section9_content:
-      'Si vous avez des questions concernant ces Conditions ou le Service, veuillez nous contacter en utilisant les coordonnées fournies sur le site principal ou dans l\'application.',
+      'Si vous avez des questions concernant ces Conditions ou le Service, veuillez nous contacter à spinnermining@gmail.com.',
     donation_beta_label: 'Bêta',
     donation_title: 'Soutenir le développeur',
     donation_text: 'Si ce rapport vous a aidé, une petite donation serait appréciée. Merci pour votre soutien !',

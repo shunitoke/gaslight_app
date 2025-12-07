@@ -292,7 +292,7 @@ export const deBundle: LocaleBundle = {
       'Sie dürfen den Service nur nutzen, wenn Sie mindestens 18 Jahre alt sind und rechtlich in der Lage sind, diese Bedingungen einzugehen. Sie sind dafür verantwortlich sicherzustellen, dass Sie das Recht haben, die Chats, die Sie an den Service übermitteln, hochzuladen und zu verarbeiten.',
     terms_section3_title: '3. Datenverarbeitung und Datenschutz',
     terms_section3_content:
-      'Wir verarbeiten Ihre hochgeladenen Chats vorübergehend zum Zweck der Generierung eines Analyseberichts. Hochgeladene Daten und generierte Berichte werden nicht länger gespeichert, als es zur Bereitstellung des Service erforderlich ist, und werden nicht zum Training von Drittmodellen verwendet. Weitere Details finden Sie in unserer Datenschutzerklärung (wenn verfügbar).',
+      'Hochgeladene Chats werden im Klartext an unsere Server und an Drittanbieter von KI-Modellen übertragen, um Ihren Bericht zu erstellen. Wir bieten keine Ende-zu-Ende-Verschlüsselung; autorisierte Mitarbeitende oder Anbieter könnten technisch Zugriff auf Inhalte haben, auch wenn der Zugriff eingeschränkt wird. Hochgeladene Daten und generierte Berichte werden nicht länger gespeichert, als für den Service nötig, und nicht zum Training von Drittmodellen verwendet. Weitere Details finden Sie in unserer Datenschutzerklärung (wenn verfügbar).',
     terms_section4_title: '4. Zahlungen und Abonnements',
     terms_section4_content:
       'Bestimmte Funktionen können gegen Gebühr angeboten werden (z. B. Premium-Analyse oder Medienanalyse). Zahlungen werden über unser Zahlungssystem verarbeitet. Preise, Abrechnungsintervalle und Rückerstattungsregeln werden an der Kasse angezeigt und können von Zeit zu Zeit aktualisiert werden.',
@@ -310,7 +310,7 @@ export const deBundle: LocaleBundle = {
       'Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Das Datum der "letzten Aktualisierung" oben auf dieser Seite zeigt an, wann Änderungen wirksam werden. Ihre fortgesetzte Nutzung des Service nach Änderungen bedeutet, dass Sie die aktualisierten Bedingungen akzeptieren.',
     terms_section9_title: '9. Kontakt',
     terms_section9_content:
-      'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte über die auf der Hauptseite oder in der App angegebenen Kontaktdaten.',
+      'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte unter spinnermining@gmail.com.',
     donation_beta_label: 'Beta',
     donation_title: 'Entwickler unterstützen',
     donation_text: 'Wenn dir dieser Bericht geholfen hat, freue ich mich über eine kleine Spende. Danke für deine Unterstützung!',

@@ -79,6 +79,20 @@ function cleanOverviewSummaryFromJson(text: string): string {
 }
 
 /**
+ * Build a stable message identity to avoid double-counting when chunks overlap.
+ * Falls back to sender + timestamp + text prefix when the message ID is missing.
+ */
+function getMessageKey(message: Message | undefined | null): string | null {
+  if (!message) return null;
+  if (message.id) return message.id;
+  const sentAt = message.sentAt || '';
+  const senderId = message.senderId || '';
+  const textPrefix = (message.text || '').slice(0, 120);
+  const base = `${sentAt}|${senderId}|${textPrefix}`.trim();
+  return base.length > 0 ? base : null;
+}
+
+/**
  * Normalize section ID to handle variations (e.g., "supportiveness" vs "support")
  */
 function normalizeSectionId(id: string, title: string): string {
@@ -882,6 +896,8 @@ export async function analyzeConversation(
 ): Promise<AnalysisResult> {
   const analysisId = `analysis_${conversation.id}_${Date.now()}`;
   const startTime = Date.now();
+  let configErrorMessage: string | null = null;
+  let chunkCountForMetrics = 0;
   
   // Check config before starting
   let configStatus = 'unknown';
@@ -901,11 +917,32 @@ export async function analyzeConversation(
       textModel: config.textModel
     });
   } catch (configError) {
+    configErrorMessage = (configError as Error).message;
     logError('analysis_config_error', {
       conversationId: conversation.id,
       error: (configError as Error).message
     });
     configStatus = 'ERROR';
+  }
+
+  // Fail fast if model configuration is missing to avoid opaque LLM errors later
+  if (configStatus !== 'configured') {
+    const progressId = conversationId || conversation.id;
+    const errorMessage = configErrorMessage || 'Missing OpenRouter API key. Set OPENROUTER_API_KEY before running analysis.';
+    await updateProgress(progressId, {
+      status: 'error',
+      progress: 0,
+      error: errorMessage
+    });
+    try {
+      const { recordAnalysisComplete } = await import('../../lib/metrics');
+      await recordAnalysisComplete(conversation.id, 0, false, errorMessage);
+    } catch (metricsError) {
+      logWarn('metrics_complete_error', {
+        error: (metricsError as Error).message
+      });
+    }
+    throw new Error(errorMessage);
   }
 
   // Record metrics start
@@ -1002,6 +1039,7 @@ export async function analyzeConversation(
     // Using much larger chunks and a hard cap on total chunks to
     // significantly reduce the number of LLM calls per analysis.
     const chunks = chunkMessages(messages);
+    chunkCountForMetrics = chunks.length;
     
     logInfo('analysis_chunking_complete', {
       conversationId: conversation.id,
@@ -1091,14 +1129,11 @@ export async function analyzeConversation(
       const chunkMessagesArr = chunks[chunkIndex] || [];
       let effectiveChunkSize = 0;
       for (const m of chunkMessagesArr) {
-        if (m?.id && !seenMessages.has(m.id)) {
-          seenMessages.add(m.id);
+        const key = getMessageKey(m);
+        if (key && !seenMessages.has(key)) {
+          seenMessages.add(key);
           effectiveChunkSize++;
         }
-      }
-      // Fallback to raw length if IDs are missing
-      if (effectiveChunkSize === 0) {
-        effectiveChunkSize = chunkMessagesArr.length;
       }
       if (effectiveChunkSize > 0) {
         gaslightingScore += (parsed.gaslightingRiskScore || 0) * effectiveChunkSize;
@@ -1683,6 +1718,19 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       conversationId: conversation.id,
       error: (error as Error).message
     });
+    try {
+      const { recordAnalysisComplete } = await import('../../lib/metrics');
+      await recordAnalysisComplete(
+        conversation.id,
+        chunkCountForMetrics,
+        false,
+        (error as Error).message
+      );
+    } catch (metricsError) {
+      logWarn('metrics_complete_error', {
+        error: (metricsError as Error).message
+      });
+    }
     throw new Error(`Analysis failed: ${(error as Error).message}`);
   }
 }

@@ -316,7 +316,7 @@ export const enBundle: LocaleBundle = {
       'You may use the Service only if you are at least 18 years old and legally able to enter into these Terms. You are responsible for ensuring that you have the right to upload and process the chats you submit to the Service.',
     terms_section3_title: '3. Data Handling & Privacy',
     terms_section3_content:
-      'We process your uploaded chats ephemerally for the purpose of generating an analysis report. Uploaded data and generated reports are not stored longer than necessary to provide the Service, and are not used for training third-party models. For more details, please refer to our Privacy Policy (when available).',
+      'Uploaded chats are transmitted in plaintext to our servers and to third-party AI model providers to generate your report. We do not provide end-to-end encryption; authorized personnel or providers could technically access content even though we restrict access. Uploaded data and generated reports are not stored longer than necessary to provide the Service and are not used for training third-party models. For more details, please refer to our Privacy Policy (when available).',
     terms_section4_title: '4. Payments & Subscriptions',
     terms_section4_content:
       'Certain features may be offered on a paid basis (for example, premium analysis or media analysis). Payments are processed through our payment processing system. Prices, billing intervals, and refund rules are shown at checkout and may be updated from time to time.',
@@ -334,7 +334,7 @@ export const enBundle: LocaleBundle = {
       'We may update these Terms from time to time. The "last updated" date at the top of this page will indicate when changes become effective. Your continued use of the Service after any changes means you accept the updated Terms.',
     terms_section9_title: '9. Contact',
     terms_section9_content:
-      'If you have questions about these Terms or the Service, please contact us using the details provided on the main site or within the app.',
+      'If you have questions about these Terms or the Service, please contact us at spinnermining@gmail.com.',
     donation_beta_label: 'Beta',
     donation_title: 'Support the developer',
     donation_text: 'If this report helped, consider a small donation. Thank you for your support!',

@@ -292,7 +292,7 @@ export const esBundle: LocaleBundle = {
       'Solo puedes usar el Servicio si tienes al menos 18 años y eres legalmente capaz de celebrar estos Términos. Eres responsable de asegurarte de que tienes derecho a subir y procesar los chats que envías al Servicio.',
     terms_section3_title: '3. Manejo de datos y privacidad',
     terms_section3_content:
-      'Procesamos tus chats subidos de manera efímera con el propósito de generar un informe de análisis. Los datos subidos y los informes generados no se almacenan más tiempo del necesario para proporcionar el Servicio y no se usan para entrenar modelos de terceros. Para más detalles, consulta nuestra Política de Privacidad (cuando esté disponible).',
+      'Los chats subidos se transmiten en texto claro a nuestros servidores y a proveedores externos de modelos de IA para generar tu informe. No ofrecemos cifrado de extremo a extremo; el contenido podría ser técnicamente accesible para personal autorizado o proveedores, aunque el acceso esté restringido. Los datos subidos y los informes generados no se almacenan más tiempo del necesario para proporcionar el Servicio y no se usan para entrenar modelos de terceros. Para más detalles, consulta nuestra Política de Privacidad (cuando esté disponible).',
     terms_section4_title: '4. Pagos y suscripciones',
     terms_section4_content:
       'Ciertas funciones pueden ofrecerse de forma de pago (por ejemplo, análisis premium o análisis de medios). Los pagos son procesados a través de nuestro sistema de procesamiento de pagos. Los precios, intervalos de facturación y reglas de reembolso se muestran en el checkout y pueden actualizarse de vez en cuando.',
@@ -310,7 +310,7 @@ export const esBundle: LocaleBundle = {
       'Podemos actualizar estos Términos de vez en cuando. La fecha de "última actualización" en la parte superior de esta página indicará cuándo los cambios se vuelven efectivos. Tu uso continuado del Servicio después de cualquier cambio significa que aceptas los Términos actualizados.',
     terms_section9_title: '9. Contacto',
     terms_section9_content:
-      'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos usando los detalles proporcionados en el sitio principal o dentro de la aplicación.',
+      'Si tienes preguntas sobre estos Términos o el Servicio, contáctanos en spinnermining@gmail.com.',
     donation_beta_label: 'Beta',
     donation_title: 'Apoyar al desarrollador',
     donation_text: 'Si este informe te ayudó, una pequeña donación sería de gran ayuda. ¡Gracias por tu apoyo!',
