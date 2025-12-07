@@ -176,20 +176,14 @@ export async function POST(request: Request) {
             confidence: detection.confidence
           });
         } else {
-          logError('auto_detection_failed_blob', {
+          // Fallback to generic instead of failing hard
+          detectedPlatform = 'generic';
+          platform = 'generic';
+          logWarn('auto_detection_failed_blob_generic_fallback', {
             fileName,
-            confidence: detection.confidence
+            confidence: detection.confidence,
+            detectedFormat: detection.format
           });
-          if (!platform || platform === 'auto') {
-            return NextResponse.json(
-              { 
-                error: 'Could not automatically detect the file format. Please specify the platform manually.',
-                detectedFormat: detection.format,
-                confidence: detection.confidence
-              },
-              { status: 400 }
-            );
-          }
         }
       }
     }
