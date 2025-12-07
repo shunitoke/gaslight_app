@@ -173,7 +173,11 @@ export function MediaUpload({
                 !disabled && !uploading && 'hover:scale-105 hover:shadow-md hover:bg-primary/15',
                 (disabled || uploading) && 'opacity-60 cursor-not-allowed'
               )}
-              aria-label={isRecording ? t('stop_recording', { seconds: recordSeconds }) : t('start_recording')}
+              aria-label={
+                isRecording
+                  ? translate('stop_recording', { seconds: recordSeconds })
+                  : t('start_recording')
+              }
             >
               {isRecording ? (
                 <MicOff className="h-10 w-10 animate-pulse" />
