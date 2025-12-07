@@ -1097,7 +1097,7 @@ export default function HomePageClient() {
           <h1
             key={taglineIndex}
             className={cn(
-              'text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground min-h-[9rem] sm:min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem] flex items-center',
+              'text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground min-h-[7rem] sm:min-h-[8rem] md:min-h-[9rem] lg:min-h-[10rem] flex items-center',
               isAnimating && 'tagline-animate'
             )}
           >
@@ -1106,31 +1106,7 @@ export default function HomePageClient() {
 
           <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">
             {t('hero_copy')}
-            <span className="block text-[12px] sm:text-xs text-muted-foreground/80 mt-1">
-              {t('hero_confidential')}
-            </span>
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <Badge variant="secondary" className="bg-primary/10 text-primary dark:text-white border-primary/20 text-body-xs">
-              <Brain className="mr-1.5 h-3.5 w-3.5" />
-              {t('hero_badge_patterns')}
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="!bg-emerald-500/15 text-primary dark:text-white !border-emerald-500/25 text-body-xs"
-            >
-              <Shield className="mr-1.5 h-3.5 w-3.5" />
-              {t('hero_badge_boundaries')}
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="bg-secondary/20 text-primary dark:text-white border-secondary/30 text-body-xs"
-            >
-              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              {t('hero_badge_multilang')}
-            </Badge>
-          </div>
         </div>
 
         <div className="relative w-full max-w-md mx-auto">
@@ -1314,10 +1290,10 @@ export default function HomePageClient() {
           className="flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500"
           style={{
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            height: '560px',
+            height: 'auto',
             minHeight: '560px',
             willChange: 'opacity, transform',
-            overflow: 'hidden'
+            overflow: 'visible'
           }}
         >
           {error ? (
@@ -1364,7 +1340,7 @@ export default function HomePageClient() {
               </div>
             </div>
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-full flex flex-col items-center justify-center">
               {!uploading && !analyzing && !error && !conversation && (
                 <div className="flex justify-center w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs">
@@ -1410,11 +1386,12 @@ export default function HomePageClient() {
 
               {!error && (
                 <div
-                  className="w-full max-w-lg relative h-full flex items-center justify-center overflow-hidden"
+                  className="relative w-full max-w-lg flex items-center justify-center overflow-visible"
                   style={{
                     transition:
                       'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                    willChange: 'opacity, transform'
+                    willChange: 'opacity, transform',
+                    minHeight: '420px'
                   }}
                 >
                   <div
@@ -1575,21 +1552,6 @@ export default function HomePageClient() {
       </div>
 
       <div className="text-center max-w-3xl animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
-        <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-background/60 px-4 py-2 border border-border/40 shadow-sm mb-3">
-          <Badge
-            variant="secondary"
-            className="!bg-emerald-500/15 text-primary dark:text-white !border-emerald-500/25"
-          >
-            <Shield className="mr-1.5 h-3.5 w-3.5" />
-            {t('privacy_chip_no_sharing')}
-          </Badge>
-          <Badge variant="secondary" className="bg-primary/10 text-primary dark:text-white border-primary/20">
-            {t('privacy_chip_local_session')}
-          </Badge>
-          <Badge variant="secondary" className="bg-secondary/20 text-primary dark:text-white border-secondary/30">
-            {t('privacy_chip_control')}
-          </Badge>
-        </div>
         <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
           <Shield className="inline h-3.5 w-3.5 mr-1.5 mb-0.5 opacity-80" />
           {t('privacyNote')}

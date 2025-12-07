@@ -1018,9 +1018,9 @@ export async function analyzeConversation(
         if (media.blobUrl) {
           // Prefer direct blob URL (public) so vision model fetches without base64 bloat
           const analysis = await analyzeMediaArtifact(media, media.blobUrl);
-          media.labels = analysis.labels;
-          media.sentimentHint = analysis.sentiment;
-          media.notes = analysis.description;
+            media.labels = analysis.labels;
+            media.sentimentHint = analysis.sentiment;
+            media.notes = analysis.description;
         } else if (media.transientPathOrUrl) {
           // Fallback for old format (base64 data URL)
           const analysis = await analyzeMediaArtifact(media, media.transientPathOrUrl);
@@ -1630,7 +1630,7 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
             return allowedDates.has(key);
           })
         : undefined;
-
+    
     const result: AnalysisResult = {
       id: analysisId,
       conversationId: conversation.id,
