@@ -61,12 +61,6 @@ export async function POST(request: Request) {
 
     const subscriptionTier = await getSubscriptionTier(request);
     const features = getSubscriptionFeatures(subscriptionTier);
-    if (!features.canAnalyzeMedia) {
-      return NextResponse.json(
-        { error: 'Media analysis is a premium feature. Upgrade to proceed.', requiresPremium: true },
-        { status: 403 }
-      );
-    }
 
     const response = await fetch(blobUrl);
     if (!response.ok) {
@@ -148,7 +142,7 @@ export async function POST(request: Request) {
       messages: [message],
       media: [mediaArtifact],
       features: {
-        canAnalyzeMedia: features.canAnalyzeMedia,
+        canAnalyzeMedia: true,
         canUseEnhancedAnalysis: features.canUseEnhancedAnalysis
       }
     });
