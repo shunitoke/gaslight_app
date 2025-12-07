@@ -20,6 +20,8 @@ let isConnecting = false;
 let lastHealthCheck = 0;
 let hasLoggedReady = false;
 let hasLoggedConnected = false;
+let lastErrorLogAt = 0;
+const ERROR_LOG_COOLDOWN_MS = 5000; // suppress duplicate error spam
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 /**
@@ -88,7 +90,11 @@ export async function getRedisClient() {
         });
         
         client.on('error', (err: Error) => {
-          logWarn('redis_client_error', { error: err.message });
+          const now = Date.now();
+          if (now - lastErrorLogAt > ERROR_LOG_COOLDOWN_MS) {
+            logWarn('redis_client_error', { error: err.message });
+            lastErrorLogAt = now;
+          }
           // Reset client on error to force reconnection
           redisClient = null;
           connectionPromise = null;

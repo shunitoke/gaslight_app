@@ -99,6 +99,17 @@ export const deBundle: LocaleBundle = {
     uploadAndAnalyze: 'Hochladen & Analysieren',
     inputMode_upload: 'Export hochladen',
     inputMode_paste: 'Text einfügen',
+    inputMode_media: 'Medien / Sprache',
+    upload_media_title: 'Bild oder Audio hochladen',
+    upload_media_hint:
+      'Unterstützt: Bilder (png, jpg, jpeg, webp, gif) und Audio (mp3, wav, ogg, opus, m4a, webm). Max. 25MB.',
+    choose_file: 'Datei auswählen',
+    record_voice_title: 'Sprachnachricht aufnehmen',
+    record_voice_hint: 'Bis zu {{seconds}} Sekunden. Wir transkribieren automatisch.',
+    start_recording: 'Aufnahme starten',
+    stop_recording: 'Stopp ({{seconds}}s)',
+    recording: 'Aufnahme läuft...',
+    mic_permission_error: 'Kein Mikrofonzugriff. Bitte Zugriff erlauben und erneut versuchen.',
     pasteLabel: 'Fügen Sie einen kurzen Auszug Ihrer Konversation ein',
     pastePlaceholder:
       'Fügen Sie hier Nachrichten ein (nur kurzer Ausschnitt, kein mehrjähriger Chat)...',
@@ -228,7 +239,7 @@ export const deBundle: LocaleBundle = {
     testimonial_david_quote:
       'Ich wollte verstehen, warum meine Beziehungen immer scheiterten. Die Analyse zeigte meine Kommunikationsmuster – defensiv, abweisend. Schwer zu hören, aber notwendig.',
     // Dashboard
-    dashboard_title: 'Analyse-Dashboard',
+    dashboard_title: 'Chronologie',
     heatmap_title: 'Aktivitäts-Heatmap',
     heatmap_description:
       'Konversationsintensität pro Woche. Rot hebt Perioden mit Konflikten oder bedeutsamen Ereignissen hervor.',

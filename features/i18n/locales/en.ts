@@ -99,6 +99,17 @@ export const enBundle: LocaleBundle = {
     uploadAndAnalyze: 'Upload & Analyze',
     inputMode_upload: 'Upload export',
     inputMode_paste: 'Paste text',
+    inputMode_media: 'Media / voice',
+    upload_media_title: 'Upload image or audio',
+    upload_media_hint:
+      'Supported: images (png, jpg, jpeg, webp, gif) and audio (mp3, wav, ogg, opus, m4a, webm). Max 25MB.',
+    choose_file: 'Choose file',
+    record_voice_title: 'Record a voice note',
+    record_voice_hint: 'Up to {{seconds}} seconds. We’ll transcribe automatically.',
+    start_recording: 'Start recording',
+    stop_recording: 'Stop ({{seconds}}s)',
+    recording: 'Recording...',
+    mic_permission_error: 'Could not access microphone. Please allow mic permissions and try again.',
     pasteLabel: 'Paste a short excerpt of your conversation',
     pastePlaceholder: 'Paste messages here (small excerpt only, not a full multi-year chat)...',
     pasteHelp: 'Works best for small excerpts. For long histories, please use chat export import.',
@@ -234,7 +245,7 @@ export const enBundle: LocaleBundle = {
       'I see that this was hard for you, and I appreciate that you still stayed in contact. That feels like care to me.',
 
     // Dashboard
-    dashboard_title: 'Analysis Dashboard',
+    dashboard_title: 'Timeline',
     heatmap_title: 'Activity Heatmap',
     heatmap_description:
       'Conversation intensity by week. Red highlights periods with conflicts or significant events.',

@@ -331,6 +331,7 @@ ENHANCED ANALYSIS MODE:
   - Dates should be in ISO format (YYYY-MM-DD).
   - severity is optional; use higher values (0.7-1.0) for most severe incidents.
   - CRITICAL: The excerpt field MUST contain an EXACT, VERBATIM copy of a quote from evidenceSnippets[].excerpt that occurred on this date. This is essential for the UI to link the date to the correct quotes. Do not use paraphrased or summarized versions - copy the exact text.
+  - Do NOT invent or guess dates. Only use dates present in the messages (msg.sentAt). If no date is known, skip that item entirely.
 
 ADDITIONAL CONSTRAINTS ON LANGUAGE:
 - Do NOT label any participant globally as "abuser", "perpetrator", "victim" or similar. You may describe specific behaviours as manipulative, invalidating, controlling, avoidant, etc., but avoid turning this into a fixed identity for the person.
@@ -344,13 +345,13 @@ ADDITIONAL CONSTRAINTS ON LANGUAGE:
 export function getUserPrompt(
   locale: SupportedLocale = 'en',
   chunkLength: number,
-  mediaContext: string,
+  _mediaContext: string,
   formattedText: string,
   enhancedAnalysis: boolean = false
 ): string {
   const responseLanguage = getLanguageInstruction(locale);
   
-  return `Analyze this conversation excerpt (${chunkLength} messages):${mediaContext}
+  return `Analyze this conversation excerpt (${chunkLength} messages):
 
 ${formattedText}
 
@@ -397,6 +398,7 @@ CRITICAL (LANGUAGE & CONSISTENCY SHORT VERSION):
 - Use only natural, idiomatic ${responseLanguage}; avoid literal word-by-word translations or anglicisms when a native term exists.
 - Do not mix scripts or languages.
 - Do not put any numbers/scores/statistics/metrics inside overviewSummary – only descriptive language.
+- Do NOT invent or guess dates. Only use dates present in the messages (msg.sentAt). If no date is known for an item, omit that item.
 - CRITICAL: Translate ALL frameworkDiagnosis terms to native ${responseLanguage} (e.g., for Russian: "ННО" not "NVC", "КПТ" not "CBT", "тревожный" not "anxious", "Родитель-Ребенок" not "Parent-Child", "катастрофизация" not "catastrophizing")
 
 The conversation you're analyzing may be in any language, but your analysis output must be in ${responseLanguage}.${enhancedAnalysis ? `

@@ -29,6 +29,7 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { FileUpload } from '@/components/ui/FileUpload';
+import { MediaUpload } from '@/components/ui/MediaUpload';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { Progress } from '@/components/ui/progress';
@@ -163,7 +164,7 @@ export default function HomePageClient() {
     isPremium?: boolean;
   } | null>(null);
   const [taglineIndex, setTaglineIndex] = useState(0);
-  const [inputMode, setInputMode] = useState<'file' | 'paste'>('file');
+  const [inputMode, setInputMode] = useState<'file' | 'paste' | 'media'>('file');
   const [pastedText, setPastedText] = useState('');
   const [showExportHelp, setShowExportHelp] = useState(false);
   const [animationLocked, setAnimationLocked] = useState(false);
@@ -231,6 +232,227 @@ export default function HomePageClient() {
     setShowExportHelp((prev) => !prev);
   }, []);
 
+  const startAnalysisWithImport = useCallback(
+    async (importData: {
+      conversation: Conversation;
+      messages: Message[];
+      media?: any[];
+      participants?: Participant[];
+      features?: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean };
+    }) => {
+      setConversation(importData.conversation);
+      setAnalyzing(true);
+      const hasPremium = true;
+
+      setAnalysisProgress({
+        progress: 0,
+        status: 'starting',
+        message: 'Starting AI analysis...',
+        isPremium: hasPremium
+      });
+
+      sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
+      sessionStorage.setItem(
+        'currentFeatures',
+        JSON.stringify({
+          canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
+          canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
+        })
+      );
+
+      const conversationId = importData.conversation.id;
+      let progressPollInterval: NodeJS.Timeout | null = null;
+
+      progressPollInterval = setInterval(async () => {
+        try {
+          const progressResponse = await fetch(
+            `/api/analyze/progress?conversationId=${encodeURIComponent(conversationId)}`
+          );
+          if (progressResponse.ok) {
+            const realProgress = await progressResponse.json();
+
+            if (realProgress.status === 'error' || realProgress.error) {
+              if (progressPollInterval) {
+                clearInterval(progressPollInterval);
+                progressPollInterval = null;
+              }
+
+              let errorMessage = realProgress.error || t('analysisFailed');
+
+              if (realProgress.result?.analysis?.overviewSummary) {
+                const overview = realProgress.result.analysis.overviewSummary;
+                const isError =
+                  overview.includes('Лимит запросов') ||
+                  overview.includes('rate limit') ||
+                  overview.includes('token limit') ||
+                  overview.includes('Ошибка анализа') ||
+                  overview.includes('Analysis error') ||
+                  overview.includes('Код ошибки') ||
+                  overview.includes('Error code');
+                if (isError) {
+                  errorMessage = overview;
+                }
+              }
+
+              setError(errorMessage);
+              setAnalyzing(false);
+              setAnalysisProgress({
+                progress: 0,
+                status: 'error',
+                message: errorMessage
+              });
+              return;
+            }
+
+            if (realProgress.status === 'completed' && realProgress.progress === 100) {
+              if (realProgress.result?.analysis?.overviewSummary) {
+                const overview = realProgress.result.analysis.overviewSummary;
+                const isError =
+                  overview.includes('Лимит запросов') ||
+                  overview.includes('rate limit') ||
+                  overview.includes('token limit') ||
+                  overview.includes('Ошибка анализа') ||
+                  overview.includes('Analysis error') ||
+                  overview.includes('Код ошибки') ||
+                  overview.includes('Error code') ||
+                  (realProgress.result.analysis.sections?.length === 0 &&
+                    (overview.includes('(Код ошибки') || overview.includes('(Error code')));
+
+                if (isError) {
+                  if (progressPollInterval) {
+                    clearInterval(progressPollInterval);
+                    progressPollInterval = null;
+                  }
+                  setError(overview);
+                  setAnalyzing(false);
+                  setAnalysisProgress({
+                    progress: 0,
+                    status: 'error',
+                    message: overview
+                  });
+                  return;
+                }
+              }
+
+              const storedAnalysis = sessionStorage.getItem('currentAnalysis');
+              if (storedAnalysis) {
+                if (progressPollInterval) {
+                  clearInterval(progressPollInterval);
+                  progressPollInterval = null;
+                }
+                setAnalysisProgress({
+                  progress: 100,
+                  status: 'completed',
+                  message: 'Analysis complete!',
+                  isPremium: hasPremium
+                });
+                router.prefetch('/analysis');
+                requestAnimationFrame(() => {
+                  router.push('/analysis');
+                });
+                return;
+              }
+
+              if (realProgress.result && realProgress.result.analysis) {
+                if (progressPollInterval) {
+                  clearInterval(progressPollInterval);
+                  progressPollInterval = null;
+                }
+                const resultData = realProgress.result;
+                sessionStorage.setItem('currentAnalysis', JSON.stringify(resultData.analysis));
+                if (resultData.conversation) {
+                  sessionStorage.setItem('currentConversation', JSON.stringify(resultData.conversation));
+                }
+                if (resultData.activityByDay) {
+                  sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
+                }
+                sessionStorage.setItem(
+                  'currentParticipants',
+                  JSON.stringify(importData.participants || [])
+                );
+                sessionStorage.setItem('currentConversationId', conversationId);
+                sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
+                sessionStorage.setItem(
+                  'currentFeatures',
+                  JSON.stringify({
+                    canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
+                    canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
+                  })
+                );
+
+                setAnalysisProgress({
+                  progress: 100,
+                  status: 'completed',
+                  message: 'Analysis complete!',
+                  isPremium: hasPremium
+                });
+                router.prefetch('/analysis');
+                requestAnimationFrame(() => {
+                  router.push('/analysis');
+                });
+                return;
+              }
+            }
+
+            if (realProgress.progress > 0 && realProgress.status !== 'starting') {
+              setAnalysisProgress((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  progress: realProgress.progress,
+                  status: realProgress.status,
+                  message: realProgress.message || prev.message,
+                  currentChunk: realProgress.currentChunk,
+                  totalChunks: realProgress.totalChunks
+                };
+              });
+            }
+          }
+        } catch (pollError) {
+          console.debug('Progress polling failed:', pollError);
+        }
+      }, 3000);
+
+      try {
+        const startResponse = await fetch('/api/analyze/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversation: importData.conversation,
+            messages: importData.messages || [],
+            mediaArtifacts: hasPremium ? importData.media || [] : [],
+            enhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis,
+            participants: importData.participants || [],
+            locale: locale
+          })
+        });
+
+        if (!startResponse.ok) {
+          const errorDataStart = await startResponse.json().catch(() => ({ error: t('failedToStartAnalysis') }));
+          throw new Error(errorDataStart.error || t('failedToStartAnalysis'));
+        }
+
+        await startResponse.json();
+        setUploading(false);
+        setUploadProgress(0);
+      } catch (err) {
+        if (progressPollInterval) {
+          clearInterval(progressPollInterval);
+          progressPollInterval = null;
+        }
+        const message = (err as Error).message || t('errorOccurred');
+        setError(message);
+        setAnalyzing(false);
+        setAnalysisProgress({
+          progress: 0,
+          status: 'error',
+          message
+        });
+      }
+    },
+    [locale, router, t]
+  );
+
   const handleFileSelect = async (
     file: File,
     platform:
@@ -287,200 +509,11 @@ export default function HomePageClient() {
         }
 
         const importData = await importResponse.json();
-        setConversation(importData.conversation);
         setUploading(false);
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        setAnalyzing(true);
-        const hasPremium = true;
-
-        setAnalysisProgress({
-          progress: 0,
-          status: 'starting',
-          message: 'Starting AI analysis...',
-          isPremium: hasPremium
-        });
-
-        sessionStorage.setItem('currentSubscriptionTier', 'premium');
-        sessionStorage.setItem(
-          'currentFeatures',
-          JSON.stringify({ canAnalyzeMedia: true, canUseEnhancedAnalysis: true })
-        );
-
-        const conversationId = importData.conversation.id;
-
-        progressPollInterval = setInterval(async () => {
-          try {
-            const progressResponse = await fetch(
-              `/api/analyze/progress?conversationId=${encodeURIComponent(conversationId)}`
-            );
-            if (progressResponse.ok) {
-              const realProgress = await progressResponse.json();
-
-              if (realProgress.status === 'error' || realProgress.error) {
-                if (progressPollInterval) {
-                  clearInterval(progressPollInterval);
-                  progressPollInterval = null;
-                }
-
-                let errorMessage = realProgress.error || t('analysisFailed');
-
-                if (realProgress.result?.analysis?.overviewSummary) {
-                  const overview = realProgress.result.analysis.overviewSummary;
-                  const isError =
-                    overview.includes('Лимит запросов') ||
-                    overview.includes('rate limit') ||
-                    overview.includes('token limit') ||
-                    overview.includes('Ошибка анализа') ||
-                    overview.includes('Analysis error') ||
-                    overview.includes('Код ошибки') ||
-                    overview.includes('Error code');
-                  if (isError) {
-                    errorMessage = overview;
-                  }
-                }
-
-                setError(errorMessage);
-                setAnalyzing(false);
-                setAnalysisProgress({
-                  progress: 0,
-                  status: 'error',
-                  message: errorMessage
-                });
-                return;
-              }
-
-              if (realProgress.status === 'completed' && realProgress.progress === 100) {
-                if (realProgress.result?.analysis?.overviewSummary) {
-                  const overview = realProgress.result.analysis.overviewSummary;
-                  const isError =
-                    overview.includes('Лимит запросов') ||
-                    overview.includes('rate limit') ||
-                    overview.includes('token limit') ||
-                    overview.includes('Ошибка анализа') ||
-                    overview.includes('Analysis error') ||
-                    overview.includes('Код ошибки') ||
-                    overview.includes('Error code') ||
-                    (realProgress.result.analysis.sections?.length === 0 &&
-                      (overview.includes('(Код ошибки') || overview.includes('(Error code')));
-
-                  if (isError) {
-                    if (progressPollInterval) {
-                      clearInterval(progressPollInterval);
-                      progressPollInterval = null;
-                    }
-                    setError(overview);
-                    setAnalyzing(false);
-                    setAnalysisProgress({
-                      progress: 0,
-                      status: 'error',
-                      message: overview
-                    });
-                    return;
-                  }
-                }
-
-                const storedAnalysis = sessionStorage.getItem('currentAnalysis');
-                if (storedAnalysis) {
-                  if (progressPollInterval) {
-                    clearInterval(progressPollInterval);
-                    progressPollInterval = null;
-                  }
-                  setAnalysisProgress({
-                    progress: 100,
-                    status: 'completed',
-                    message: 'Analysis complete!',
-                    isPremium: hasPremium
-                  });
-                  router.prefetch('/analysis');
-                  requestAnimationFrame(() => {
-                    router.push('/analysis');
-                  });
-                  return;
-                }
-
-                if (realProgress.result && realProgress.result.analysis) {
-                  if (progressPollInterval) {
-                    clearInterval(progressPollInterval);
-                    progressPollInterval = null;
-                  }
-                  const resultData = realProgress.result;
-                  sessionStorage.setItem('currentAnalysis', JSON.stringify(resultData.analysis));
-                  if (resultData.conversation) {
-                    sessionStorage.setItem('currentConversation', JSON.stringify(resultData.conversation));
-                  }
-                  if (resultData.activityByDay) {
-                    sessionStorage.setItem('currentActivityByDay', JSON.stringify(resultData.activityByDay));
-                  }
-                  sessionStorage.setItem(
-                    'currentParticipants',
-                    JSON.stringify(importData.participants || [])
-                  );
-                  sessionStorage.setItem('currentConversationId', conversationId);
-                  sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
-                  sessionStorage.setItem(
-                    'currentFeatures',
-                    JSON.stringify({
-                      canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-                      canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-                    })
-                  );
-
-                  setAnalysisProgress({
-                    progress: 100,
-                    status: 'completed',
-                    message: 'Analysis complete!',
-                    isPremium: hasPremium
-                  });
-                  router.prefetch('/analysis');
-                  requestAnimationFrame(() => {
-                    router.push('/analysis');
-                  });
-                  return;
-                }
-              }
-
-              if (realProgress.progress > 0 && realProgress.status !== 'starting') {
-                setAnalysisProgress((prev) => {
-                  if (!prev) return prev;
-                  return {
-                    ...prev,
-                    progress: realProgress.progress,
-                    status: realProgress.status,
-                    message: realProgress.message || prev.message,
-                    currentChunk: realProgress.currentChunk,
-                    totalChunks: realProgress.totalChunks
-                  };
-                });
-              }
-            }
-          } catch (pollError) {
-            console.debug('Progress polling failed:', pollError);
-          }
-        }, 3000);
-
-        const startResponse = await fetch('/api/analyze/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conversation: importData.conversation,
-            messages: importData.messages || [],
-            mediaArtifacts: hasPremium ? importData.media || [] : [],
-            enhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis,
-            participants: importData.participants || [],
-            locale: locale
-          })
-        });
-
-        if (!startResponse.ok) {
-          const errorDataStart = await startResponse.json().catch(() => ({ error: t('failedToStartAnalysis') }));
-          throw new Error(errorDataStart.error || t('failedToStartAnalysis'));
-        }
-
-        await startResponse.json();
-        setUploading(false);
-        setUploadProgress(0);
+        await startAnalysisWithImport(importData);
         return;
       } catch (blobError) {
         const errorMessage = (blobError as Error).message || '';
@@ -517,6 +550,90 @@ export default function HomePageClient() {
         progress: 0,
         status: 'error',
         message: (err as Error).message || t('analysisFailed')
+      });
+    }
+  };
+
+  const handleMediaFileUpload = async (file: File) => {
+    sessionStorage.removeItem('currentAnalysis');
+    sessionStorage.removeItem('currentConversation');
+    sessionStorage.removeItem('currentActivityByDay');
+    sessionStorage.removeItem('currentParticipants');
+    sessionStorage.removeItem('currentConversationId');
+
+    setUploading(true);
+    setAnimationLocked(true);
+    setUploadProgress(0);
+    setError(null);
+
+    try {
+      const blob = await upload(`media-${Date.now()}-${file.name}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload-to-blob',
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.percentage || 0;
+          setUploadProgress(Math.round(progress));
+        }
+      });
+
+      const blobUrl = blob.url;
+      setUploadProgress(100);
+
+      const isAudio =
+        file.type.startsWith('audio') ||
+        Boolean(file.name.match(/\.(mp3|wav|ogg|opus|m4a|webm)$/i));
+
+      let transcript: string | undefined;
+
+      if (isAudio) {
+        const transcribeResponse = await fetch('/api/transcribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blobUrl,
+            fileName: file.name,
+            contentType: file.type
+          })
+        });
+
+        if (transcribeResponse.ok) {
+          const data = await transcribeResponse.json();
+          transcript = data.transcript;
+        } else {
+          const errData = await transcribeResponse.json().catch(() => ({}));
+          console.warn('Transcription failed, continuing without text', errData);
+        }
+      }
+
+      const importResponse = await fetch('/api/import/media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blobUrl,
+          fileName: file.name,
+          contentType: file.type,
+          transcript
+        })
+      });
+
+      if (!importResponse.ok) {
+        const errorData = await importResponse.json().catch(() => ({ error: t('importFailed') }));
+        throw new Error(errorData.error || t('importFailed'));
+      }
+
+      const importData = await importResponse.json();
+      setUploading(false);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await startAnalysisWithImport(importData);
+    } catch (err) {
+      const message = (err as Error).message || t('errorOccurred');
+      setError(message);
+      setUploading(false);
+      setAnalyzing(false);
+      setAnalysisProgress({
+        progress: 0,
+        status: 'error',
+        message
       });
     }
   };
@@ -1275,6 +1392,18 @@ export default function HomePageClient() {
                     >
                       {t('inputMode_paste')}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputMode('media')}
+                      className={cn(
+                        'px-3 py-1 rounded-full transition-all duration-300',
+                        inputMode === 'media'
+                          ? 'bg-background text-foreground shadow-sm scale-105'
+                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                      )}
+                    >
+                      {t('inputMode_media')}
+                    </button>
                   </div>
                 </div>
               )}
@@ -1350,6 +1479,30 @@ export default function HomePageClient() {
                         {t('analyzePasted')}
                       </Button>
                       <p className="text-xs text-muted-foreground text-center">{t('pasteHelp')}</p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={cn(
+                      'absolute inset-0 flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      inputMode === 'media'
+                        ? 'opacity-100 translate-x-0 pointer-events-auto'
+                        : 'opacity-0 translate-x-6 pointer-events-none'
+                    )}
+                  >
+                    <div
+                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500"
+                      style={{
+                        transition:
+                          'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                    >
+                      <MediaUpload
+                        onMediaSelect={handleMediaFileUpload}
+                        disabled={uploading}
+                        uploading={uploading}
+                        uploadProgress={uploadProgress}
+                      />
                     </div>
                   </div>
                 </div>

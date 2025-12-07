@@ -263,16 +263,31 @@ function formatMessagesForLLM(
   
   return messages
     .map((msg) => {
-      const date = new Date(msg.sentAt).toLocaleDateString();
+      // Preserve original sentAt as ISO; avoid generating synthetic "today" dates
+      const date =
+        msg.sentAt && typeof msg.sentAt === 'string' && !Number.isNaN(new Date(msg.sentAt).getTime())
+          ? new Date(msg.sentAt).toISOString()
+          : 'unknown-date';
       let text = msg.text || '';
       
       // Add media context if message has media
       if (msg.mediaArtifactId) {
         const media = mediaArtifacts.find(m => m.id === msg.mediaArtifactId);
         if (media) {
-          const mediaContext = media.labels && media.labels.length > 0
-            ? ` [${media.type}: ${media.labels.join(', ')}${media.sentimentHint !== 'unknown' ? `, ${media.sentimentHint}` : ''}]`
+          const labels = (media.labels || []).filter(Boolean);
+          const sentiment = media.sentimentHint && media.sentimentHint !== 'unknown' ? media.sentimentHint : null;
+          const descRaw = (media.notes || (media as any).description || '').toString();
+          const description = descRaw ? descRaw.replace(/\s+/g, ' ').trim().slice(0, 240) : '';
+
+          const parts: string[] = [];
+          if (labels.length) parts.push(`labels: ${labels.join(', ')}`);
+          if (sentiment) parts.push(`sentiment: ${sentiment}`);
+          if (description) parts.push(`content: ${description}`);
+
+          const mediaContext = parts.length
+            ? ` [${media.type} -> ${parts.join(' | ')}]`
             : ` [${media.type}]`;
+
           text += mediaContext;
         } else {
           text += ' [media/attachment]';
@@ -914,7 +929,8 @@ export async function analyzeConversation(
       platform: conversation.sourcePlatform,
       openrouterApiKey: configStatus,
       openrouterBaseUrl: config.openrouterBaseUrl,
-      textModel: config.textModel
+      textModel: config.textModel,
+      visionModel: config.visionModel
     });
   } catch (configError) {
     configErrorMessage = (configError as Error).message;
@@ -986,7 +1002,7 @@ export async function analyzeConversation(
       .filter(m => ['image', 'sticker', 'gif'].includes(m.type))
       .slice(0, 20);
     
-    logInfo('media_analysis_started', { count: mediaToAnalyze.length });
+    logInfo('media_analysis_started', { count: mediaToAnalyze.length, visionModel: getConfig().visionModel });
     
     if (mediaToAnalyze.length > 0) {
       await updateProgress(progressId, {
@@ -1000,17 +1016,11 @@ export async function analyzeConversation(
       try {
         // Analyze media from Blob URL or transientPathOrUrl (fallback)
         if (media.blobUrl) {
-          // Fetch media from Blob and convert to data URL for vision API
-          const { getMediaFromBlob } = await import('../../lib/blob');
-          const { fileToDataUrl } = await import('../../lib/vision');
-          const mediaBlob = await getMediaFromBlob(media.blobUrl);
-          if (mediaBlob) {
-            const dataUrl = await fileToDataUrl(mediaBlob);
-            const analysis = await analyzeMediaArtifact(media, dataUrl);
-            media.labels = analysis.labels;
-            media.sentimentHint = analysis.sentiment;
-            media.notes = analysis.description;
-          }
+          // Prefer direct blob URL (public) so vision model fetches without base64 bloat
+          const analysis = await analyzeMediaArtifact(media, media.blobUrl);
+          media.labels = analysis.labels;
+          media.sentimentHint = analysis.sentiment;
+          media.notes = analysis.description;
         } else if (media.transientPathOrUrl) {
           // Fallback for old format (base64 data URL)
           const analysis = await analyzeMediaArtifact(media, media.transientPathOrUrl);
@@ -1606,6 +1616,21 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
         ? deduplicatedSections[0].summary
         : defaultMsgs.defaultOverview);
     
+    const allowedDates = new Set(
+      messages
+        .map((m) => (m.sentAt && typeof m.sentAt === 'string' ? m.sentAt.split('T')[0] : null))
+        .filter(Boolean) as string[]
+    );
+
+    const filteredImportantDates =
+      allImportantDates.size > 0
+        ? Array.from(allImportantDates.values()).filter((d) => {
+            if (!d || !d.date) return false;
+            const key = d.date.split('T')[0];
+            return allowedDates.has(key);
+          })
+        : undefined;
+
     const result: AnalysisResult = {
       id: analysisId,
       conversationId: conversation.id,
@@ -1638,9 +1663,7 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
         ? Array.from(allParticipantProfiles.values())
         : undefined,
       // Include important dates only if we have any (premium feature)
-      importantDates: allImportantDates.size > 0
-        ? Array.from(allImportantDates.values())
-        : undefined,
+      importantDates: filteredImportantDates,
       // New analysis parts (for enhanced analysis)
       communicationStats: aggregatedCommunicationStats,
       promiseTracking: aggregatedPromiseTracking,
@@ -1657,11 +1680,17 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       safetyConcern: aggregatedSafetyConcern
     };
 
-    const normalizedResult = normalizeAnalysisResult(result, {
+    const normalizedResult = normalizeAnalysisResult(
+      {
+        ...result,
+        importantDates: filteredImportantDates // enforce filtered dates through normalization too
+      },
+      {
       defaultTitle: defaultMsgs.defaultTitle,
       defaultOverview: defaultMsgs.defaultOverview,
       defaultSectionSummary: defaultMsgs.defaultNoPatterns
-    });
+      }
+    );
 
     const durationMs = Date.now() - startTime;
     

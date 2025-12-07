@@ -91,19 +91,16 @@ export async function parseTelegramExport(
       }
 
       // Parse date - Telegram exports can have date, date_unixtime, or both
-      let sentAt: Date;
+      let sentAt: Date | null = null;
       if (msg.date_unixtime) {
-        // date_unixtime is in seconds, convert to milliseconds
         sentAt = new Date(parseInt(msg.date_unixtime, 10) * 1000);
       } else if (msg.date) {
         sentAt = new Date(msg.date);
-      } else {
-        sentAt = new Date();
       }
-      
-      // Validate date
-      if (isNaN(sentAt.getTime())) {
-        sentAt = new Date(); // Fallback to current date if invalid
+
+      if (!sentAt || isNaN(sentAt.getTime())) {
+        // Skip messages without a valid timestamp to avoid inventing dates
+        continue;
       }
       
       if (!earliestDate || sentAt < earliestDate) earliestDate = sentAt;
@@ -484,14 +481,13 @@ export async function parseSignalExport(
       }
 
       // Signal uses milliseconds timestamp
-      let sentAt = msg.sent_at 
-        ? new Date(msg.sent_at)
-        : msg.timestamp 
-        ? new Date(msg.timestamp)
-        : new Date();
+      let sentAt: Date | null = null;
+      if (msg.sent_at) sentAt = new Date(msg.sent_at);
+      else if (msg.timestamp) sentAt = new Date(msg.timestamp);
 
-      if (isNaN(sentAt.getTime())) {
-        sentAt = new Date();
+      if (!sentAt || isNaN(sentAt.getTime())) {
+        // Skip messages without valid timestamp
+        continue;
       }
 
       if (!earliestDate || sentAt < earliestDate) earliestDate = sentAt;
@@ -624,17 +620,16 @@ export async function parseDiscordExport(
       }
 
       // Discord uses ISO timestamp or Unix timestamp
-      let sentAt: Date;
+      let sentAt: Date | null = null;
       if (msg.timestamp) {
         sentAt = new Date(msg.timestamp);
       } else if (msg.timestamp_ms) {
         sentAt = new Date(msg.timestamp_ms);
-      } else {
-        sentAt = new Date();
       }
 
-      if (isNaN(sentAt.getTime())) {
-        sentAt = new Date();
+      if (!sentAt || isNaN(sentAt.getTime())) {
+        // Skip messages without valid timestamp
+        continue;
       }
 
       if (!earliestDate || sentAt < earliestDate) earliestDate = sentAt;
@@ -768,14 +763,13 @@ export async function parseMessengerExport(
       }
 
       // Messenger uses milliseconds timestamp
-      let sentAt = msg.timestamp_ms 
-        ? new Date(msg.timestamp_ms)
-        : msg.timestamp
-        ? new Date(msg.timestamp * 1000)
-        : new Date();
+      let sentAt: Date | null = null;
+      if (msg.timestamp_ms) sentAt = new Date(msg.timestamp_ms);
+      else if (msg.timestamp) sentAt = new Date(msg.timestamp * 1000);
 
-      if (isNaN(sentAt.getTime())) {
-        sentAt = new Date();
+      if (!sentAt || isNaN(sentAt.getTime())) {
+        // Skip messages without valid timestamp
+        continue;
       }
 
       if (!earliestDate || sentAt < earliestDate) earliestDate = sentAt;
@@ -924,10 +918,10 @@ export async function parseIMessageExport(
       }
 
       const published = props.published?.[0] || props.date?.[0];
-      let sentAt = published ? new Date(published) : new Date();
-
-      if (isNaN(sentAt.getTime())) {
-        sentAt = new Date();
+      let sentAt = published ? new Date(published) : null;
+      if (!sentAt || isNaN(sentAt.getTime())) {
+        // Skip messages without a valid timestamp; avoid inventing dates
+        continue;
       }
 
       if (!earliestDate || sentAt < earliestDate) earliestDate = sentAt;

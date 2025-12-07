@@ -79,11 +79,26 @@ export async function POST(request: Request) {
         // Allow all file types for import (validation happens during import)
         return {
           allowedContentTypes: [
+            // text / exports
             'application/json',
             'text/plain',
             'application/zip',
             'application/x-zip-compressed',
             'application/octet-stream',
+            // images
+            'image/png',
+            'image/jpeg',
+            'image/webp',
+            'image/gif',
+            // audio / voice
+            'audio/mpeg',
+            'audio/mp3',
+            'audio/wav',
+            'audio/ogg',
+            'audio/opus',
+            'audio/webm',
+            'audio/mp4',
+            'audio/m4a',
           ],
           addRandomSuffix: false,
           tokenPayload: JSON.stringify({

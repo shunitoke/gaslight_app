@@ -1,9 +1,8 @@
-const requiredEnv = ['OPENROUTER_API_KEY'] as const;
+const requiredEnv = ['OPENROUTER_API_KEY', 'GASLIGHT_VISION_MODEL'] as const;
 
 const optionalEnvDefaults = {
   OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1',
   GASLIGHT_TEXT_MODEL: 'x-ai/grok-4.1-fast',
-  GASLIGHT_VISION_MODEL: 'x-ai/grok-4.1-fast',
   GASLIGHT_TEXT_MODEL_FALLBACKS: 'anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free'
 } as const;
 
@@ -40,7 +39,7 @@ export const getConfig = (): AppConfig => {
       process.env.OPENROUTER_BASE_URL ?? optionalEnvDefaults.OPENROUTER_BASE_URL,
     textModel: process.env.GASLIGHT_TEXT_MODEL ?? optionalEnvDefaults.GASLIGHT_TEXT_MODEL,
     textModelFallbacks,
-    visionModel: process.env.GASLIGHT_VISION_MODEL ?? optionalEnvDefaults.GASLIGHT_VISION_MODEL,
+    visionModel: process.env.GASLIGHT_VISION_MODEL as string,
     maxUploadSizeMb: parseNumber(process.env.MAX_UPLOAD_SIZE_MB, 25),
     analysisTimeoutMs: parseNumber(process.env.ANALYSIS_TIMEOUT_MS, 2 * 60 * 1000)
   };

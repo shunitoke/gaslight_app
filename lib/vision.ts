@@ -33,7 +33,7 @@ type VisionResponse = {
  */
 export async function analyzeImage(
   imageUrl: string,
-  prompt: string = 'Analyze this image and describe its content, emotional tone, and any text visible. Focus on how it might relate to interpersonal communication patterns.'
+  prompt: string = 'Extract all readable text from the image. Return only plain text from OCR (including chat bubbles, captions, screenshots). If no text, return an empty string.'
 ): Promise<{
   labels: string[];
   sentiment: 'positive' | 'neutral' | 'negative' | 'unknown';
@@ -43,6 +43,15 @@ export async function analyzeImage(
   const config = getConfig();
 
   try {
+    if (!config.visionModel) {
+      throw new Error('Vision model is not configured (GASLIGHT_VISION_MODEL missing).');
+    }
+    if (config.visionModel === config.textModel) {
+      throw new Error(
+        `Vision model is misconfigured: GASLIGHT_VISION_MODEL equals GASLIGHT_TEXT_MODEL (${config.visionModel}). Choose a vision-capable model that supports image_url.`
+      );
+    }
+
     const request: VisionRequest = {
       model: config.visionModel,
       messages: [
@@ -51,7 +60,7 @@ export async function analyzeImage(
           content: [
             {
               type: 'text',
-              text: 'You are an image analysis assistant. Analyze images for emotional content, visible text, and context that might relate to relationship communication patterns. Return a JSON object with: labels (array of strings), sentiment (positive/neutral/negative/unknown), description (string), and optional notes (string).'
+              text: 'You are an OCR extractor. Extract ONLY readable text from the provided image (including chat bubbles, captions, UI text). Return JSON with shape {"text": "<all text you found>"}; keep original line order where possible. Do NOT summarize, do NOT add interpretation, do NOT add extra fields.'
             }
           ]
         },
@@ -67,6 +76,8 @@ export async function analyzeImage(
       temperature: 0.7
     };
 
+    logInfo('vision_request', { model: config.visionModel, url: config.openrouterBaseUrl });
+
     const response = await fetch(`${config.openrouterBaseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -79,7 +90,11 @@ export async function analyzeImage(
 
     if (!response.ok) {
       const text = await response.text();
-      logError('vision_error', { status: response.status, body: text });
+      logError('vision_error', {
+        status: response.status,
+        body: text.slice(0, 800),
+        model: config.visionModel
+      });
       throw new Error(`Vision API request failed (${response.status})`);
     }
 
@@ -87,32 +102,24 @@ export async function analyzeImage(
     const content = json.choices[0]?.message?.content || '{}';
 
     // Try to parse JSON from response
-    let parsed: {
-      labels?: string[];
-      sentiment?: string;
-      description?: string;
-      notes?: string;
-    };
+    let parsed: { text?: string };
     try {
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
+      const jsonMatch =
+        content.match(/```json\s*([\s\S]*?)\s*```/) ||
+        content.match(/```\s*([\s\S]*?)\s*```/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[1] : content);
     } catch {
-      // Fallback: extract from text
-      parsed = {
-        labels: [],
-        sentiment: 'unknown',
-        description: content,
-        notes: 'Could not parse structured response'
-      };
+      parsed = { text: content };
     }
 
-    logInfo('vision_success', { labelsCount: parsed.labels?.length || 0 });
+    const text = (parsed.text || '').toString().trim();
+    logInfo('vision_success', { textLength: text.length });
 
     return {
-      labels: parsed.labels || [],
-      sentiment: (parsed.sentiment as 'positive' | 'neutral' | 'negative' | 'unknown') || 'unknown',
-      description: parsed.description || content,
-      notes: parsed.notes
+      labels: [],
+      sentiment: 'unknown',
+      description: text,
+      notes: undefined
     };
   } catch (error) {
     logError('vision_exception', { message: (error as Error).message });

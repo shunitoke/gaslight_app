@@ -99,6 +99,17 @@ export const esBundle: LocaleBundle = {
     uploadAndAnalyze: 'Subir y analizar',
     inputMode_upload: 'Subir exportación',
     inputMode_paste: 'Pegar texto',
+    inputMode_media: 'Medios / voz',
+    upload_media_title: 'Subir imagen o audio',
+    upload_media_hint:
+      'Compatible: imágenes (png, jpg, jpeg, webp, gif) y audio (mp3, wav, ogg, opus, m4a, webm). Máx. 25MB.',
+    choose_file: 'Elegir archivo',
+    record_voice_title: 'Grabar una nota de voz',
+    record_voice_hint: 'Hasta {{seconds}} segundos. Transcribiremos automáticamente.',
+    start_recording: 'Iniciar grabación',
+    stop_recording: 'Detener ({{seconds}}s)',
+    recording: 'Grabando...',
+    mic_permission_error: 'No se pudo acceder al micrófono. Permite el acceso e inténtalo de nuevo.',
     pasteLabel: 'Pega un breve fragmento de tu conversación',
     pastePlaceholder:
       'Pega aquí los mensajes (solo un fragmento pequeño, no todo el chat de años)...',
@@ -228,7 +239,7 @@ export const esBundle: LocaleBundle = {
     testimonial_david_quote:
       'Quería entender por qué mis relaciones seguían fallando. El análisis mostró mis patrones de comunicación — defensivo, desdeñoso. Difícil de escuchar, pero necesario.',
     // Dashboard
-    dashboard_title: 'Panel de análisis',
+    dashboard_title: 'Cronología',
     heatmap_title: 'Mapa de calor de actividad',
     heatmap_description:
       'Intensidad de conversación por semana. El rojo resalta períodos con conflictos o eventos significativos.',

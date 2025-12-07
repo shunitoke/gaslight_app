@@ -99,6 +99,17 @@ export const ruBundle: LocaleBundle = {
     uploadAndAnalyze: 'Загрузить и проанализировать',
     inputMode_upload: 'Загрузить экспорт',
     inputMode_paste: 'Вставить текст',
+    inputMode_media: 'Медиа / голос',
+    upload_media_title: 'Загрузить изображение или аудио',
+    upload_media_hint:
+      'Поддерживаются изображения (png, jpg, jpeg, webp, gif) и аудио (mp3, wav, ogg, opus, m4a, webm). Макс 25 МБ.',
+    choose_file: 'Выбрать файл',
+    record_voice_title: 'Записать голосовое',
+    record_voice_hint: 'До {{seconds}} секунд. Мы автоматически сделаем расшифровку.',
+    start_recording: 'Начать запись',
+    stop_recording: 'Стоп ({{seconds}}с)',
+    recording: 'Идёт запись...',
+    mic_permission_error: 'Нет доступа к микрофону. Разрешите доступ и попробуйте снова.',
     pasteLabel: 'Вставьте небольшой отрывок переписки',
     pastePlaceholder: 'Вставьте сюда сообщения (небольшой фрагмент, а не многолетнюю переписку)...',
     pasteHelp:
@@ -236,7 +247,7 @@ export const ruBundle: LocaleBundle = {
       'Я вижу, что тебе было непросто, и благодарю, что ты всё равно пошёл(шла) на контакт. Для меня это признак заботы.',
 
     // Dashboard
-    dashboard_title: 'Дашборд анализа',
+    dashboard_title: 'Хронология',
     heatmap_title: 'Тепловая карта активности',
     heatmap_description:
       'Интенсивность переписки по неделям. Красным цветом выделены периоды с конфликтами или значимыми событиями.',

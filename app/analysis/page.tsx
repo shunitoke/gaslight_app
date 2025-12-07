@@ -697,19 +697,25 @@ export default function AnalysisPage() {
           features.canAnalyzeMedia === true ||
           features.canUseEnhancedAnalysis === true;
 
-        const refetchFromServer = async () => {
+        const refetchFromServer = async (): Promise<boolean> => {
           if (!currentConversationId) {
-            throw new Error('No conversationId to refetch analysis');
+            setError('No analysis found');
+            setLoading(false);
+            return false;
           }
           const res = await fetch(
             `/api/analyze/result-by-conversation?conversationId=${currentConversationId}`
           );
           if (!res.ok) {
-            throw new Error('Result not found');
+            setError('Result not found');
+            setLoading(false);
+            return false;
           }
           const data = await res.json();
           if (!data?.analysis) {
-            throw new Error('Result missing analysis payload');
+            setError('Result missing analysis payload');
+            setLoading(false);
+            return false;
           }
           const analysisData = data.analysis as AnalysisResult;
           const activityFromServer: DailyActivity[] = Array.isArray(data.activityByDay)
@@ -741,11 +747,13 @@ export default function AnalysisPage() {
             language,
             isPremium
           );
+          return true;
         };
 
         if (!stored) {
           try {
-            await refetchFromServer();
+            const ok = await refetchFromServer();
+            if (ok) return;
             return;
           } catch (fetchErr) {
             console.error('Error fetching analysis:', fetchErr);
@@ -788,7 +796,8 @@ export default function AnalysisPage() {
         } catch (parseError) {
           console.error('Failed to parse analysis data:', parseError);
           try {
-            await refetchFromServer();
+            const ok = await refetchFromServer();
+            if (ok) return;
             return;
           } catch (fetchErr) {
             console.error('Error fetching analysis after parse failure:', fetchErr);
