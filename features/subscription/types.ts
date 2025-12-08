@@ -24,16 +24,8 @@ export type SubscriptionFeatures = {
  * - Tokens are stored client-side only
  */
 export async function getSubscriptionTier(request?: Request): Promise<SubscriptionTier> {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  // In development we temporarily treat all users as premium
-  // so that all advanced analysis features are available.
-  // TODO: revert to token/header-based logic when we reintroduce free tier limits.
-  if (isDev) {
-    return 'premium';
-  }
-
-  if (!request) return 'free';
+  // Treat everyone as premium to simplify access (abuse guarded by limits elsewhere)
+  return 'premium';
 
   // 1. Check for valid premium token (production method)
   try {
@@ -67,12 +59,12 @@ export function getSubscriptionFeatures(tier: SubscriptionTier): SubscriptionFea
     };
   }
 
-  // Free tier
+  // Free tier (unused while everyone is premium)
   return {
-    canAnalyzeMedia: false,
-    canUseEnhancedAnalysis: false,
-    maxMessagesPerAnalysis: 50000, // 50k messages
-    maxMediaItemsPerAnalysis: 0 // No media analysis
+    canAnalyzeMedia: true,
+    canUseEnhancedAnalysis: true,
+    maxMessagesPerAnalysis: 500000,
+    maxMediaItemsPerAnalysis: 1000
   };
 }
 
