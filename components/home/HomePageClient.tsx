@@ -1132,32 +1132,34 @@ export default function HomePageClient() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 md:gap-12 px-4 sm:px-6 py-8 sm:py-12">
-      <div className="w-full flex flex-col items-center gap-6 md:gap-10 py-6 sm:py-8 md:py-10">
-        <div className="flex flex-col items-center text-center gap-4 sm:gap-5 w-full">
+      <div className="w-full grid lg:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-5 w-full">
           <Badge
             variant="outline"
-            className="border-primary/30 text-primary px-3 sm:px-4 py-1.5 text-label font-medium tracking-wider uppercase"
+            className="border-primary/30 text-primary px-3 sm:px-4 py-1.5 text-label font-medium tracking-wider uppercase -mt-1 sm:-mt-1 lg:-mt-3 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 self-center lg:self-start transform-gpu"
           >
             <Sparkles className="mr-2 h-3 w-3" />
             AI-Powered Gaslight Detection
           </Badge>
 
-          <h1
-            key={taglineIndex}
-            className={cn(
-              'text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground min-h-[7rem] sm:min-h-[8rem] md:min-h-[9rem] lg:min-h-[10rem] flex items-center',
-              isAnimating && 'tagline-animate'
-            )}
-          >
-            {currentTagline}
-          </h1>
+          <div className="relative w-full h-[9rem] sm:h-[10rem] md:h-[11rem] lg:h-[12rem] -translate-y-3 sm:-translate-y-4 md:-translate-y-5 lg:-translate-y-6">
+            <h1
+              key={taglineIndex}
+              className={cn(
+                'absolute inset-0 text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground flex items-center justify-center lg:justify-start py-2 sm:py-3 pointer-events-none',
+                isAnimating && 'tagline-animate'
+              )}
+            >
+              {currentTagline}
+            </h1>
+          </div>
 
           <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">
             {t('hero_copy')}
           </p>
         </div>
 
-        <div className="relative w-full max-w-md mx-auto">
+        <div className="relative w-full max-w-md lg:max-w-xl mx-auto lg:ml-auto">
           <Card className="phone-glass-card relative z-10 border-border/40 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
             <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 phone-glass-content">
               <div className="space-y-1">
