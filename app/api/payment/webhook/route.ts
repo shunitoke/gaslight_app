@@ -16,7 +16,7 @@ type PaddleWebhook = {
     id?: string;
     transaction_id?: string;
     transactionId?: string;
-    items?: Array<{ price_id?: string; quantity?: number }>;
+    items?: Array<{ price_id?: string; priceId?: string; quantity?: number }>;
   };
 };
 
