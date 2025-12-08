@@ -1437,7 +1437,7 @@ export default function HomePageClient() {
 
               {!error && (
                 <div
-                  className="relative w-full max-w-lg flex items-center justify-center overflow-visible"
+                  className="relative w-full max-w-lg flex items-stretch justify-center overflow-visible sm:items-center"
                   style={{
                     transition:
                       'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1447,10 +1447,11 @@ export default function HomePageClient() {
                 >
                   <div
                     className={cn(
-                      'absolute inset-0 flex flex-col items-center justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'flex flex-col items-center justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'sm:absolute sm:inset-0',
                       inputMode === 'file'
-                        ? 'opacity-100 translate-x-0 pointer-events-auto'
-                        : 'opacity-0 -translate-x-6 pointer-events-none'
+                        ? 'block sm:opacity-100 sm:translate-x-0 sm:pointer-events-auto'
+                        : 'hidden sm:block sm:opacity-0 sm:-translate-x-6 sm:pointer-events-none'
                     )}
                   >
                     <div className="w-full flex flex-col h-full justify-center animate-in fade-in slide-in-from-left-3 duration-500">
@@ -1467,10 +1468,11 @@ export default function HomePageClient() {
 
                   <div
                     className={cn(
-                      'absolute inset-0 flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'sm:absolute sm:inset-0',
                       inputMode === 'paste'
-                        ? 'opacity-100 translate-x-0 pointer-events-auto'
-                        : 'opacity-0 translate-x-6 pointer-events-none'
+                        ? 'block sm:opacity-100 sm:translate-x-0 sm:pointer-events-auto'
+                        : 'hidden sm:block sm:opacity-0 sm:translate-x-6 sm:pointer-events-none'
                     )}
                   >
                     <div
@@ -1512,10 +1514,11 @@ export default function HomePageClient() {
 
                   <div
                     className={cn(
-                      'absolute inset-0 flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'flex flex-col justify-center transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      'sm:absolute sm:inset-0',
                       inputMode === 'media'
-                        ? 'opacity-100 translate-x-0 pointer-events-auto'
-                        : 'opacity-0 translate-x-6 pointer-events-none'
+                        ? 'block sm:opacity-100 sm:translate-x-0 sm:pointer-events-auto'
+                        : 'hidden sm:block sm:opacity-0 sm:translate-x-6 sm:pointer-events-none'
                     )}
                   >
                     <div
