@@ -33,7 +33,7 @@ export async function getSubscriptionTier(request?: Request): Promise<Subscripti
   try {
     // Dynamic import to avoid circular dependencies
     const premiumTokenModule = await import('./premiumToken');
-    const token = premiumTokenModule.extractPremiumTokenFromRequest(request);
+    const token = request ? premiumTokenModule.extractPremiumTokenFromRequest(request) : null;
     if (token) {
       const payload = premiumTokenModule.validatePremiumToken(token);
       if (payload) {
