@@ -1,133 +1,100 @@
-/**
- * Payment webhook handler for premium subscriptions.
- * 
- * This endpoint receives payment confirmations from payment providers
- * (Stripe, PayPal, etc.) and generates premium tokens.
- * 
- * Flow:
- * 1. User initiates payment on frontend (redirects to payment provider)
- * 2. Payment provider processes payment
- * 3. Payment provider sends webhook to this endpoint
- * 4. We validate the webhook signature
- * 5. We generate a premium token
- * 6. We return the token to the user (via redirect or API response)
- * 
- * IMPORTANT: This maintains anonymity by:
- * - Not storing user identity or payment details
- * - Only storing payment transaction ID for validation
- * - Generating ephemeral tokens that expire
- */
+import crypto from 'node:crypto';
 
 import { NextResponse } from 'next/server';
 
-import { generatePremiumToken } from '../../../../features/subscription/premiumToken';
-import { logError, logInfo } from '../../../../lib/telemetry';
+import { generatePremiumToken } from '@/features/subscription/premiumToken';
+import { recordPurchase } from '@/features/subscription/purchases';
+import { logError, logInfo } from '@/lib/telemetry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-/**
- * Validate webhook signature from payment provider.
- * This is critical for security - prevents fake payment confirmations.
- */
-async function validateWebhookSignature(
-  request: Request,
-  provider: 'stripe' | 'paypal'
-): Promise<boolean> {
-  // TODO: Implement proper webhook signature validation
-  // For Stripe: Use stripe.webhooks.constructEvent()
-  // For PayPal: Verify signature using PayPal SDK
-  
-  // For now, in development, we'll skip validation
-  // In production, this MUST be implemented
-  if (process.env.NODE_ENV === 'development') {
-    return true;
+type PaddleWebhook = {
+  event_type?: string;
+  eventType?: string;
+  data?: {
+    id?: string;
+    transaction_id?: string;
+    transactionId?: string;
+    items?: Array<{ price_id?: string; quantity?: number }>;
+  };
+};
+
+const parseSignatureHeader = (header: string) => {
+  const parts = header.split(';').map((p) => p.trim());
+  const tsPart = parts.find((p) => p.startsWith('ts='));
+  const h1Part = parts.find((p) => p.startsWith('h1='));
+  return {
+    ts: tsPart?.split('=')[1],
+    h1: h1Part?.split('=')[1]
+  };
+};
+
+const verifyPaddleSignature = (signature: string, rawBody: string, secret: string): boolean => {
+  const { ts, h1 } = parseSignatureHeader(signature);
+  if (!ts || !h1) return false;
+  const computed = crypto.createHmac('sha256', secret).update(`${ts}:${rawBody}`).digest('hex');
+  try {
+    return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(h1));
+  } catch {
+    return false;
   }
-
-  // Production validation would look like:
-  // const signature = request.headers.get('stripe-signature');
-  // const payload = await request.text();
-  // const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-  // return event !== null;
-
-  logError('webhook_validation_not_implemented', { provider });
-  return false;
-}
-
-/**
- * Extract payment information from webhook payload.
- */
-function extractPaymentInfo(
-  body: unknown,
-  provider: 'stripe' | 'paypal'
-): { paymentId: string; amount: number; currency: string } | null {
-  // TODO: Parse provider-specific webhook format
-  // Stripe: body.data.object.id, body.data.object.amount
-  // PayPal: body.resource.id, body.resource.amount
-  
-  // For now, accept a simple format for testing
-  if (typeof body === 'object' && body !== null) {
-    const obj = body as Record<string, unknown>;
-    if (obj.paymentId && typeof obj.paymentId === 'string') {
-      return {
-        paymentId: obj.paymentId,
-        amount: typeof obj.amount === 'number' ? obj.amount : 0,
-        currency: typeof obj.currency === 'string' ? obj.currency : 'USD'
-      };
-    }
-  }
-
-  return null;
-}
+};
 
 export async function POST(request: Request) {
   try {
-    const url = new URL(request.url);
-    const provider = (url.searchParams.get('provider') || 'stripe') as 'stripe' | 'paypal';
+    const secret = process.env.PADDLE_WEBHOOK_SECRET;
+    if (!secret) {
+      logError('paddle_webhook_secret_missing', {});
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+    }
 
-    // Validate webhook signature
-    const isValid = await validateWebhookSignature(request, provider);
+    const signature = request.headers.get('paddle-signature');
+    if (!signature) {
+      return NextResponse.json({ error: 'Missing paddle-signature header' }, { status: 401 });
+    }
+
+    const rawBody = await request.text();
+    const isValid = verifyPaddleSignature(signature, rawBody, secret);
     if (!isValid) {
-      logError('webhook_signature_invalid', { provider });
-      return NextResponse.json(
-        { error: 'Invalid webhook signature' },
-        { status: 401 }
-      );
+      logError('paddle_webhook_signature_invalid', {});
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // Parse webhook payload
-    const body = await request.json();
-    const paymentInfo = extractPaymentInfo(body, provider);
+    const payload = JSON.parse(rawBody) as PaddleWebhook;
+    const eventType = payload.event_type || payload.eventType || 'unknown';
 
-    if (!paymentInfo) {
-      logError('webhook_payment_info_missing', { provider, body });
-      return NextResponse.json(
-        { error: 'Invalid payment information' },
-        { status: 400 }
-      );
+    if (eventType === 'transaction.completed') {
+      const transactionId =
+        payload.data?.transactionId ||
+        payload.data?.transaction_id ||
+        payload.data?.id ||
+        null;
+      if (transactionId) {
+        const token = generatePremiumToken(transactionId, 48);
+        const now = Date.now();
+        await recordPurchase({
+          transactionId,
+          tokenIssuedAt: now,
+          expiresAt: now + 48 * 60 * 60 * 1000,
+          priceId: payload.data?.items?.[0]?.price_id || payload.data?.items?.[0]?.priceId || null,
+          amount: null,
+          currency: null
+        });
+        logInfo('paddle_webhook_transaction_completed', {
+          transactionId,
+          items: payload.data?.items?.length
+        });
+        return NextResponse.json({
+          ok: true,
+          token,
+          expiresIn: 48 * 60 * 60
+        });
+      }
     }
 
-    // Generate premium token (24 hours by default)
-    const token = generatePremiumToken(paymentInfo.paymentId, 24);
-
-    logInfo('premium_token_issued', {
-      paymentId: paymentInfo.paymentId,
-      provider,
-      amount: paymentInfo.amount,
-      currency: paymentInfo.currency
-    });
-
-    // Return token to user
-    // In production, you might:
-    // - Redirect user to a success page with token in URL fragment
-    // - Send token via email (if user provided email)
-    // - Return token in response for frontend to store
-    return NextResponse.json({
-      success: true,
-      token,
-      expiresIn: 24 * 60 * 60, // seconds
-      message: 'Premium access granted. Store this token to use premium features.'
-    });
+    logInfo('paddle_webhook_received', { eventType });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     logError('payment_webhook_error', { error: (error as Error).message });
     return NextResponse.json(

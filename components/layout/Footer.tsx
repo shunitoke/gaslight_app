@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { LineChart, Users } from 'lucide-react';
+import { LineChart, Users, Shield, ScrollText, Undo2, Tag, AlertCircle } from 'lucide-react';
 
 import { useLanguage } from '../../features/i18n';
 
@@ -81,31 +81,47 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3 text-sm text-muted-foreground max-w-prose">
             <span className="leading-relaxed">{t('footer_disclaimer')}</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/terms"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-              >
+            <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+              <ScrollText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
                 {t('terms_title')}
               </Link>
+              <span aria-hidden="true">•</span>
+              <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('privacy_title')}
+              </Link>
+              <span aria-hidden="true">•</span>
+              <Undo2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Link href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('refund_title')}
+              </Link>
+              <span aria-hidden="true">•</span>
+              <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Link href="/pricing" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('pricing_title')}
+              </Link>
+              <span aria-hidden="true">•</span>
+              <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <Link
                 href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
                 aria-label={t('footer_report_bug')}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                className="hover:text-foreground underline-offset-4 hover:underline"
               >
                 {t('footer_report_bug')}
               </Link>
+              <span aria-hidden="true">•</span>
               <Link
                 href="https://github.com/shunitoke/gaslight_app"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub repository"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                className="inline-flex items-center gap-1 hover:text-foreground underline-offset-4 hover:underline"
               >
                 <GitHubIcon />
                 <span>GitHub</span>
               </Link>
-              <span className="text-muted-foreground">&copy; {currentYear} Texts with My Ex</span>
+              <span className="text-muted-foreground">&copy; {currentYear} Texts with My Ex®</span>
             </div>
           </div>
 

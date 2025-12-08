@@ -138,6 +138,15 @@ function parsePastedConversation(raw: string): ParsedManualConversation {
   return { conversation, participants, messages };
 }
 
+const getPremiumToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('premium_token');
+};
+
+const FORCE_PREMIUM =
+  typeof process !== 'undefined' &&
+  process.env.NEXT_PUBLIC_PREMIUM_EVERYONE === 'true';
+
 export default function HomePageClient() {
   const { t, locale } = useLanguage();
   const router = useRouter();
@@ -242,9 +251,15 @@ export default function HomePageClient() {
       features?: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean };
       isVoiceRecording?: boolean;
     }) => {
+      const premiumToken = getPremiumToken();
+      const hasPremium = FORCE_PREMIUM || Boolean(premiumToken);
+      const featuresToStore = {
+        canAnalyzeMedia: importData.features?.canAnalyzeMedia === true,
+        canUseEnhancedAnalysis: importData.features?.canUseEnhancedAnalysis === true
+      };
+
       setConversation(importData.conversation);
       setAnalyzing(true);
-      const hasPremium = true;
 
       setAnalysisProgress({
         progress: 0,
@@ -257,10 +272,7 @@ export default function HomePageClient() {
       sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
       sessionStorage.setItem(
         'currentFeatures',
-        JSON.stringify({
-          canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-          canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-        })
+        JSON.stringify(featuresToStore)
       );
 
       const conversationId = importData.conversation.id;
@@ -377,10 +389,7 @@ export default function HomePageClient() {
                 sessionStorage.setItem('currentSubscriptionTier', hasPremium ? 'premium' : 'free');
                 sessionStorage.setItem(
                   'currentFeatures',
-                  JSON.stringify({
-                    canAnalyzeMedia: hasPremium && importData.features?.canAnalyzeMedia,
-                    canUseEnhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis
-                  })
+                  JSON.stringify(featuresToStore)
                 );
 
                 setAnalysisProgress({
@@ -419,12 +428,15 @@ export default function HomePageClient() {
       try {
         const startResponse = await fetch('/api/analyze/start', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+          },
           body: JSON.stringify({
             conversation: importData.conversation,
             messages: importData.messages || [],
-            mediaArtifacts: hasPremium ? importData.media || [] : [],
-            enhancedAnalysis: hasPremium && importData.features?.canUseEnhancedAnalysis,
+            mediaArtifacts: importData.media || [],
+            enhancedAnalysis: importData.features?.canUseEnhancedAnalysis,
             participants: importData.participants || [],
             locale: locale
           })
@@ -483,6 +495,7 @@ export default function HomePageClient() {
 
     try {
       try {
+        const premiumToken = getPremiumToken();
         const blob = await upload(`import-${Date.now()}-${file.name}`, file, {
           access: 'public',
           handleUploadUrl: '/api/upload-to-blob',
@@ -497,7 +510,10 @@ export default function HomePageClient() {
 
         const importResponse = await fetch('/api/import/blob', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+          },
           body: JSON.stringify({
             blobUrl: blobUrl,
             platform,
@@ -570,6 +586,7 @@ export default function HomePageClient() {
     setError(null);
 
     try {
+      const premiumToken = getPremiumToken();
       const blob = await upload(`media-${Date.now()}-${file.name}`, file, {
         access: 'public',
         handleUploadUrl: '/api/upload-to-blob',
@@ -592,7 +609,10 @@ export default function HomePageClient() {
       if (isAudio) {
         const transcribeResponse = await fetch('/api/transcribe', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+          },
           body: JSON.stringify({
             blobUrl,
             fileName: file.name,
@@ -611,7 +631,10 @@ export default function HomePageClient() {
 
       const importResponse = await fetch('/api/import/media', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+        },
         body: JSON.stringify({
           blobUrl,
           fileName: file.name,

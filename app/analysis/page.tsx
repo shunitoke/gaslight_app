@@ -6,6 +6,7 @@ import { AlertCircle, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import { Button } from '../../components/ui/Button';
+import { PaddleCheckoutButton } from '../../components/subscription/PaddleCheckoutButton';
 import { Card, CardBase } from '../../components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../components/ui/chart';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -524,6 +525,27 @@ export default function AnalysisPage() {
     }));
   }, [activityByDay, intlLocale]);
 
+  const premiumGate = (
+    <div className="border border-primary/40 bg-primary/5 rounded-lg p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-primary">
+          {locale === 'ru' ? 'Полный отчет заблокирован' : 'Full report locked'}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {locale === 'ru'
+            ? 'Оплатите, чтобы открыть детали, доказательства и экспорт.'
+            : 'Pay once to unlock detailed sections, evidence, and exports.'}
+        </p>
+      </div>
+      <PaddleCheckoutButton
+        label={locale === 'ru' ? 'Разблокировать' : 'Unlock full report'}
+        variant="primary"
+        size="sm"
+        onSuccess={() => setIsPremiumAnalysis(true)}
+      />
+    </div>
+  );
+
   // Get localized safety level text
   const getSafetyLevelText = (level: SeverityLevel): string => {
     if (level === 'low') return t('hero_preview_score_low');
@@ -653,6 +675,8 @@ export default function AnalysisPage() {
         const storedTier = sessionStorage.getItem('currentSubscriptionTier');
         const storedFeatures = sessionStorage.getItem('currentFeatures');
         const storedActivity = sessionStorage.getItem('currentActivityByDay');
+        const premiumToken =
+          typeof window !== 'undefined' ? localStorage.getItem('premium_token') : null;
 
         let participantsData: Participant[] = [];
         let activityData: DailyActivity[] = [];
@@ -684,6 +708,9 @@ export default function AnalysisPage() {
         }
 
         const tier = storedTier || 'free';
+        const forcePremium =
+          typeof process !== 'undefined' &&
+          process.env.NEXT_PUBLIC_PREMIUM_EVERYONE === 'true';
         let features: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean } = {};
         if (storedFeatures) {
           try {
@@ -692,10 +719,7 @@ export default function AnalysisPage() {
             features = {};
           }
         }
-        const isPremium =
-          tier === 'premium' ||
-          features.canAnalyzeMedia === true ||
-          features.canUseEnhancedAnalysis === true;
+        const isPremium = forcePremium || tier === 'premium' || Boolean(premiumToken);
 
         const refetchFromServer = async (): Promise<boolean> => {
           if (!currentConversationId) {
@@ -904,16 +928,14 @@ export default function AnalysisPage() {
     report += `- ${t('gaslightingRisk')}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%\n`;
     report += `- ${t('conflictIntensity')}: ${(analysis.conflictIntensityScore * 100).toFixed(0)}%\n`;
     report += `- ${t('supportiveness')}: ${(analysis.supportivenessScore * 100).toFixed(0)}%\n`;
-    const resolutionLabel =
-      locale === 'ru'
-        ? 'Процент разрешённых конфликтов'
-        : t('apologyFrequency');
-    const resolutionValue = analysis.communicationStats?.resolutionRate ?? null;
-    if (resolutionValue !== null) {
-      report += `- ${resolutionLabel}: ${resolutionValue.toFixed(0)}%\n\n`;
-    } else {
-      report += '\n';
+    const hasApologyScore = typeof analysis.apologyFrequencyScore === 'number';
+    if (hasApologyScore) {
+      report += `- ${t('apologyFrequency')}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%\n`;
+    } else if (typeof analysis.communicationStats?.resolutionRate === 'number') {
+      const resolutionLabel = locale === 'ru' ? 'Процент разрешённых конфликтов' : 'Conflict resolution rate';
+      report += `- ${resolutionLabel}: ${(analysis.communicationStats.resolutionRate * 100).toFixed(0)}%\n`;
     }
+    report += '\n';
     
     report += `${t('exportPatterns')}:\n`;
     analysis.sections.forEach((section) => {
@@ -1287,6 +1309,10 @@ export default function AnalysisPage() {
   };
 
   const exportTXT = () => {
+    if (!isPremiumAnalysis) {
+      alert(locale === 'ru' ? 'Полный отчет доступен после оплаты.' : 'Unlock premium to export the full report.');
+      return;
+    }
     const text = generateTextReport();
     const fileDate = getIsoDateForFileName(analysis.createdAt);
     const safeId = getSafeIdForFileName(analysis.id);
@@ -1302,6 +1328,10 @@ export default function AnalysisPage() {
   };
 
   const exportJSON = () => {
+    if (!isPremiumAnalysis) {
+      alert(locale === 'ru' ? 'Полный отчет доступен после оплаты.' : 'Unlock premium to export the full report.');
+      return;
+    }
     const mapEvidence = (e: typeof analysis.sections[number]['evidenceSnippets'][number]) => ({
       excerpt: replaceParticipantIds(e.excerpt),
       explanation: replaceParticipantIds(e.explanation),
@@ -1418,6 +1448,10 @@ export default function AnalysisPage() {
   };
 
   const exportPDF = async () => {
+    if (!isPremiumAnalysis) {
+      alert(locale === 'ru' ? 'Полный отчет доступен после оплаты.' : 'Unlock premium to export the full report.');
+      return;
+    }
     try {
       // Dynamic import to avoid SSR issues
       const { jsPDF } = await import('jspdf');
@@ -1473,7 +1507,16 @@ export default function AnalysisPage() {
             <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('gaslightingRisk'))}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%</li>
             <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('conflictIntensity'))}: ${(analysis.conflictIntensityScore * 100).toFixed(0)}%</li>
             <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('supportiveness'))}: ${(analysis.supportivenessScore * 100).toFixed(0)}%</li>
-            <li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('apologyFrequency'))}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%</li>
+            ${
+              typeof analysis.apologyFrequencyScore === 'number'
+                ? `<li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(t('apologyFrequency'))}: ${(analysis.apologyFrequencyScore * 100).toFixed(0)}%</li>`
+                : ''
+            }
+            ${
+              typeof analysis.communicationStats?.resolutionRate === 'number' && typeof analysis.apologyFrequencyScore !== 'number'
+                ? `<li style="margin-bottom: 2px; font-size: 10px;">${escapeHtml(locale === 'ru' ? 'Процент разрешённых конфликтов' : t('conflictResolutionRate'))}: ${(analysis.communicationStats.resolutionRate * 100).toFixed(0)}%</li>`
+                : ''
+            }
           </ul>
         </div>
         
@@ -1595,6 +1638,90 @@ export default function AnalysisPage() {
                 `
                 : ''
             }
+          </div>
+        `;
+      }
+
+      if (analysis.realityCheck) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #e5e7eb; background: #f8fafc; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #0f172a;">${escapeHtml(t('reality_check_title'))}</h2>
+            <ul style="margin: 0; padding-left: 12px; font-size: 9px; color: #111827; line-height: 1.45;">
+              ${
+                analysis.realityCheck.whatParticipantWasRightAbout && analysis.realityCheck.whatParticipantWasRightAbout.length
+                  ? analysis.realityCheck.whatParticipantWasRightAbout
+                      .map((item) => `<li><strong>${escapeHtml(t('reality_check_right'))}:</strong> ${escapeHtml(replaceParticipantIds(item.participant))}: ${escapeHtml(replaceParticipantIds(item.thought))} (${escapeHtml(t('exportEvidence'))}: ${escapeHtml(replaceParticipantIds(item.evidence))})</li>`)
+                      .join('')
+                  : ''
+              }
+              ${
+                analysis.realityCheck.whatParticipantWasWrongAbout && analysis.realityCheck.whatParticipantWasWrongAbout.length
+                  ? analysis.realityCheck.whatParticipantWasWrongAbout
+                      .map((item) => `<li><strong>${escapeHtml(t('reality_check_wrong'))}:</strong> ${escapeHtml(replaceParticipantIds(item.participant))}: ${escapeHtml(replaceParticipantIds(item.accusation))} → ${escapeHtml(replaceParticipantIds(item.reality))}</li>`)
+                      .join('')
+                  : ''
+              }
+              ${
+                analysis.realityCheck.whosePerceptionWasAccurate
+                  ? `<li><strong>${escapeHtml(t('reality_check_whose'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.realityCheck.whosePerceptionWasAccurate))}</li>`
+                  : ''
+              }
+            </ul>
+          </div>
+        `;
+      }
+
+      if (analysis.hardTruth) {
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #fee2e2; background: #fff1f2; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #991b1b;">${escapeHtml(t('hard_truth_title'))}</h2>
+            <p style="margin: 0 0 4px 0; font-size: 10px; color: #7f1d1d;"><strong>${escapeHtml(t('hard_truth_verdict'))}:</strong> ${escapeHtml(analysis.hardTruth.verdict)}</p>
+            <p style="margin: 0 0 4px 0; font-size: 10px; color: #7f1d1d;">${escapeHtml(replaceParticipantIds(analysis.hardTruth.message))}</p>
+            ${
+              analysis.hardTruth.abusiveBehaviors && analysis.hardTruth.abusiveBehaviors.length
+                ? `<p style="margin: 0 0 2px 0; font-size: 10px; font-weight: bold; color: #7f1d1d;">${escapeHtml(t('hard_truth_abusive'))}:</p>
+                   <ul style="margin: 0; padding-left: 12px; font-size: 9px; color: #7f1d1d;">${analysis.hardTruth.abusiveBehaviors
+                     .map((b) => `<li>${escapeHtml(replaceParticipantIds(b))}</li>`)
+                     .join('')}</ul>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      if (analysis.whatYouShouldKnow) {
+        const mapList = (items?: string[]) =>
+          items && items.length
+            ? `<ul style="margin: 0 0 6px 0; padding-left: 12px; font-size: 9px; color: #0f172a; line-height: 1.45;">${items
+                .map((i) => `<li>${escapeHtml(replaceParticipantIds(i))}</li>`)
+                .join('')}</ul>`
+            : '';
+
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #e0f2fe; background: #f0f9ff; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 6px 0; color: #0ea5e9;">${escapeHtml(t('what_you_should_know_title'))}</h2>
+            ${mapList(analysis.whatYouShouldKnow.couldHaveDoneDifferently)}
+            ${mapList(analysis.whatYouShouldKnow.communicationTools)}
+            ${
+              analysis.whatYouShouldKnow.couldHaveBeenSaved !== undefined
+                ? `<p style="margin: 0 0 4px 0; font-size: 10px; color: #0f172a;"><strong>${escapeHtml(t('wysk_could_be_saved'))}:</strong> ${
+                    analysis.whatYouShouldKnow.couldHaveBeenSaved ? 'Yes' : 'No'
+                  }</p>`
+                : ''
+            }
+            ${
+              analysis.whatYouShouldKnow.whyNotFault
+                ? `<p style="margin: 0 0 4px 0; font-size: 10px; color: #0f172a;"><strong>${escapeHtml(t('wysk_why_not_fault'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.whatYouShouldKnow.whyNotFault))}</p>`
+                : ''
+            }
+            ${
+              analysis.whatYouShouldKnow.whatMadeVulnerable
+                ? `<p style="margin: 0 0 4px 0; font-size: 10px; color: #0f172a;"><strong>${escapeHtml(t('wysk_what_made_vulnerable'))}:</strong> ${escapeHtml(replaceParticipantIds(analysis.whatYouShouldKnow.whatMadeVulnerable))}</p>`
+                : ''
+            }
+            ${mapList(analysis.whatYouShouldKnow.patternsToWatch)}
+            ${mapList(analysis.whatYouShouldKnow.resources)}
+            ${mapList(analysis.whatYouShouldKnow.redFlagsForNextTime)}
           </div>
         `;
       }
@@ -1786,19 +1913,28 @@ export default function AnalysisPage() {
                 </div>
               )}
           </div>
-          <div className="flex gap-1.5 flex-wrap">
-            <Button onClick={copySummary} variant="outline" size="sm">
+          <div className="flex gap-1.5 flex-wrap items-center">
+            <Button onClick={copySummary} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
               {copySuccess ? (locale === 'ru' ? 'Скопировано!' : 'Copied!') : (locale === 'ru' ? 'Копировать' : 'Copy Summary')}
             </Button>
-            <Button onClick={exportTXT} variant="outline" size="sm">
+            <Button onClick={exportTXT} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
               {t('exportTXT')}
             </Button>
-            <Button onClick={exportJSON} variant="outline" size="sm">
+            <Button onClick={exportJSON} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
               {t('exportJSON')}
             </Button>
-            <Button onClick={exportPDF} variant="outline" size="sm">
+            <Button onClick={exportPDF} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
               {t('exportPDF')}
             </Button>
+            {!isPremiumAnalysis && (
+              <PaddleCheckoutButton
+                label={locale === 'ru' ? 'Разблокировать полный отчет' : 'Unlock full report'}
+                variant="primary"
+                size="sm"
+                onSuccess={() => setIsPremiumAnalysis(true)}
+                className="ml-2"
+              />
+            )}
           </div>
         </div>
 
@@ -2316,166 +2452,171 @@ export default function AnalysisPage() {
 
           {/* PATTERNS TAB */}
           <TabsContent value="patterns" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
-            <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
-              {analysis.sections.map((section: AnalysisSection, index: number) => {
-                const sectionScore = section.score ?? 0;
-                const { isProblematicSection, isAvoidance } = (() => {
-                  const id = (section.id || '').toLowerCase();
-                  const title = (section.title || '').toLowerCase();
-                  // Prefer stable IDs; fall back to localized keyword detection.
-                  const negativeIds = [
-                    'gaslighting',
-                    'conflict',
-                    'jealousy',
-                    'devaluation',
-                    'manipulation',
-                    'abuse',
-                    'toxicity',
-                    'control',
-                    'boundary',
-                    'attachment',
-                    'avoidance',
-                    'avoidant',
-                    'avoid',
-                    'financial',
-                    'finance',
-                    'money'
-                  ];
-                  const negativeKeywords = [
-                    // English
-                    'gaslight', 'conflict', 'jealous', 'devalu', 'manip', 'control', 'abuse', 'toxic',
-                    'attachment', 'avoidant', 'avoidance', 'avoid', 'anxious', 'financial', 'money', 'finance',
-                    // Russian
-                    'конфл', 'ревн', 'ревно', 'обесцен', 'манип', 'контрол', 'абью', 'насили', 'токс', 'финанс', 'финансов', 'деньг',
-                    'избег', 'уклон', 'отстран',
-                    // Spanish
-                    'celos', 'conflic', 'toxic', 'abuso', 'financ', 'dinero', 'manipul', 'control', 'evita', 'evitaci', 'evas',
-                    // French
-                    'jalous', 'conflit', 'tox', 'abus', 'financ', 'argent', 'manip', 'contrôl', 'évit', 'evit',
-                    // German
-                    'eifersucht', 'konflikt', 'tox', 'missbrauch', 'finanz', 'geld', 'manip', 'kontroll', 'vermeid',
-                    // Portuguese
-                    'ciúme', 'conflito', 'tóxic', 'abuso', 'financ', 'dinheiro', 'manip', 'controle', 'evita', 'evitaç'
-                  ];
-                  const isAvoidance = ['avoid', 'избег', 'evit', 'vermeid', 'уклон', 'отстран'].some(
-                    (k) => id.includes(k) || title.includes(k)
-                  );
-                  const isProblematic =
-                    negativeIds.some((k) => id.includes(k)) ||
-                    negativeKeywords.some((k) => title.includes(k));
-                  return { isProblematicSection: isProblematic, isAvoidance };
-                })();
-                const sectionPercent = sectionScore * 100;
-                const sectionLevel = getLevelFromPercent(sectionPercent);
-                const sectionTone = (() => {
-                  if (section.sentiment || section.scorePolarity) {
-                    return getToneFromMeta(
-                      sectionLevel,
-                      isProblematicSection ? 'higher-worse' : 'higher-better',
-                      section.scorePolarity,
-                      section.sentiment
+            {!isPremiumAnalysis && premiumGate}
+            <div className={!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none' : ''}>
+              <Accordion type="multiple" className="w-full space-y-3 sm:space-y-4" data-analysis-sections="true">
+                {analysis.sections.map((section: AnalysisSection, index: number) => {
+                  const sectionScore = section.score ?? 0;
+                  const { isProblematicSection, isAvoidance } = (() => {
+                    const id = (section.id || '').toLowerCase();
+                    const title = (section.title || '').toLowerCase();
+                    // Prefer stable IDs; fall back to localized keyword detection.
+                    const negativeIds = [
+                      'gaslighting',
+                      'conflict',
+                      'jealousy',
+                      'devaluation',
+                      'manipulation',
+                      'abuse',
+                      'toxicity',
+                      'control',
+                      'boundary',
+                      'attachment',
+                      'avoidance',
+                      'avoidant',
+                      'avoid',
+                      'financial',
+                      'finance',
+                      'money'
+                    ];
+                    const negativeKeywords = [
+                      // English
+                      'gaslight', 'conflict', 'jealous', 'devalu', 'manip', 'control', 'abuse', 'toxic',
+                      'attachment', 'avoidant', 'avoidance', 'avoid', 'anxious', 'financial', 'money', 'finance',
+                      // Russian
+                      'конфл', 'ревн', 'ревно', 'обесцен', 'манип', 'контрол', 'абью', 'насили', 'токс', 'финанс', 'финансов', 'деньг',
+                      'избег', 'уклон', 'отстран',
+                      // Spanish
+                      'celos', 'conflic', 'toxic', 'abuso', 'financ', 'dinero', 'manipul', 'control', 'evita', 'evitaci', 'evas',
+                      // French
+                      'jalous', 'conflit', 'tox', 'abus', 'financ', 'argent', 'manip', 'contrôl', 'évit', 'evit',
+                      // German
+                      'eifersucht', 'konflikt', 'tox', 'missbrauch', 'finanz', 'geld', 'manip', 'kontroll', 'vermeid',
+                      // Portuguese
+                      'ciúme', 'conflito', 'tóxic', 'abuso', 'financ', 'dinheiro', 'manip', 'controle', 'evita', 'evitaç'
+                    ];
+                    const isAvoidance = ['avoid', 'избег', 'evit', 'vermeid', 'уклон', 'отстран'].some(
+                      (k) => id.includes(k) || title.includes(k)
                     );
-                  }
-                  if (isAvoidance) return 'danger';
-                  return getBadgeTone(
-                    sectionLevel,
-                    isProblematicSection ? 'higher-worse' : 'higher-better'
-                  );
-                })();
-                return (
-                  <AccordionItem key={section.id} value={`section-${section.id}`} className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg sm:text-xl font-bold text-foreground text-left tracking-tight">
-                            {getSectionTitle(section.id, section.title)}
-                          </h3>
-                          {section.score !== undefined && (
-                            <Badge
-                              variant="outline"
-                              tone={sectionTone}
-                              size="sm"
-                            >
-                              {getLevelLabel(sectionLevel, locale)} • {sectionPercent.toFixed(0)}%
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4 pb-4">
-                      <div className="space-y-4">
-                        <Separator />
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
-                              {t('scientificAnalysis')}
-                            </p>
-                            <p className="text-sm sm:text-base text-foreground leading-relaxed">
-                              {section.summary && section.summary.trim()
-                                ? section.summary
-                                : t('analysisEmptySummary')}
-                            </p>
+                    const isProblematic =
+                      negativeIds.some((k) => id.includes(k)) ||
+                      negativeKeywords.some((k) => title.includes(k));
+                    return { isProblematicSection: isProblematic, isAvoidance };
+                  })();
+                  const sectionPercent = sectionScore * 100;
+                  const sectionLevel = getLevelFromPercent(sectionPercent);
+                  const sectionTone = (() => {
+                    if (section.sentiment || section.scorePolarity) {
+                      return getToneFromMeta(
+                        sectionLevel,
+                        isProblematicSection ? 'higher-worse' : 'higher-better',
+                        section.scorePolarity,
+                        section.sentiment
+                      );
+                    }
+                    if (isAvoidance) return 'danger';
+                    return getBadgeTone(
+                      sectionLevel,
+                      isProblematicSection ? 'higher-worse' : 'higher-better'
+                    );
+                  })();
+                  return (
+                    <AccordionItem key={section.id} value={`section-${section.id}`} className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center justify-between w-full pr-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg sm:text-xl font-bold text-foreground text-left tracking-tight">
+                              {getSectionTitle(section.id, section.title)}
+                            </h3>
+                            {section.score !== undefined && (
+                              <Badge
+                                variant="outline"
+                                tone={sectionTone}
+                                size="sm"
+                              >
+                                {getLevelLabel(sectionLevel, locale)} • {sectionPercent.toFixed(0)}%
+                              </Badge>
+                            )}
                           </div>
-                          {section.plainSummary && (
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4 pb-4">
+                        <div className="space-y-4">
+                          <Separator />
+                          <div className="space-y-3">
                             <div>
                               <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
-                                {t('plainLanguage')}
+                                {t('scientificAnalysis')}
                               </p>
-                              <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
-                                {section.plainSummary}
+                              <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                                {section.summary && section.summary.trim()
+                                  ? section.summary
+                                  : t('analysisEmptySummary')}
                               </p>
+                            </div>
+                            {section.plainSummary && (
+                              <div>
+                                <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
+                                  {t('plainLanguage')}
+                                </p>
+                                <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
+                                  {section.plainSummary}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          {section.evidenceSnippets.length > 0 && (
+                            <div className="space-y-3">
+                              <Separator />
+                              <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
+                                {t('evidence')}
+                              </h3>
+                              {section.evidenceSnippets.map((evidence, idx) => {
+                                const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
+                                const formattedExplanation = replaceParticipantIds(evidence.explanation);
+                                const participantInfo = formatParticipantName(formattedExcerpt);
+
+                                return (
+                                  <div
+                                    id={`evidence-${section.id}-${idx}`}
+                                    key={idx}
+                                    className="border-l-4 border-primary/50 pl-4 py-2.5 bg-muted/30 rounded-r-md"
+                                  >
+                                    {participantInfo ? (
+                                      <div className="mb-2">
+                                        <span className={`font-bold not-italic ${getParticipantColor(participantInfo.name)} text-sm sm:text-base mr-2 tracking-tight`}>
+                                          {participantInfo.name}:
+                                        </span>
+                                        <span className="italic text-sm sm:text-base text-foreground/95 leading-relaxed">
+                                          &ldquo;{participantInfo.remainingText}&rdquo;
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <p className="italic text-sm sm:text-base text-foreground/95 leading-relaxed mb-1">
+                                        &ldquo;{formattedExcerpt}&rdquo;
+                                      </p>
+                                    )}
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
+                                      {formattedExplanation}
+                                    </p>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
-                        {section.evidenceSnippets.length > 0 && (
-                          <div className="space-y-3">
-                            <Separator />
-                            <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                              {t('evidence')}
-                            </h3>
-                            {section.evidenceSnippets.map((evidence, idx) => {
-                              const formattedExcerpt = replaceParticipantIds(evidence.excerpt);
-                              const formattedExplanation = replaceParticipantIds(evidence.explanation);
-                              const participantInfo = formatParticipantName(formattedExcerpt);
-
-                              return (
-                                <div
-                                  id={`evidence-${section.id}-${idx}`}
-                                  key={idx}
-                                  className="border-l-4 border-primary/50 pl-4 py-2.5 bg-muted/30 rounded-r-md"
-                                >
-                                  {participantInfo ? (
-                                    <div className="mb-2">
-                                      <span className={`font-bold not-italic ${getParticipantColor(participantInfo.name)} text-sm sm:text-base mr-2 tracking-tight`}>
-                                        {participantInfo.name}:
-                                      </span>
-                                      <span className="italic text-sm sm:text-base text-foreground/95 leading-relaxed">
-                                        &ldquo;{participantInfo.remainingText}&rdquo;
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <p className="italic text-sm sm:text-base text-foreground/95 leading-relaxed mb-1">
-                                      &ldquo;{formattedExcerpt}&rdquo;
-                                    </p>
-                                  )}
-                                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
-                                    {formattedExplanation}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </div>
           </TabsContent>
 
           {/* STATISTICS TAB */}
           <TabsContent value="statistics" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
+            {!isPremiumAnalysis && premiumGate}
+            <div className={!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none' : ''}>
             {/* PART 2: STATISTICAL BREAKDOWN */}
         {analysis.communicationStats && (
           <CardBase className="p-3 sm:p-4">
@@ -2745,10 +2886,13 @@ export default function AnalysisPage() {
             )}
             </CardBase>
             )}
+            </div>
           </TabsContent>
 
           {/* INSIGHTS TAB */}
           <TabsContent value="insights" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
+            {!isPremiumAnalysis && premiumGate}
+            <div className={!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none' : ''}>
             {/* PART 6: FRAMEWORK DIAGNOSIS */}
             {analysis.frameworkDiagnosis && (
           <CardBase className="p-3 sm:p-4">
@@ -3202,6 +3346,7 @@ export default function AnalysisPage() {
             </p>
             </CardBase>
             )}
+            </div>
           </TabsContent>
         </Tabs>
 

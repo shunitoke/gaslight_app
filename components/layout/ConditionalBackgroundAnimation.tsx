@@ -10,10 +10,11 @@ import { BackgroundAnimation } from './BackgroundAnimation';
 export function ConditionalBackgroundAnimation() {
   const pathname = usePathname();
   
+  // Only the blob variant is active now; ripple is intentionally removed.
   const isHome = pathname === '/';
-  const variant = isHome ? 'ripple' : 'blob';
+  const variant = 'blob';
 
-  return <BackgroundAnimation variant={variant} />;
+  return <BackgroundAnimation variant={variant} isHome={isHome} key={isHome ? 'home' : 'page'} />;
 }
 
 

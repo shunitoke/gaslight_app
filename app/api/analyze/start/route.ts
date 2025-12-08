@@ -168,25 +168,16 @@ export async function POST(request: Request) {
         // Always forward media, but cap by tier to avoid silent drops; keep logging
         const mediaForAnalysis = mediaArtifacts.slice(0, features.maxMediaItemsPerAnalysis ?? 0);
 
-        if (!features.canAnalyzeMedia && mediaArtifacts.length > 0) {
-          logWarn('media_analysis_dropped_due_to_tier', {
-            conversationId: conversation.id,
-            requestedMedia: mediaArtifacts.length,
-            forwardedMedia: mediaForAnalysis.length,
-            tier: subscriptionTier,
-          });
-        } else {
-          logInfo('media_analysis_forwarded', {
-            conversationId: conversation.id,
-            forwardedMedia: mediaForAnalysis.length,
-            tier: subscriptionTier,
-          });
-        }
+        logInfo('media_analysis_forwarded', {
+          conversationId: conversation.id,
+          forwardedMedia: mediaArtifacts.length,
+          tier: subscriptionTier,
+        });
 
         const analysisResult = await analyzeConversation(
           conversation,
           messages,
-          mediaForAnalysis,
+          mediaArtifacts, // always pass media; upstream controls availability
           enhancedAnalysis && features.canUseEnhancedAnalysis,
           conversation.id,
           participants,

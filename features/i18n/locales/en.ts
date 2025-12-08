@@ -4,7 +4,7 @@ export const enBundle: LocaleBundle = {
   locale: 'en',
   displayName: 'English',
   messages: {
-    appName: 'Texts with my Ex',
+    appName: 'Texts with my Ex®',
     appTagline: 'Unbiased insight into what really happened.',
     hero_tagline: 'Unbiased AI insight into what really happened.',
     hero_tagline_alt1: 'Not vibes, not gossip — AI science under the hood.',
@@ -72,9 +72,9 @@ export const enBundle: LocaleBundle = {
     premium_badge: 'Premium',
     free_badge: 'Free',
     premium_hint:
-      'Premium analysis with deeper psychological insights, more evidence examples, and media where available.',
+      'Premium analysis: full report with detailed insights, evidence examples, and exports.',
     free_hint:
-      'Free tier analysis — text-only (up to 50k messages), without media analysis or enhanced deep-dive mode.',
+      'Free preview: overview only. Unlock full report, evidence, and exports.',
     premium_progress_hint:
       'Running premium analysis: using deeper prompts, media processing, generating participant profiles and recommended replies.',
     free_progress_hint:
@@ -319,6 +319,20 @@ export const enBundle: LocaleBundle = {
 
     // Terms & Conditions
     terms_title: 'Terms & Conditions',
+    privacy_title: 'Privacy Policy',
+    refund_title: 'Refund Policy',
+    pricing_title: 'Pricing',
+    paddle_buy_label: 'Buy full report',
+    paddle_status_loading: 'Loading checkout…',
+    paddle_status_verifying: 'Verifying payment…',
+    paddle_status_opening: 'Opening secure checkout…',
+    paddle_status_unlocked: 'Premium unlocked!',
+    paddle_error_missing_token: 'Paddle client token is missing',
+    paddle_error_token_missing: 'Token missing from response',
+    paddle_error_unlock: 'Unable to unlock premium',
+    paddle_error_not_ready: 'Paddle not ready yet',
+    paddle_error_start: 'Failed to start checkout',
+    paddle_error_txn_missing: 'Transaction id missing',
     terms_intro:
       'These Terms & Conditions ("Terms") govern your use of the Texts with My Ex web application ("Service"). By accessing or using the Service, you agree to be bound by these Terms.',
     terms_section1_title: '1. Service Description',
@@ -348,6 +362,79 @@ export const enBundle: LocaleBundle = {
     terms_section9_title: '9. Contact',
     terms_section9_content:
       'If you have questions about these Terms or the Service, please contact us at spinnermining@gmail.com.',
+    legal_label: 'Legal',
+    legal_last_updated: 'Last updated:',
+    privacy_intro:
+      'Texts with My Ex is built for short-lived, anonymous analysis. We only process the data you upload to deliver your report and then expire it quickly. We do not create user accounts.',
+    privacy_collect_title: 'What we collect',
+    privacy_collect_item1: 'Chat exports and optional media you upload for analysis.',
+    privacy_collect_item2: 'Progress metadata (e.g., job status) stored temporarily to complete your report.',
+    privacy_collect_item3: 'Basic analytics and rate-limiting signals (IP, user agent) to keep the service stable.',
+    privacy_use_title: 'How we use your data',
+    privacy_use_item1: 'To run AI analysis and generate your report.',
+    privacy_use_item2: 'To troubleshoot errors and guard against abuse.',
+    privacy_use_item3: 'Never to train third-party models or build advertising profiles.',
+    privacy_retention_title: 'Retention',
+    privacy_retention_text:
+      'Analysis jobs and cached data are short-lived (typically under 24 hours) and are automatically removed during cleanup. Uploaded files in blob storage are pruned regularly. We do not keep a long-term copy of your conversations.',
+    privacy_payment_title: 'Payment data',
+    privacy_payment_text:
+      'Payments are processed by Paddle. We do not store card details. Paddle may collect billing and fraud-prevention signals according to their own privacy policy.',
+    privacy_choices_title: 'Your choices',
+    privacy_choices_item1: 'You can delete your data by closing the page; stored artifacts expire automatically.',
+    privacy_choices_item2: 'Do not upload content you are not authorized to share.',
+    privacy_choices_item3: 'Use a privacy-friendly browser session if you do not want local storage of tokens.',
+    privacy_contact_title: 'Contact',
+    privacy_contact_text_prefix: 'Questions about privacy? Email',
+    privacy_contact_text_suffix: '.',
+    refund_intro:
+      'Premium access is a one-time purchase for a single full analysis report. Because the report is generated immediately using AI resources, all sales are final once the payment is completed.',
+    refund_no_refunds_title: 'When refunds are not available',
+    refund_no_refunds_item1: 'Change of mind after the report is delivered.',
+    refund_no_refunds_item2: 'Not liking the AI output (the service is best-effort and not guaranteed advice).',
+    refund_no_refunds_item3: 'Attempting to reuse the same purchase for multiple unrelated analyses.',
+    refund_issue_title: 'If something goes wrong',
+    refund_issue_item1: 'If the report fails to generate after payment, contact us within 7 days.',
+    refund_issue_item2: 'We will attempt to re-run the analysis; if that is not possible, we will review a refund.',
+    refund_issue_item3: 'Please include your Paddle transaction ID and the email or metadata shown at checkout.',
+    refund_contact_title: 'How to contact us',
+    refund_contact_text_prefix: 'Email',
+    refund_contact_text_suffix: 'with your transaction ID and a short description of the issue. We respond as quickly as possible.',
+    pricing_badge_text: 'One-time payment, no subscription',
+    pricing_description:
+      'Run a free preview to see your scores and overview. Unlock the full report and exports with a single, secure Paddle checkout.',
+    pricing_free_label: 'Preview',
+    pricing_free_price_label: 'Free',
+    pricing_free_badge: 'Start here',
+    pricing_free_description:
+      'See top-level scores and an overview before paying. Good for a quick gut check.',
+    pricing_free_item1: 'Upload and process a conversation',
+    pricing_free_item2: 'See headline scores and a short overview',
+    pricing_free_item3: 'Basic activity timeline',
+    pricing_free_cta: 'Start a free preview',
+    pricing_premium_label: 'Premium Report',
+    pricing_price_unit: 'one-time',
+    pricing_premium_description:
+      'Unlock the complete AI report, evidence, participant profiles, and all export options. No recurring billing.',
+    pricing_premium_item1: 'Full evidence and pattern breakdowns',
+    pricing_premium_item2: 'Participant profiles, insights, and closure section',
+    pricing_premium_item3: 'Export to TXT / JSON / PDF',
+    pricing_premium_item4: 'Priority analysis settings where available',
+    pricing_premium_cta: 'Buy full report',
+    pricing_checkout_note:
+      'Checkout is handled by Paddle. Final price and currency are confirmed before payment.',
+    pricing_what_you_get_title: 'What you get',
+    pricing_what_evidence_title: 'Full evidence',
+    pricing_what_evidence_text:
+      'Concrete message excerpts, pattern explanations, and daily activity charts.',
+    pricing_what_exports_title: 'Exports',
+    pricing_what_exports_text:
+      'Download your report to TXT, JSON, or PDF for offline use and sharing.',
+    pricing_what_onetime_title: 'One-time access',
+    pricing_what_onetime_text:
+      'No subscription. Each premium purchase unlocks a full report for your current analysis.',
+    pricing_help_text_prefix: 'Need help with billing? Email',
+    pricing_help_text_suffix: '.',
     donation_beta_label: 'Beta',
     donation_title: 'Support the developer',
     donation_text: 'If this report helped, consider a small donation. Thank you for your support!',

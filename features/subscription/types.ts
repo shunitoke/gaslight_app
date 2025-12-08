@@ -24,8 +24,10 @@ export type SubscriptionFeatures = {
  * - Tokens are stored client-side only
  */
 export async function getSubscriptionTier(request?: Request): Promise<SubscriptionTier> {
-  // Treat everyone as premium to simplify access (abuse guarded by limits elsewhere)
+  // Dev override to keep existing behavior when explicitly requested
+  if (process.env.PREMIUM_EVERYONE === 'true') {
   return 'premium';
+  }
 
   // 1. Check for valid premium token (production method)
   try {
@@ -42,7 +44,13 @@ export async function getSubscriptionTier(request?: Request): Promise<Subscripti
     // If premium token module fails, fall through to other checks
   }
 
-  // 2. Default to free
+  // 2. Allow explicit header override for testing
+  const tierOverride = request?.headers.get('x-subscription-tier');
+  if (tierOverride === 'premium') {
+    return 'premium';
+  }
+
+  // 3. Default to free
   return 'free';
 }
 
@@ -59,7 +67,7 @@ export function getSubscriptionFeatures(tier: SubscriptionTier): SubscriptionFea
     };
   }
 
-  // Free tier (unused while everyone is premium)
+  // Free tier (kept permissive to avoid blocking existing flows; premium is required for full report/export)
   return {
     canAnalyzeMedia: true,
     canUseEnhancedAnalysis: true,

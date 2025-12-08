@@ -4,7 +4,7 @@ export const deBundle: LocaleBundle = {
   locale: 'de',
   displayName: 'Deutsch',
   messages: {
-    appName: 'Texte mit meinem Ex',
+    appName: 'Texte mit meinem Ex®',
     appTagline: 'Ein ehrlicher Blick auf das, was passiert ist.',
     hero_tagline: 'Ein ehrlicher KI-Blick auf das, was passiert ist.',
     hero_tagline_alt1: 'Unter der Haube: KI und Wissenschaft statt Drama.',
@@ -72,9 +72,9 @@ export const deBundle: LocaleBundle = {
     premium_badge: 'Premium',
     free_badge: 'Kostenlos',
     premium_hint:
-      'Premium-Analyse mit tieferen psychologischen Einsichten, mehr Beweisbeispielen und Medien, wo verfügbar.',
+      'Premium-Analyse: vollständiger Bericht mit detaillierten Insights, Belegen und Exporten.',
     free_hint:
-      'Kostenlose Analyse — nur Text (bis 50k Nachrichten), ohne Medienanalyse oder erweiterten Deep-Dive-Modus.',
+      'Kostenlose Vorschau: nur Überblick. Schalte vollständigen Bericht, Belege und Exporte frei.',
     premium_progress_hint:
       'Premium-Analyse läuft: tiefere Prompts, Medienverarbeitung, Generierung von Teilnehmerprofilen und empfohlenen Antworten.',
     free_progress_hint:
@@ -179,6 +179,7 @@ export const deBundle: LocaleBundle = {
     emotional_safety_medium: 'Mittel',
     emotional_safety_high: 'Hoch',
     hero_preview_typing: 'KI liest noch…',
+    relationship_health_title: 'Beziehungsübersicht',
 
     // Datenschutz-Chips
     privacy_chip_no_sharing: 'Keine Veröffentlichung nach außen',
@@ -295,6 +296,20 @@ export const deBundle: LocaleBundle = {
 
     // Nutzungsbedingungen
     terms_title: 'Nutzungsbedingungen',
+    privacy_title: 'Datenschutzrichtlinie',
+    refund_title: 'Rückerstattungsrichtlinie',
+    pricing_title: 'Preise',
+    paddle_buy_label: 'Vollständigen Bericht kaufen',
+    paddle_status_loading: 'Checkout wird geladen…',
+    paddle_status_verifying: 'Zahlung wird geprüft…',
+    paddle_status_opening: 'Sicherer Checkout wird geöffnet…',
+    paddle_status_unlocked: 'Premium freigeschaltet!',
+    paddle_error_missing_token: 'Paddle-Client-Token fehlt',
+    paddle_error_token_missing: 'Token fehlt in der Antwort',
+    paddle_error_unlock: 'Premium konnte nicht freigeschaltet werden',
+    paddle_error_not_ready: 'Paddle noch nicht bereit',
+    paddle_error_start: 'Checkout konnte nicht gestartet werden',
+    paddle_error_txn_missing: 'Transaktions-ID fehlt',
     terms_intro:
       'Diese Nutzungsbedingungen ("Bedingungen") regeln Ihre Nutzung der Webanwendung Texte mit meinem Ex ("Service"). Durch den Zugriff auf oder die Nutzung des Service stimmen Sie zu, an diese Bedingungen gebunden zu sein.',
     terms_section1_title: '1. Servicebeschreibung',
@@ -324,6 +339,79 @@ export const deBundle: LocaleBundle = {
     terms_section9_title: '9. Kontakt',
     terms_section9_content:
       'Wenn Sie Fragen zu diesen Bedingungen oder dem Service haben, kontaktieren Sie uns bitte unter spinnermining@gmail.com.',
+    legal_label: 'Rechtliches',
+    legal_last_updated: 'Zuletzt aktualisiert:',
+    privacy_intro:
+      'Texts with My Ex ist für kurzlebige, anonyme Analysen gebaut. Wir verarbeiten nur die Daten, die du hochlädst, um deinen Bericht zu liefern, und löschen sie anschließend schnell. Wir erstellen keine Nutzerkonten.',
+    privacy_collect_title: 'Was wir sammeln',
+    privacy_collect_item1: 'Chat-Exporte und optionale Medien, die du für die Analyse hochlädst.',
+    privacy_collect_item2: 'Fortschritts-Metadaten (z. B. Job-Status), die vorübergehend gespeichert werden, um deinen Bericht abzuschließen.',
+    privacy_collect_item3: 'Einfache Analytik und Rate-Limit-Signale (IP, User Agent), um den Dienst stabil zu halten.',
+    privacy_use_title: 'Wie wir deine Daten nutzen',
+    privacy_use_item1: 'Um die KI-Analyse auszuführen und deinen Bericht zu erstellen.',
+    privacy_use_item2: 'Um Fehler zu beheben und Missbrauch zu verhindern.',
+    privacy_use_item3: 'Niemals, um Drittmodelle zu trainieren oder Werbeprofile zu erstellen.',
+    privacy_retention_title: 'Aufbewahrung',
+    privacy_retention_text:
+      'Analysejobs und zwischengespeicherte Daten sind kurzlebig (in der Regel unter 24 Stunden) und werden bei der Bereinigung automatisch entfernt. Hochgeladene Dateien im Blob-Speicher werden regelmäßig bereinigt. Wir behalten keine langfristige Kopie deiner Unterhaltungen.',
+    privacy_payment_title: 'Zahlungsdaten',
+    privacy_payment_text:
+      'Zahlungen werden von Paddle verarbeitet. Wir speichern keine Kartendaten. Paddle kann Abrechnungs- und Betrugspräventionssignale gemäß deren Datenschutzrichtlinie erfassen.',
+    privacy_choices_title: 'Deine Optionen',
+    privacy_choices_item1: 'Du kannst deine Daten löschen, indem du die Seite schließt; gespeicherte Artefakte laufen automatisch ab.',
+    privacy_choices_item2: 'Lade keine Inhalte hoch, zu deren Weitergabe du nicht berechtigt bist.',
+    privacy_choices_item3: 'Nutze eine datenschutzfreundliche Browsersitzung, wenn du keine lokale Token-Speicherung möchtest.',
+    privacy_contact_title: 'Kontakt',
+    privacy_contact_text_prefix: 'Fragen zum Datenschutz? Schreib an',
+    privacy_contact_text_suffix: '.',
+    refund_intro:
+      'Premium-Zugang ist ein einmaliger Kauf für einen vollständigen Analysebericht. Da der Bericht sofort mit KI-Ressourcen erzeugt wird, sind alle Verkäufe endgültig, sobald die Zahlung abgeschlossen ist.',
+    refund_no_refunds_title: 'Wann keine Rückerstattung möglich ist',
+    refund_no_refunds_item1: 'Meinungsänderung nach Lieferung des Berichts.',
+    refund_no_refunds_item2: 'Unzufriedenheit mit dem KI-Ergebnis (der Service erfolgt nach bestem Bemühen und ist keine garantierte Beratung).',
+    refund_no_refunds_item3: 'Versuch, denselben Kauf für mehrere unabhängige Analysen zu verwenden.',
+    refund_issue_title: 'Wenn etwas schiefgeht',
+    refund_issue_item1: 'Falls der Bericht nach der Zahlung nicht generiert wird, kontaktiere uns innerhalb von 7 Tagen.',
+    refund_issue_item2: 'Wir versuchen, die Analyse erneut auszuführen; falls das nicht möglich ist, prüfen wir eine Rückerstattung.',
+    refund_issue_item3: 'Bitte gib deine Paddle-Transaktions-ID und die beim Checkout angezeigte E-Mail oder Metadaten an.',
+    refund_contact_title: 'So kontaktierst du uns',
+    refund_contact_text_prefix: 'Schreib an',
+    refund_contact_text_suffix: 'mit deiner Transaktions-ID und einer kurzen Problembeschreibung. Wir antworten so schnell wie möglich.',
+    pricing_badge_text: 'Einmalzahlung, kein Abo',
+    pricing_description:
+      'Starte eine kostenlose Vorschau, um deine Scores und die Übersicht zu sehen. Schalte den vollständigen Bericht und Exporte mit einem einzigen, sicheren Paddle-Checkout frei.',
+    pricing_free_label: 'Vorschau',
+    pricing_free_price_label: 'Kostenlos',
+    pricing_free_badge: 'Hier starten',
+    pricing_free_description:
+      'Sieh dir Spitzenwerte und eine kurze Übersicht an, bevor du zahlst. Gut für einen schnellen Eindruck.',
+    pricing_free_item1: 'Lade eine Unterhaltung hoch und verarbeite sie',
+    pricing_free_item2: 'Sieh Haupt-Scores und eine kurze Zusammenfassung',
+    pricing_free_item3: 'Einfache Aktivitäts-Timeline',
+    pricing_free_cta: 'Kostenlose Vorschau starten',
+    pricing_premium_label: 'Premium-Bericht',
+    pricing_price_unit: 'einmalig',
+    pricing_premium_description:
+      'Schalte den vollständigen KI-Bericht, Beweise, Teilnehmerprofile und alle Exportoptionen frei. Keine wiederkehrenden Kosten.',
+    pricing_premium_item1: 'Vollständige Beweis- und Musterauflistung',
+    pricing_premium_item2: 'Profile, Insights und Abschlussbereich für Teilnehmer',
+    pricing_premium_item3: 'Export als TXT / JSON / PDF',
+    pricing_premium_item4: 'Priorisierte Analyse-Einstellungen, wo verfügbar',
+    pricing_premium_cta: 'Vollständigen Bericht kaufen',
+    pricing_checkout_note:
+      'Der Checkout läuft über Paddle. Endpreis und Währung werden vor der Zahlung bestätigt.',
+    pricing_what_you_get_title: 'Was du bekommst',
+    pricing_what_evidence_title: 'Volle Beweise',
+    pricing_what_evidence_text:
+      'Konkrete Nachrichtenauszüge, Mustererklärungen und tägliche Aktivitätsdiagramme.',
+    pricing_what_exports_title: 'Exporte',
+    pricing_what_exports_text:
+      'Lade deinen Bericht als TXT, JSON oder PDF für Offline-Nutzung und Teilen herunter.',
+    pricing_what_onetime_title: 'Einmaliger Zugang',
+    pricing_what_onetime_text:
+      'Kein Abo. Jeder Premium-Kauf schaltet einen vollständigen Bericht für deine aktuelle Analyse frei.',
+    pricing_help_text_prefix: 'Brauchst du Hilfe bei der Abrechnung? Schreib an',
+    pricing_help_text_suffix: '.',
     donation_beta_label: 'Beta',
     donation_title: 'Entwickler unterstützen',
     donation_text: 'Wenn dir dieser Bericht geholfen hat, freue ich mich über eine kleine Spende. Danke für deine Unterstützung!',
