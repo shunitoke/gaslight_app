@@ -2,7 +2,7 @@
   "name": "Texts with My Ex",
   "short_name": "Texts with My Ex",
   "description": "AI-powered anonymous relationship analysis for Telegram and WhatsApp exports.",
-  "start_url": "/?utm_source=pwa",
+  "start_url": "/?utm_source=pwa&v=2",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
@@ -11,25 +11,25 @@
   "theme_color": "#F8F9FA",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/icon-v2.png",
       "type": "image/png",
       "sizes": "1024x1024",
       "purpose": "any"
     },
     {
-      "src": "/icon.png",
+      "src": "/icon-v2.png",
       "type": "image/png",
       "sizes": "1024x1024",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-v2.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192-v2.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
@@ -45,7 +45,7 @@
       "url": "/",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/icon-192-v2.png",
           "sizes": "192x192",
           "type": "image/png"
         }

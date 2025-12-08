@@ -36,15 +36,15 @@ export const metadata: Metadata = {
   description:
     'Upload Telegram or WhatsApp chats to receive an impartial, AI-powered relationship analysis. Detect gaslighting patterns, communication issues, and relationship dynamics.',
   keywords: ['gaslighting detection', 'relationship analysis', 'AI analysis', 'chat analysis', 'telegram', 'whatsapp'],
-  manifest: '/manifest.json',
+  manifest: '/manifest.json?v=2',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Texts with My Ex'
   },
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png'
+    icon: '/icon-v2.png?v=2',
+    apple: '/icon-v2.png?v=2'
   },
   openGraph: {
     title: 'Texts with My Ex - AI Gaslight Detection',
@@ -149,8 +149,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Texts with My Ex" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icon.png" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-v2.png?v=2" />
+        <link rel="manifest" href="/manifest.json?v=2" />
         {/* Resource hints - Next.js handles font preconnect automatically */}
         <link rel="dns-prefetch" href="https://openrouter.ai" />
       </head>
