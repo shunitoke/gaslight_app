@@ -16,7 +16,8 @@ type MediaUploadProps = {
   maxRecordMs?: number;
 };
 
-const ACCEPT = 'image/*,audio/*';
+// Restrict to common static image and core audio types (voice still coming soon)
+const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,audio/mpeg,audio/mp3,audio/wav,audio/webm';
 const DEFAULT_MAX_RECORD_MS = 60_000; // 60s
 
 export function MediaUpload({
@@ -198,17 +199,6 @@ export function MediaUpload({
             </button>
             {isRecording && (
               <div className="text-xs text-muted-foreground">{translate('stop_recording', { seconds: recordSeconds })}</div>
-            )}
-            {!isRecording && (
-              <Button
-                type="button"
-                onClick={startRecording}
-                variant="primary"
-                disabled={disabled || uploading || voiceComingSoon}
-                className="w-full"
-              >
-                {t('start_recording')}
-              </Button>
             )}
           </div>
         </div>

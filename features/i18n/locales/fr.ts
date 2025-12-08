@@ -68,8 +68,7 @@ export const frBundle: LocaleBundle = {
     imported: 'Importé',
     messages: 'messages',
     privacyNote: 'Vos données sont traitées de manière éphémère et ne sont jamais stockées de façon permanente.',
-    fileUploadHelp:
-      'La version actuelle fonctionne mieux avec de petits exports texte/json. Gratuit : uniquement .json et .txt. Premium : .zip avec analyse des médias arrivera dans la prochaine version.',
+    fileUploadHelp: 'Formats : .json, .txt, .zip. Fichiers jusqu’à 25 Mo.',
     premium_badge: 'Premium',
     free_badge: 'Gratuit',
     premium_hint:
@@ -96,6 +95,7 @@ export const frBundle: LocaleBundle = {
     recommended: 'Recommandé',
     selectFile: 'Sélectionner le fichier',
     clickToSelectFile: 'Cliquez pour sélectionner un fichier',
+    dragDropHint: 'Glissez-déposez votre export ici ou cliquez pour choisir un fichier.',
     ready: 'Prêt',
     uploadAndAnalyze: 'Télécharger et analyser',
     inputMode_upload: "Télécharger l'export",

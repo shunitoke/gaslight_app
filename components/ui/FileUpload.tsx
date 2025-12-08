@@ -54,6 +54,7 @@ export function FileUpload({
   const [fileName, setFileName] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const ZIP_MEDIA_MAX_BYTES = 25 * 1024 * 1024;
+  const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
   const pickLocalizedMessage = useCallback((messages: Record<string, string>): string => {
     const langs = typeof navigator !== 'undefined' ? navigator.languages || [navigator.language] : [];
@@ -69,6 +70,19 @@ export function FileUpload({
 
   const validateBeforeUpload = useCallback(
     (file: File): boolean => {
+      if (file.size > MAX_FILE_BYTES) {
+        const message = pickLocalizedMessage({
+          ru: 'Файлы больше 25 МБ временно блокируются. Загрузите файл до 25 МБ.',
+          en: 'Files over 25MB are temporarily blocked. Please upload a file up to 25MB.',
+          es: 'Los archivos de más de 25 MB están bloqueados temporalmente. Sube un archivo de hasta 25 MB.',
+          fr: 'Les fichiers de plus de 25 Mo sont temporairement bloqués. Veuillez envoyer un fichier de moins de 25 Mo.',
+          de: 'Dateien über 25 MB sind vorübergehend blockiert. Bitte laden Sie eine Datei bis 25 MB hoch.',
+          pt: 'Arquivos acima de 25 MB estão temporariamente bloqueados. Envie um arquivo de até 25 MB.'
+        });
+        alert(message);
+        return false;
+      }
+
       const isZip =
         file.name.toLowerCase().endsWith('.zip') ||
         file.type === 'application/zip' ||
@@ -168,10 +182,10 @@ export function FileUpload({
         onDragOver={importSuccessful ? undefined : ((e) => e.preventDefault())}
         className={cn(
           'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all',
-          'bg-card/50 hover:bg-card',
+          'bg-card/60 hover:bg-card/80',
           disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
-            : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5',
+            : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5'
         )}
       >
         {!importSuccessful && (
@@ -196,36 +210,30 @@ export function FileUpload({
         <p className="text-base font-semibold text-foreground">
           {uploading ? t('uploadingFile') : t('uploadExport')}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground max-w-md">
-          {t('fileUploadHelp')}
-        </p>
-        <div className="mt-4 space-y-2 w-full max-w-md">
-          {uploading ? (
+        {!importSuccessful && (
+          <p className="mt-2 text-sm text-muted-foreground max-w-md">
+            {t('dragDropHint')}
+          </p>
+        )}
+        {uploading && (
+          <div className="mt-4 w-full max-w-md">
             <Progress value={uploadProgress} className="w-full" />
-          ) : !importSuccessful ? (
-            <button
-              type="button"
-              disabled={disabled}
-              className={cn(
-                'inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-all duration-200',
-                disabled
-                  ? 'cursor-not-allowed border-border text-muted-foreground opacity-60'
-                  : 'border-border bg-background hover:border-primary/50 hover:text-primary',
-              )}
-            >
-              {fileName ? fileName : t('clickToSelectFile')}
-            </button>
-          ) : null}
-          {importSuccessful && (
-            <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>
-                {t('importSuccessful')}
-                {messageCount ? ` · ${messageCount} ${t('messages')}` : ''}
-              </span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+        {!uploading && !importSuccessful && (
+          <p className="mt-3 text-sm font-medium text-primary">
+            {fileName ? fileName : t('clickToSelectFile')}
+          </p>
+        )}
+        {importSuccessful && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-emerald-600">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>
+              {t('importSuccessful')}
+              {messageCount ? ` · ${messageCount} ${t('messages')}` : ''}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

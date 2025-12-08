@@ -68,8 +68,7 @@ export const ruBundle: LocaleBundle = {
     imported: 'Импортировано',
     messages: 'сообщений',
     privacyNote: 'Ваши данные обрабатываются временно и никогда не хранятся постоянно.',
-    fileUploadHelp:
-      'Текущая версия лучше всего работает с небольшими экспортами (.json, .txt, .zip). Голосовые и полный медиа-анализ появятся в следующей версии.',
+    fileUploadHelp: 'Форматы: .json, .txt, .zip. Файлы до 25 МБ.',
     premium_badge: 'Премиум',
     free_badge: 'Бесплатно',
     premium_hint:
@@ -96,6 +95,7 @@ export const ruBundle: LocaleBundle = {
     recommended: 'Рекомендуется',
     selectFile: 'Выберите файл',
     clickToSelectFile: 'Нажмите, чтобы выбрать файл',
+    dragDropHint: 'Перетащите экспорт сюда или нажмите, чтобы выбрать файл.',
     ready: 'Готово',
     uploadAndAnalyze: 'Загрузить и проанализировать',
     inputMode_upload: 'Загрузить экспорт',

@@ -69,7 +69,7 @@ export const enBundle: LocaleBundle = {
     imported: 'Imported',
     messages: 'messages',
     privacyNote: 'Your data is processed ephemerally and never stored permanently.',
-    fileUploadHelp: 'Current version works best with small exports (.json, .txt, .zip). Voice notes and full media analysis will arrive in the next version.',
+    fileUploadHelp: 'Formats: .json, .txt, .zip. Files up to 25MB.',
     premium_badge: 'Premium',
     free_badge: 'Free',
     premium_hint:
@@ -96,6 +96,7 @@ export const enBundle: LocaleBundle = {
     recommended: 'Recommended',
     selectFile: 'Select File',
     clickToSelectFile: 'Click to select file',
+    dragDropHint: 'Drag & drop your export here or click to choose a file.',
     ready: 'Ready',
     uploadAndAnalyze: 'Upload & Analyze',
     inputMode_upload: 'Upload export',

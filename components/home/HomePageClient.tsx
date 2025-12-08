@@ -1343,7 +1343,7 @@ export default function HomePageClient() {
           style={{
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
             height: 'auto',
-            minHeight: '560px',
+            minHeight: '420px',
             willChange: 'opacity, transform',
             overflow: 'visible'
           }}
@@ -1456,7 +1456,7 @@ export default function HomePageClient() {
                         : 'hidden sm:block sm:opacity-0 sm:-translate-x-6 sm:pointer-events-none'
                     )}
                   >
-                    <div className="w-full flex flex-col h-full justify-center animate-in fade-in slide-in-from-left-3 duration-500">
+                    <div className="w-full max-w-lg mx-auto flex flex-col h-full justify-center gap-3 animate-in fade-in slide-in-from-left-3 duration-500">
                       <FileUpload
                         onFileSelect={handleFileSelect}
                         disabled={uploading}
@@ -1465,6 +1465,11 @@ export default function HomePageClient() {
                         importSuccessful={!!conversation && !analyzing && !error}
                         messageCount={conversation?.messageCount || 0}
                       />
+                      {inputMode === 'file' && (
+                        <p className="mt-2 text-xs text-muted-foreground text-center">
+                          {t('fileUploadHelp')}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1478,7 +1483,7 @@ export default function HomePageClient() {
                     )}
                   >
                     <div
-                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500"
+                      className="space-y-4 w-full max-w-lg mx-auto h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500"
                       style={{
                         transition:
                           'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -1524,7 +1529,7 @@ export default function HomePageClient() {
                     )}
                   >
                     <div
-                      className="space-y-6 w-full h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500"
+                      className="space-y-4 w-full max-w-lg mx-auto h-full flex flex-col justify-center animate-in fade-in slide-in-from-right-3 duration-500"
                       style={{
                         transition:
                           'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
