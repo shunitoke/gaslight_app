@@ -10,7 +10,7 @@ type Props = {
   label?: string;
   className?: string;
   onSuccess?: (token: string) => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'default';
+  variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
 };
 
@@ -39,7 +39,7 @@ const loadPaddle = async () => {
 
 export function PaddleCheckoutButton({
   label,
-  variant = 'default',
+  variant = 'primary',
   size = 'lg',
   className,
   onSuccess
