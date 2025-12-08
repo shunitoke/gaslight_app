@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     title: 'Texts with My Ex'
   },
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg'
+    icon: '/icon.png',
+    apple: '/icon.png'
   },
   openGraph: {
     title: 'Texts with My Ex - AI Gaslight Detection',
@@ -149,7 +149,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Texts with My Ex" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="manifest" href="/manifest.json" />
         {/* Resource hints - Next.js handles font preconnect automatically */}
         <link rel="dns-prefetch" href="https://openrouter.ai" />
