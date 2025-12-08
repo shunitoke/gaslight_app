@@ -14,21 +14,21 @@ type BackgroundAnimationProps = {
 const blobLayers = [
   {
     className:
-      'absolute top-[-6%] left-[10%] w-[380px] h-[380px] md:w-[620px] md:h-[620px] animate-blob-gaslight',
+      'absolute top-[-8%] left-[8%] w-[440px] h-[440px] md:w-[720px] md:h-[720px] animate-blob-gaslight',
     backgroundImage:
       'radial-gradient(closest-side at 30% 35%, hsl(var(--primary) / 0.55) 0%, transparent 60%), radial-gradient(closest-side at 70% 60%, hsl(var(--accent) / 0.35) 0%, transparent 75%)',
     delayClass: '',
   },
   {
     className:
-      'absolute top-[4%] right-[8%] w-[360px] h-[360px] md:w-[600px] md:h-[600px] animate-blob-gaslight',
+      'absolute top-[2%] right-[6%] w-[420px] h-[420px] md:w-[700px] md:h-[700px] animate-blob-gaslight',
     backgroundImage:
       'radial-gradient(closest-side at 65% 40%, hsl(var(--accent) / 0.4) 0%, transparent 62%), radial-gradient(closest-side at 35% 65%, hsl(var(--secondary) / 0.32) 0%, transparent 70%)',
     delayClass: 'animation-delay-2000',
   },
   {
     className:
-      'absolute -bottom-24 left-[28%] w-[360px] h-[360px] md:w-[640px] md:h-[640px] animate-blob-gaslight',
+      'absolute -bottom-24 left-[24%] w-[440px] h-[440px] md:w-[760px] md:h-[760px] animate-blob-gaslight',
     backgroundImage:
       'radial-gradient(closest-side at 45% 55%, hsl(var(--secondary) / 0.45) 0%, transparent 65%), radial-gradient(closest-side at 70% 30%, hsl(var(--primary) / 0.35) 0%, transparent 68%)',
     delayClass: 'animation-delay-4000',
@@ -62,6 +62,7 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
   const activeLayers = isDimmed ? blobLayers.slice(0, 1) : blobLayers;
   const blobOpacity = isDimmed ? 0.32 : 0.55;
   const noiseOpacity = isDimmed ? 0.18 : 0.32;
+  const blobAnimationDuration = isHome ? '9s, 18s' : undefined;
 
   // Mobile: render static blob only to avoid GPU cost
   const showStaticMobile = baseAllowed && !isDesktop;
@@ -83,6 +84,7 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
                     backfaceVisibility: 'hidden',
                     perspective: '1000px',
                     animationPlayState: 'running',
+                    animationDuration: blobAnimationDuration,
                     opacity: blobOpacity,
                   } as React.CSSProperties}
                 />
@@ -103,7 +105,7 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
           {showStaticMobile && (
             <>
               <div
-                className="absolute top-0 left-1/4 w-[240px] h-[240px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
+                className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
                 style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 40% 40%, hsl(var(--primary) / 0.5) 0%, transparent 68%), radial-gradient(closest-side at 70% 60%, hsl(var(--accent) / 0.35) 0%, transparent 75%)',
@@ -113,7 +115,7 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
                 } as React.CSSProperties}
               />
               <div
-                className="absolute top-0 right-1/4 w-[240px] h-[240px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
+                className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
                 style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 55% 45%, hsl(var(--accent) / 0.45) 0%, transparent 64%), radial-gradient(closest-side at 30% 70%, hsl(var(--secondary) / 0.32) 0%, transparent 72%)',
@@ -123,7 +125,7 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
                 } as React.CSSProperties}
               />
               <div
-                className="absolute -bottom-24 left-1/3 w-[240px] h-[240px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
+                className="absolute -bottom-24 left-1/3 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
                 style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 50% 50%, hsl(var(--secondary) / 0.48) 0%, transparent 70%), radial-gradient(closest-side at 70% 25%, hsl(var(--primary) / 0.32) 0%, transparent 68%)',
