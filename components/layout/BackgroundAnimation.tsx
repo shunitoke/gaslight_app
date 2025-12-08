@@ -63,6 +63,8 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
   const blobOpacity = isDimmed ? 0.32 : 0.55;
   const noiseOpacity = isDimmed ? 0.18 : 0.32;
   const blobAnimationDuration = isHome ? '9s, 18s' : undefined;
+  const animationPlayState = isHome ? 'running' : 'paused';
+  const blobBlur = isHome ? 'blur(44px) saturate(1.15) contrast(1.05)' : 'blur(32px) saturate(1.05) contrast(1.0)';
 
   // Mobile: render static blob only to avoid GPU cost
   const showStaticMobile = baseAllowed && !isDesktop;
@@ -80,12 +82,13 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
                   style={{
                     backgroundImage: layer.backgroundImage,
                     transform: 'translate3d(0,0,0)',
-                    willChange: 'transform, opacity',
+                    willChange: isHome ? 'transform, opacity' : 'auto',
                     backfaceVisibility: 'hidden',
                     perspective: '1000px',
-                    animationPlayState: 'running',
+                    animationPlayState,
                     animationDuration: blobAnimationDuration,
                     opacity: blobOpacity,
+                    filter: blobBlur,
                   } as React.CSSProperties}
                 />
               ))}
@@ -93,9 +96,10 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
               <div
                 className="gaslight-noise absolute inset-[-12%]"
                 style={{
-                  willChange: 'transform, opacity',
+                  willChange: isHome ? 'transform, opacity' : 'auto',
                   backfaceVisibility: 'hidden',
                   perspective: '1000px',
+                  animationPlayState,
                   opacity: noiseOpacity,
                 }}
               />

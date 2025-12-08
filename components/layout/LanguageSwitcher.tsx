@@ -75,12 +75,17 @@ export const LanguageSwitcher = () => {
       </select>
       
       {/* Desktop: Full dropdown with icon */}
-      <label className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Languages className="h-3.5 w-3.5" />
+      <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
+        <label htmlFor="language-select" className="flex items-center gap-1.5">
+          <Languages className="h-3.5 w-3.5" />
+          <span className="sr-only">{displayT('language_label')}</span>
+        </label>
         <select
+          id="language-select"
+          aria-label={displayT('language_label')}
           value={displayLocale}
           onChange={(event) => setLocale(event.target.value as typeof locale)}
-          className="rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring hover:border-primary/50 cursor-pointer min-w-[100px]"
+          className="rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring hover:border-primary/50 cursor-pointer min-w-[110px]"
         >
           {supportedLocales.map((code) => (
             <option key={code} value={code}>
@@ -88,7 +93,7 @@ export const LanguageSwitcher = () => {
             </option>
           ))}
         </select>
-      </label>
+      </div>
     </>
   );
 };

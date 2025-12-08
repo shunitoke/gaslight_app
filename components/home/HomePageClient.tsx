@@ -1163,10 +1163,10 @@ export default function HomePageClient() {
           <Card className="phone-glass-card relative z-10 border-border/40 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
             <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 phone-glass-content">
               <div className="space-y-1">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-white/95">
+                <h2 className="text-sm font-semibold flex items-center gap-2 text-white/95">
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                   {t('hero_preview_title')}
-                </CardTitle>
+                </h2>
                 <CardDescription className="text-xs text-white/70">{t('hero_preview_subtitle')}</CardDescription>
               </div>
               <Badge
