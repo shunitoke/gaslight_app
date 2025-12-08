@@ -10,7 +10,10 @@ import type {
 import type { SupportedLocale } from '../../../../features/i18n/types';
 import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
 import { getPremiumTokenPayload, type PremiumTokenPayload } from '../../../../features/subscription/premiumToken';
-import { recordReportDelivery } from '../../../../features/subscription/purchases';
+import {
+  recordReportDelivery,
+  getDeliveryStatsForPurchases
+} from '../../../../features/subscription/purchases';
 import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
 import { checkRateLimit } from '../../../../lib/rateLimit';
 import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
@@ -53,6 +56,19 @@ export async function POST(request: Request) {
     const subscriptionTier = await getSubscriptionTier(request);
     const features = getSubscriptionFeatures(subscriptionTier);
     const premiumPayload: PremiumTokenPayload | null = getPremiumTokenPayload(request);
+
+    // Silent allowance: up to 3 completed analyses per payment
+    if (premiumPayload) {
+      const stats = await getDeliveryStatsForPurchases([premiumPayload.paymentId]);
+      const deliveredCount = stats[premiumPayload.paymentId]?.deliveredCount ?? 0;
+      const MAX_PER_PAYMENT = 3;
+      if (deliveredCount >= MAX_PER_PAYMENT) {
+        return NextResponse.json(
+          { error: 'Usage limit reached for this token. Please contact support if needed.' },
+          { status: 402 }
+        );
+      }
+    }
 
     const recordDeliveryIfPremium = async (reportId: string) => {
       if (!premiumPayload) return;

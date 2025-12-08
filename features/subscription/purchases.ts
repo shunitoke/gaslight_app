@@ -167,7 +167,7 @@ export async function listRecentDeliveriesForPurchase(
   try {
     const redis = await getRedisClient();
     if (!redis) return [];
-    const rows = await redis.zRangeWithScores(
+    const rows: Array<{ value: string; score: number }> = await redis.zRangeWithScores(
       `${REPORT_SET_PREFIX}${transactionId}`,
       -limit,
       -1,
