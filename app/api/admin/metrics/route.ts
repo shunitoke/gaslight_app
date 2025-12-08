@@ -4,7 +4,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '../../../../lib/admin-auth';
+import {
+  validateAdminSecret,
+  extractAdminSecret,
+  extractAdminSessionToken,
+  validateAdminSessionToken,
+  isAdminEnabled
+} from '../../../../lib/admin-auth';
 import { getAggregateMetrics, getCacheMetrics } from '../../../../lib/metrics';
 import { logError, logInfo } from '../../../../lib/telemetry';
 import { getRedisClient, isKvAvailable } from '../../../../lib/kv';
@@ -27,7 +33,9 @@ export async function GET(request: Request) {
 
     // Validate admin secret
     const secret = extractAdminSecret(request);
-    if (!validateAdminSecret(secret)) {
+    const session = extractAdminSessionToken(request);
+    const authorized = validateAdminSecret(secret) || validateAdminSessionToken(session);
+    if (!authorized) {
       logError('admin_unauthorized_access', {
         ip: request.headers.get('x-forwarded-for') || 'unknown'
       });

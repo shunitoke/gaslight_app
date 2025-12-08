@@ -199,3 +199,16 @@ export function tokenHasFeature(
   return token.features.includes(feature);
 }
 
+/**
+ * Convenience helper to extract and validate a premium token from a request.
+ */
+export function getPremiumTokenPayload(request?: Request): PremiumTokenPayload | null {
+  try {
+    const token = request ? extractPremiumTokenFromRequest(request) : null;
+    if (!token) return null;
+    return validatePremiumToken(token);
+  } catch {
+    return null;
+  }
+}
+

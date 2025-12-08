@@ -4,7 +4,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '@/lib/admin-auth';
+import {
+  validateAdminSecret,
+  extractAdminSecret,
+  extractAdminSessionToken,
+  validateAdminSessionToken,
+  isAdminEnabled
+} from '@/lib/admin-auth';
 import { getLLMActivity } from '@/lib/llm-activity-logger';
 import { logError, logInfo } from '@/lib/telemetry';
 
@@ -35,7 +41,9 @@ export async function GET(
     }
 
     const secret = extractAdminSecret(request);
-    if (!validateAdminSecret(secret)) {
+    const session = extractAdminSessionToken(request);
+    const authorized = validateAdminSecret(secret) || validateAdminSessionToken(session);
+    if (!authorized) {
       return new Response('Unauthorized', { status: 401 });
     }
 

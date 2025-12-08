@@ -528,9 +528,15 @@ export default function HomePageClient() {
         }
 
         const importData = await importResponse.json();
-        setUploading(false);
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Immediately transition into analysis view without flicker
+        setAnalyzing(true);
+        setAnalysisProgress({
+          progress: 0,
+          status: 'starting',
+          message: 'Starting AI analysis...'
+        });
+        setUploading(false);
 
         await startAnalysisWithImport(importData);
         return;
@@ -649,8 +655,17 @@ export default function HomePageClient() {
       }
 
       const importData = await importResponse.json();
+
+      // Immediately transition into analysis view without flicker
+      setAnalyzing(true);
+      setAnalysisProgress({
+        progress: 0,
+        status: 'starting',
+        message: 'Starting AI analysis...',
+        isVoiceRecording: isAudio
+      });
       setUploading(false);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+
       await startAnalysisWithImport({
         ...importData,
         isVoiceRecording: isAudio
@@ -1025,7 +1040,10 @@ export default function HomePageClient() {
   };
 
   const taglines = useMemo(
-    () => [t('hero_tagline'), t('hero_tagline_alt1'), t('hero_tagline_alt2')].filter(Boolean),
+    () =>
+      [t('hero_tagline'), t('hero_tagline_alt1'), t('hero_tagline_alt2'), t('hero_tagline_alt3')].filter(
+        Boolean
+      ),
     [t]
   );
 

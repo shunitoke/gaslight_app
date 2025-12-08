@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import {
   extractAdminSecret,
+  extractAdminSessionToken,
   isAdminEnabled,
-  validateAdminSecret
+  validateAdminSecret,
+  validateAdminSessionToken
 } from '../../../../../lib/admin-auth';
 import { getPromptVersion, invalidateCacheByVersion } from '../../../../../lib/cache';
 import { getRedisClient, isKvAvailable } from '../../../../../lib/kv';
@@ -21,7 +23,9 @@ export async function POST(request: Request) {
     }
 
     const secret = extractAdminSecret(request);
-    if (!validateAdminSecret(secret)) {
+    const session = extractAdminSessionToken(request);
+    const authorized = validateAdminSecret(secret) || validateAdminSessionToken(session);
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

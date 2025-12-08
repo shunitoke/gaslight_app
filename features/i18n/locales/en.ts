@@ -9,6 +9,7 @@ export const enBundle: LocaleBundle = {
     hero_tagline: 'Unbiased AI insight into what really happened.',
     hero_tagline_alt1: 'Not vibes, not gossip — AI science under the hood.',
     hero_tagline_alt2: 'Behavioral patterns, attachment, and conflict — AI analyzed for you.',
+    hero_tagline_alt3: 'Fully anonymous and confidential.',
     hero_cta: 'Analyze your conversation with AI',
     hero_copy:
       'Upload chats to get an impartial, AI-powered relationship analysis.',

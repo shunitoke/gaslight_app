@@ -1,7 +1,13 @@
 // No client component imports; keep server defaults
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '@/lib/admin-auth';
+import {
+  validateAdminSecret,
+  extractAdminSecret,
+  extractAdminSessionToken,
+  validateAdminSessionToken,
+  isAdminEnabled
+} from '@/lib/admin-auth';
 import { callOpenRouter } from '@/lib/openrouter';
 import { getConfig } from '@/lib/config';
 
@@ -13,8 +19,10 @@ export async function POST(request: Request) {
     if (!isAdminEnabled()) {
       return NextResponse.json({ error: 'Admin disabled' }, { status: 503 });
     }
-    const secret = extractAdminSecret(request);
-    if (!validateAdminSecret(secret)) {
+  const secret = extractAdminSecret(request);
+  const session = extractAdminSessionToken(request);
+  const authorized = validateAdminSecret(secret) || validateAdminSessionToken(session);
+  if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

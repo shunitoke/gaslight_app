@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import {
-  getDeliveryStatsForPurchases,
-  listRecentPurchases
+  listRecentDeliveriesForPurchase
 } from '@/features/subscription/purchases';
 import {
   extractAdminSecret,
@@ -15,7 +14,9 @@ import {
 export const runtime = 'nodejs';
 export const maxDuration = 15;
 
-export async function GET(request: Request) {
+type RouteContext = { params: { transactionId: string } } | { params: Promise<{ transactionId: string }> };
+
+export async function GET(request: Request, context: RouteContext) {
   if (!isAdminEnabled()) {
     return NextResponse.json({ error: 'Admin disabled' }, { status: 403 });
   }
@@ -27,25 +28,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const resolvedParams = await Promise.resolve(context.params);
+  const transactionId = resolvedParams.transactionId;
+  if (!transactionId) {
+    return NextResponse.json({ error: 'transactionId is required' }, { status: 400 });
+  }
+
   const url = new URL(request.url);
-  const limit = Math.min(Number(url.searchParams.get('limit') || 200), 1000);
-  const purchases = await listRecentPurchases(Number.isNaN(limit) ? 200 : limit);
-  const stats = await getDeliveryStatsForPurchases(
-    purchases.map((p) => p.transactionId)
-  );
+  const limit = Math.min(Number(url.searchParams.get('limit') || 50), 200);
+  const deliveries = await listRecentDeliveriesForPurchase(transactionId, Number.isNaN(limit) ? 50 : limit);
 
-  const enriched = purchases.map((p) => {
-    const stat = stats[p.transactionId];
-    return {
-      ...p,
-      deliveredCount: stat?.deliveredCount ?? 0,
-      lastDeliveredAt: stat?.lastDeliveredAt ?? null
-    };
-  });
-
-  return NextResponse.json({ purchases: enriched });
+  return NextResponse.json({ deliveries });
 }
-
-
 
 

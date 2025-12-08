@@ -2,7 +2,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { cookies, headers } from 'next/headers';
 
 import { Footer } from '../components/layout/Footer';
@@ -163,7 +163,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-1" id="main-content" tabIndex={-1}>
-                  {children}
+                  <Suspense fallback={null}>{children}</Suspense>
                 </main>
                 <Footer />
               </div>

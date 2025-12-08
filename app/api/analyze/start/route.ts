@@ -9,6 +9,8 @@ import type {
 } from '../../../../features/analysis/types';
 import type { SupportedLocale } from '../../../../features/i18n/types';
 import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
+import { getPremiumTokenPayload, type PremiumTokenPayload } from '../../../../features/subscription/premiumToken';
+import { recordReportDelivery } from '../../../../features/subscription/purchases';
 import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
 import { checkRateLimit } from '../../../../lib/rateLimit';
 import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
@@ -50,6 +52,24 @@ export async function POST(request: Request) {
     // Basic tier check (reuse subscription logic)
     const subscriptionTier = await getSubscriptionTier(request);
     const features = getSubscriptionFeatures(subscriptionTier);
+    const premiumPayload: PremiumTokenPayload | null = getPremiumTokenPayload(request);
+
+    const recordDeliveryIfPremium = async (reportId: string) => {
+      if (!premiumPayload) return;
+      try {
+        await recordReportDelivery({
+          transactionId: premiumPayload.paymentId,
+          reportId,
+          deliveredAt: Date.now()
+        });
+      } catch (error) {
+        logWarn('report_delivery_record_error', {
+          reportId,
+          transactionId: premiumPayload.paymentId,
+          error: (error as Error).message
+        });
+      }
+    };
 
     const body = (await request.json()) as AnalyzeStartBody;
     const {
@@ -122,6 +142,8 @@ export async function POST(request: Request) {
         progress: 100,
         result
       });
+
+      await recordDeliveryIfPremium(conversation.id);
 
       return NextResponse.json({ jobId: job.id });
     }
@@ -220,6 +242,8 @@ export async function POST(request: Request) {
             result: resultToStore
           })
         ]);
+
+        await recordDeliveryIfPremium(conversation.id);
 
         // Update job status
         await updateJob(job.id, {

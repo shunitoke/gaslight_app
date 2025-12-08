@@ -4,7 +4,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAdminSecret, extractAdminSecret, isAdminEnabled } from '../../../../lib/admin-auth';
+import {
+  validateAdminSecret,
+  extractAdminSecret,
+  extractAdminSessionToken,
+  validateAdminSessionToken,
+  isAdminEnabled
+} from '../../../../lib/admin-auth';
 import { logInfo, logError, getRecentErrors, clearErrorLogs, getErrorLogSize } from '../../../../lib/telemetry';
 
 export const runtime = 'nodejs';
@@ -20,7 +26,9 @@ export async function GET(request: Request) {
     }
 
     const secret = extractAdminSecret(request);
-    if (!validateAdminSecret(secret)) {
+    const session = extractAdminSessionToken(request);
+    const authorized = validateAdminSecret(secret) || validateAdminSessionToken(session);
+    if (!authorized) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

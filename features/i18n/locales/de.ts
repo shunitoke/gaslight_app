@@ -9,6 +9,7 @@ export const deBundle: LocaleBundle = {
     hero_tagline: 'Ein ehrlicher KI-Blick auf das, was passiert ist.',
     hero_tagline_alt1: 'Unter der Haube: KI und Wissenschaft statt Drama.',
     hero_tagline_alt2: 'Verhalten, Bindung und Konflikte — KI-analytisch ausgewertet.',
+    hero_tagline_alt3: 'Völlig anonym und vertraulich.',
     hero_cta: 'Konversation mit KI analysieren',
     hero_copy: 'Laden Sie Ihre Chats hoch, um eine unparteiische, KI-gestützte Beziehungsanalyse zu erhalten.',
     hero_confidential: 'Vollständig vertraulich.',

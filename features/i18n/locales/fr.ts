@@ -9,6 +9,7 @@ export const frBundle: LocaleBundle = {
     hero_tagline: "Un regard honnête de l'IA sur ce qui s'est passé.",
     hero_tagline_alt1: 'Sous le capot : IA et science, pas drama.',
     hero_tagline_alt2: 'Données de comportement, attachement et conflits — décodés par IA pour vous.',
+    hero_tagline_alt3: 'Entièrement anonyme et confidentiel.',
     hero_cta: 'Analyser la conversation avec IA',
     hero_copy: 'Téléchargez vos conversations pour obtenir une analyse impartiale des relations alimentée par IA.',
     hero_confidential: 'Totalement confidentiel.',

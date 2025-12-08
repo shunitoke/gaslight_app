@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Database, 
@@ -80,6 +80,7 @@ type MetricsData = {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const errorsRef = useRef<HTMLDivElement | null>(null);
   const [secret, setSecret] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
@@ -186,7 +187,7 @@ export default function AdminDashboard() {
       }
       setLlmActivity([]);
     }
-  }, [selectedConversationId, authenticated, secret]);
+  }, [selectedConversationId, authenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,19 +195,21 @@ export default function AdminDashboard() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/metrics', {
-        headers: {
-          'x-admin-secret': secret
-        }
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setMetrics(data);
         setAuthenticated(true);
         setError(null);
+        setSecret('');
+        await fetchMetrics();
+        await fetchErrors();
       } else {
-        setError('Invalid admin secret');
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Invalid admin secret');
         setAuthenticated(false);
       }
     } catch (err) {
@@ -219,19 +222,20 @@ export default function AdminDashboard() {
 
   const fetchMetrics = async () => {
     try {
-      const response = await fetch('/api/admin/metrics', {
-        headers: {
-          'x-admin-secret': secret
-        }
-      });
+      const response = await fetch('/api/admin/metrics');
 
       if (response.ok) {
         const data = await response.json();
         setMetrics(data);
+        setAuthenticated(true);
         setError(null);
-      } else if (response.status === 401) {
+      } else {
+        if (response.status === 401) {
+          setError('Session expired. Please login again.');
+        } else {
+          setError('Failed to fetch metrics');
+        }
         setAuthenticated(false);
-        setError('Session expired. Please login again.');
       }
     } catch (err) {
       setError('Failed to fetch metrics');
@@ -241,11 +245,7 @@ export default function AdminDashboard() {
   const fetchErrors = async () => {
     try {
       const url = `/api/admin/errors?limit=50${errorFilter ? `&filter=${encodeURIComponent(errorFilter)}` : ''}`;
-      const response = await fetch(url, {
-        headers: {
-          'x-admin-secret': secret
-        }
-      });
+      const response = await fetch(url);
 
       if (response.ok) {
         const data = await response.json();
@@ -275,9 +275,6 @@ export default function AdminDashboard() {
     try {
       const response = await fetch('/api/admin/cache/clear', {
         method: 'POST',
-        headers: {
-          'x-admin-secret': secret
-        }
       });
 
       if (response.ok) {
@@ -418,7 +415,12 @@ export default function AdminDashboard() {
               Refresh
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await fetch('/api/admin/logout', { method: 'POST' });
+                } catch {
+                  // ignore logout errors
+                }
                 setAuthenticated(false);
                 setSecret('');
                 setMetrics(null);
@@ -429,6 +431,24 @@ export default function AdminDashboard() {
               Logout
             </button>
           </div>
+        </div>
+
+        {/* Quick links */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            onClick={() => router.push('/admin/purchases')}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-sm hover:bg-card transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            Purchases & Reports
+          </button>
+          <button
+            onClick={() => errorsRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-sm hover:bg-card transition-colors"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Jump to Errors
+          </button>
         </div>
 
         {error && (
@@ -727,7 +747,7 @@ export default function AdminDashboard() {
                     try {
                       const res = await fetch('/api/admin/openrouter-test', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret || '' },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ prompt: 'ping' })
                       });
                       const data = await res.json();
@@ -791,12 +811,15 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Errors */}
-            <div className="bg-card/90 backdrop-blur-lg rounded-xl p-6 border border-border mt-6">
-              <div className="flex items-center justify-between mb-4">
+            <div ref={errorsRef} className="bg-card/90 backdrop-blur-lg rounded-xl p-6 border border-border mt-6">
+              <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-destructive" />
                   Recent Errors
                 </h2>
+                <span className="text-xs text-muted-foreground">Latest 50 entries</span>
+              </div>
+              <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -836,18 +859,17 @@ export default function AdminDashboard() {
                     Clear Log
                   </button>
                 </div>
+                {logSize && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    <span>
+                      {recentErrors.length} entries · {recentErrors.filter(e => e.level === 'error').length} errors / {recentErrors.filter(e => e.level === 'warn').length} warnings
+                    </span>
+                    <span className="text-muted-foreground/80">
+                      Log size: {logSize.mb} MB / 1 MB
+                    </span>
+                  </div>
+                )}
               </div>
-              {logSize && (
-                <div className="mb-2 text-xs text-muted-foreground flex items-center justify-between px-1">
-                  <span>
-                    Showing {recentErrors.length} log{recentErrors.length !== 1 ? 's' : ''} 
-                    ({recentErrors.filter(e => e.level === 'error').length} errors, {recentErrors.filter(e => e.level === 'warn').length} warnings)
-                  </span>
-                  <span>
-                    Log size: {logSize.mb} MB / 1 MB (auto-rotation enabled)
-                  </span>
-                </div>
-              )}
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {recentErrors.length === 0 ? (
                   <div className="text-muted-foreground text-sm flex items-center gap-2 py-8 justify-center">
