@@ -10,7 +10,7 @@ type Props = {
   label?: string;
   className?: string;
   onSuccess?: (token: string) => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'default';
   size?: 'sm' | 'md' | 'lg';
 };
 
