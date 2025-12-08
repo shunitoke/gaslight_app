@@ -73,73 +73,73 @@ function BackgroundAnimationComponent({ variant = 'blob', isHome = true }: Backg
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-background">
       {!isHydrated ? null : (
         <>
-          {showBlob && (
-            <>
+      {showBlob && (
+        <>
               {activeLayers.map((layer, idx) => (
-                <div
+          <div
                   key={`gaslight-blob-${idx}`}
                   className={`${layer.className} ${layer.delayClass} gaslight-blob rounded-full`}
-                  style={{
+            style={{
                     backgroundImage: layer.backgroundImage,
-                    transform: 'translate3d(0,0,0)',
+              transform: 'translate3d(0,0,0)',
                     willChange: isHome ? 'transform, opacity' : 'auto',
-                    backfaceVisibility: 'hidden',
-                    perspective: '1000px',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px',
                     animationPlayState,
                     animationDuration: blobAnimationDuration,
                     opacity: blobOpacity,
                     filter: blobBlur,
-                  } as React.CSSProperties}
-                />
+            } as React.CSSProperties}
+          />
               ))}
 
-              <div
+          <div
                 className="gaslight-noise absolute inset-[-12%]"
-                style={{
+            style={{
                   willChange: isHome ? 'transform, opacity' : 'auto',
-                  backfaceVisibility: 'hidden',
-                  perspective: '1000px',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px',
                   animationPlayState,
                   opacity: noiseOpacity,
                 }}
-              />
-            </>
-          )}
+          />
+        </>
+      )}
 
-          {showStaticMobile && (
-            <>
-              <div
+      {showStaticMobile && (
+        <>
+          <div
                 className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
-                style={{
+            style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 40% 40%, hsl(var(--primary) / 0.5) 0%, transparent 68%), radial-gradient(closest-side at 70% 60%, hsl(var(--accent) / 0.35) 0%, transparent 75%)',
-                  animationPlayState: 'paused',
-                  willChange: 'auto',
-                  transform: 'translate3d(0,0,0)',
-                } as React.CSSProperties}
-              />
-              <div
+              animationPlayState: 'paused',
+              willChange: 'auto',
+              transform: 'translate3d(0,0,0)',
+            } as React.CSSProperties}
+          />
+          <div
                 className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
-                style={{
+            style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 55% 45%, hsl(var(--accent) / 0.45) 0%, transparent 64%), radial-gradient(closest-side at 30% 70%, hsl(var(--secondary) / 0.32) 0%, transparent 72%)',
-                  animationPlayState: 'paused',
-                  willChange: 'auto',
-                  transform: 'translate3d(0,0,0)',
-                } as React.CSSProperties}
-              />
-              <div
+              animationPlayState: 'paused',
+              willChange: 'auto',
+              transform: 'translate3d(0,0,0)',
+            } as React.CSSProperties}
+          />
+          <div
                 className="absolute -bottom-24 left-1/3 w-[280px] h-[280px] rounded-full opacity-30 dark:opacity-20 gaslight-blob"
-                style={{
+            style={{
                   backgroundImage:
                     'radial-gradient(closest-side at 50% 50%, hsl(var(--secondary) / 0.48) 0%, transparent 70%), radial-gradient(closest-side at 70% 25%, hsl(var(--primary) / 0.32) 0%, transparent 68%)',
-                  animationPlayState: 'paused',
-                  willChange: 'auto',
-                  transform: 'translate3d(0,0,0)',
-                } as React.CSSProperties}
-              />
-            </>
-          )}
+              animationPlayState: 'paused',
+              willChange: 'auto',
+              transform: 'translate3d(0,0,0)',
+            } as React.CSSProperties}
+          />
+        </>
+      )}
         </>
       )}
     </div>

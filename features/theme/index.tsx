@@ -20,15 +20,8 @@ const COLOR_SCHEME_STORAGE_KEY = 'gaslight-color-scheme';
 /**
  * Detect system color scheme preference
  */
+// Always default to light to keep the UI in the pink/light palette unless user opts in.
 function detectSystemColorScheme(): ColorScheme {
-  if (typeof window === 'undefined') {
-    return 'light'; // Server-side default
-  }
-  
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
-  }
-  
   return 'light';
 }
 
@@ -82,9 +75,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     if (storedScheme && (storedScheme === 'light' || storedScheme === 'dark')) {
       setColorSchemeState(storedScheme);
     } else {
-      // No stored preference - check what inline script set, or use system preference
-      const isDark = document.documentElement.classList.contains('dark');
-      setColorSchemeState(isDark ? 'dark' : detectSystemColorScheme());
+      // No stored preference - default to light (pink theme)
+      setColorSchemeState('light');
     }
     
     // Listen for system preference changes

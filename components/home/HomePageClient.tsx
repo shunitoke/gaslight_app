@@ -1143,15 +1143,15 @@ export default function HomePageClient() {
           </Badge>
 
           <div className="relative w-full h-[9rem] sm:h-[10rem] md:h-[11rem] lg:h-[12rem] -translate-y-3 sm:-translate-y-4 md:-translate-y-5 lg:-translate-y-6">
-            <h1
-              key={taglineIndex}
-              className={cn(
+          <h1
+            key={taglineIndex}
+            className={cn(
                 'absolute inset-0 text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground flex items-center justify-center lg:justify-start py-2 sm:py-3 pointer-events-none',
-                isAnimating && 'tagline-animate'
-              )}
-            >
-              {currentTagline}
-            </h1>
+              isAnimating && 'tagline-animate'
+            )}
+          >
+            {currentTagline}
+          </h1>
           </div>
 
           <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">
