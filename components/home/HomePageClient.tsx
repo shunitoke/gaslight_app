@@ -1169,16 +1169,18 @@ export default function HomePageClient() {
                 </h2>
                 <CardDescription className="text-xs text-white/70">{t('hero_preview_subtitle')}</CardDescription>
               </div>
-              <Badge
-                variant="outline"
-                className="border-white/20 bg-white/10 text-[10px] uppercase tracking-wide text-black dark:text-white/90 backdrop-blur-sm"
-              >
-                <Sparkles className="mr-1 h-3 w-3" />
-                {t('hero_preview_live')}
-              </Badge>
             </CardHeader>
             <CardContent className="space-y-3 pt-0 overflow-hidden phone-glass-content">
               <div className="flex flex-col gap-1.5 relative h-[200px] overflow-hidden">
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge
+                    variant="outline"
+                    className="border-white/20 bg-white/10 text-[10px] uppercase tracking-wide text-black dark:text-white/90 backdrop-blur-sm shadow-sm"
+                  >
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    {t('hero_preview_live')}
+                  </Badge>
+                </div>
                 <div className="absolute inset-0 flex flex-col gap-1.5 justify-end pb-0">
                   {visibleMessages.map((msg, idx) => {
                     const isNew = idx === visibleMessages.length - 1;
