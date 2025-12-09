@@ -109,9 +109,35 @@ const getToneFromMeta = (
 };
 
 const getLevelLabel = (level: SeverityLevel, locale: SupportedLocale): string => {
-  if (level === 'high') return locale === 'ru' ? 'Высокий' : 'High';
-  if (level === 'medium') return locale === 'ru' ? 'Средний' : 'Medium';
-  return locale === 'ru' ? 'Низкий' : 'Low';
+  const map = {
+    high: {
+      ru: 'Высокий',
+      fr: 'Élevé',
+      de: 'Hoch',
+      es: 'Alto',
+      pt: 'Alto',
+      en: 'High'
+    },
+    medium: {
+      ru: 'Средний',
+      fr: 'Moyen',
+      de: 'Mittel',
+      es: 'Medio',
+      pt: 'Médio',
+      en: 'Medium'
+    },
+    low: {
+      ru: 'Низкий',
+      fr: 'Faible',
+      de: 'Niedrig',
+      es: 'Bajo',
+      pt: 'Baixo',
+      en: 'Low'
+    }
+  } as const;
+
+  const key = level === 'high' ? 'high' : level === 'medium' ? 'medium' : 'low';
+  return map[key][locale] ?? map[key].en;
 };
 
 const getToneTextColor = (tone: Tone) => {
@@ -237,6 +263,160 @@ export default function AnalysisPage() {
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isPremiumAnalysis, setIsPremiumAnalysis] = useState<boolean>(false);
+  const [showFullOverview, setShowFullOverview] = useState(false);
+
+  const overviewLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Обзор';
+      case 'fr':
+        return 'Vue d’ensemble';
+      case 'de':
+        return 'Übersicht';
+      case 'es':
+        return 'Resumen';
+      case 'pt':
+        return 'Visão geral';
+      default:
+        return 'Overview';
+    }
+  }, [locale]);
+
+  const patternsLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Паттерны';
+      case 'fr':
+        return 'Schémas';
+      case 'de':
+        return 'Muster';
+      case 'es':
+        return 'Patrones';
+      case 'pt':
+        return 'Padrões';
+      default:
+        return 'Patterns';
+    }
+  }, [locale]);
+
+  const statisticsLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Статистика';
+      case 'fr':
+        return 'Statistiques';
+      case 'de':
+        return 'Statistiken';
+      case 'es':
+        return 'Estadísticas';
+      case 'pt':
+        return 'Estatísticas';
+      default:
+        return 'Statistics';
+    }
+  }, [locale]);
+
+  const frameworkLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Диагностика по фреймворкам';
+      case 'fr':
+        return 'Diagnostic par cadres';
+      case 'de':
+        return 'Framework-Diagnose';
+      case 'es':
+        return 'Diagnóstico por marcos';
+      case 'pt':
+        return 'Diagnóstico por frameworks';
+      default:
+        return 'Framework Diagnosis';
+    }
+  }, [locale]);
+
+  const frameworkSubtitle = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'ННО / КПТ / Привязанность';
+      case 'fr':
+        return 'CNV / TCC / Attachement';
+      case 'de':
+        return 'GFK / KVT / Bindung';
+      case 'es':
+        return 'CNV / TCC / Apego';
+      case 'pt':
+        return 'CNV / TCC / Apego';
+      default:
+        return 'NVC / CBT / Attachment';
+    }
+  }, [locale]);
+
+  const insightsLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Инсайты';
+      case 'fr':
+        return 'Analyses';
+      case 'de':
+        return 'Insights';
+      case 'es':
+        return 'Insights';
+      case 'pt':
+        return 'Insights';
+      default:
+        return 'Insights';
+    }
+  }, [locale]);
+
+  const patternAnalysisLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Анализ паттернов';
+      case 'fr':
+        return 'Analyse des schémas';
+      case 'de':
+        return 'Musteranalyse';
+      case 'es':
+        return 'Análisis de patrones';
+      case 'pt':
+        return 'Análise de padrões';
+      default:
+        return 'Pattern Analysis';
+    }
+  }, [locale]);
+
+  const contradictionLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'Трекер противоречий';
+      case 'fr':
+        return 'Suivi des contradictions';
+      case 'de':
+        return 'Widerspruchs-Tracker';
+      case 'es':
+        return 'Seguimiento de contradicciones';
+      case 'pt':
+        return 'Rastreador de contradições';
+      default:
+        return 'Contradiction Tracker';
+    }
+  }, [locale]);
+
+  const contradictionCountLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'случ.';
+      case 'fr':
+        return 'cas';
+      case 'de':
+        return 'Fälle';
+      case 'es':
+        return 'casos';
+      case 'pt':
+        return 'casos';
+      default:
+        return 'items';
+    }
+  }, [locale]);
   const [selectedDateQuotes, setSelectedDateQuotes] = useState<{
     date: ImportantDate;
     quotes: Array<{ excerpt: string; explanation: string; sectionTitle: string }>;
@@ -336,6 +516,59 @@ export default function AnalysisPage() {
       }))
       .sort((a, b) => b.value - a.value);
   }, [makeParticipantKey]);
+
+  // Derive up to two primary participant display names for personalized plans
+  const primaryParticipantNames = useMemo(() => {
+    const names = participants
+      .slice(0, 2)
+      .map((p, idx) => safeDisplayName(p.displayName || p.id || `Participant ${idx + 1}`))
+      .filter(Boolean);
+
+    while (names.length < 2) {
+      names.push(
+        locale === 'ru'
+          ? `Участник ${names.length + 1}`
+          : `Participant ${names.length + 1}`
+      );
+    }
+    return names;
+  }, [participants, safeDisplayName, locale]);
+
+  const getPlanTitleForVerdict = useCallback(
+    (verdict?: AnalysisResult['hardTruth']['verdict']) => {
+      switch (verdict) {
+        case 'abusive':
+        case 'toxic':
+          return locale === 'ru' ? 'План безопасности' : 'Safety Plan';
+        case 'problematic':
+        case 'needs_work':
+          return locale === 'ru' ? 'План восстановления' : 'Repair Plan';
+        case 'healthy':
+        default:
+          return locale === 'ru' ? 'План роста' : 'Growth Plan';
+      }
+    },
+    [locale]
+  );
+
+  const getVerdictLabel = useCallback(
+    (verdict?: AnalysisResult['hardTruth']['verdict']) => {
+      switch (verdict) {
+        case 'abusive':
+          return t('hard_truth_abusive_label') ?? (locale === 'ru' ? 'Абьюзивные' : 'Abusive');
+        case 'toxic':
+          return t('hard_truth_toxic_label') ?? (locale === 'ru' ? 'Токсичные' : 'Toxic');
+        case 'problematic':
+          return t('verdict_problematic') ?? (locale === 'ru' ? 'Проблемные' : 'Problematic');
+        case 'needs_work':
+          return t('hard_truth_needs_work_label') ?? (locale === 'ru' ? 'Требует работы' : 'Needs work');
+        case 'healthy':
+        default:
+          return t('hard_truth_healthy_label') ?? (locale === 'ru' ? 'Здоровые' : 'Healthy');
+      }
+    },
+    [locale, t]
+  );
 
   const getLegacyParticipantLabel = useCallback(
     (idx: number) => {
@@ -513,6 +746,15 @@ export default function AnalysisPage() {
   const resolutionPercent = analysis?.communicationStats?.resolutionRate ?? 0;
   const resolutionLevel = getLevelFromPercent(resolutionPercent);
   const resolutionTone = getBadgeTone(resolutionLevel, 'higher-better');
+
+  const partitionByParticipant = useCallback(
+    <T,>(items: T[] | undefined, participantIndex: number, total: number): T[] => {
+      if (!items || items.length === 0) return [];
+      const safeTotal = Math.max(total, 1);
+      return items.filter((_, idx) => idx % safeTotal === participantIndex);
+    },
+    []
+  );
 
   const activityChartData = useMemo(() => {
     if (!activityByDay || activityByDay.length === 0) return [];
@@ -1925,7 +2167,43 @@ export default function AnalysisPage() {
                 {isPremiumAnalysis ? t('premium_badge') : t('free_badge')}
               </span>
             </div>
-            <p className="text-base sm:text-lg text-muted-foreground mb-2 leading-relaxed">{replaceParticipantIds(getOverviewSummaryText())}</p>
+            <p className="text-base sm:text-lg text-muted-foreground mb-2 leading-relaxed">
+              {(() => {
+                const full = replaceParticipantIds(getOverviewSummaryText());
+                const limit = 260;
+                if (showFullOverview || full.length <= limit) return full;
+                const cutoff = full.lastIndexOf('.', limit) > 80
+                  ? full.lastIndexOf('.', limit) + 1
+                  : full.lastIndexOf(' ', limit);
+                const short = cutoff > 0 ? full.slice(0, cutoff).trim() : full.slice(0, limit).trim();
+                return short + '…';
+              })()}
+            </p>
+            {(() => {
+              const full = replaceParticipantIds(getOverviewSummaryText());
+              const limit = 260;
+              const needsMore = full.length > limit;
+              if (!needsMore || showFullOverview) return null;
+              return (
+                <button
+                  type="button"
+                  onClick={() => setShowFullOverview(true)}
+                  className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  {locale === 'ru'
+                    ? 'Еще'
+                    : locale === 'fr'
+                    ? 'Plus'
+                    : locale === 'de'
+                    ? 'Mehr'
+                    : locale === 'es'
+                    ? 'Más'
+                    : locale === 'pt'
+                    ? 'Mais'
+                    : 'More'}
+                </button>
+              );
+            })()}
             {isPremiumAnalysis ? (
               <p className="text-xs text-muted-foreground">
                 {t('premium_hint')}
@@ -1959,7 +2237,29 @@ export default function AnalysisPage() {
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
             <Button onClick={copySummary} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
-              {copySuccess ? (locale === 'ru' ? 'Скопировано!' : 'Copied!') : (locale === 'ru' ? 'Копировать' : 'Copy Summary')}
+              {copySuccess
+                ? locale === 'ru'
+                  ? 'Скопировано!'
+                  : locale === 'fr'
+                  ? 'Copié !'
+                  : locale === 'de'
+                  ? 'Kopiert!'
+                  : locale === 'es'
+                  ? 'Copiado'
+                  : locale === 'pt'
+                  ? 'Copiado'
+                  : 'Copied!'
+                : locale === 'ru'
+                ? 'Копировать'
+                : locale === 'fr'
+                ? 'Copier le résumé'
+                : locale === 'de'
+                ? 'Zusammenfassung kopieren'
+                : locale === 'es'
+                ? 'Copiar resumen'
+                : locale === 'pt'
+                ? 'Copiar resumo'
+                : 'Copy Summary'}
             </Button>
             <Button onClick={exportTXT} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
               {t('exportTXT')}
@@ -1989,25 +2289,25 @@ export default function AnalysisPage() {
             value="overview"
             className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
           >
-              {locale === 'ru' ? 'Обзор' : 'Overview'}
+              {overviewLabel}
             </TabsTrigger>
           <TabsTrigger
             value="patterns"
             className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
           >
-              {locale === 'ru' ? 'Паттерны' : 'Patterns'}
+              {patternsLabel}
             </TabsTrigger>
           <TabsTrigger
             value="statistics"
             className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
           >
-              {locale === 'ru' ? 'Статистика' : 'Statistics'}
+              {statisticsLabel}
             </TabsTrigger>
           <TabsTrigger
             value="insights"
             className="h-auto py-2 px-2 text-xs sm:text-sm leading-snug whitespace-normal text-center"
           >
-              {locale === 'ru' ? 'Инсайты' : 'Insights'}
+              {insightsLabel}
             </TabsTrigger>
           </TabsList>
 
@@ -2065,7 +2365,18 @@ export default function AnalysisPage() {
                     indicator: getPositiveProgressColor(analysis?.supportivenessScore ? analysis.supportivenessScore * 100 : 0),
                   },
                   {
-                    label: locale === 'ru' ? 'Разрешение конфликтов' : 'Conflict Resolution',
+                    label:
+                      locale === 'ru'
+                        ? 'Разрешение конфликтов'
+                        : locale === 'fr'
+                        ? 'Résolution de conflit'
+                        : locale === 'de'
+                        ? 'Konfliktlösung'
+                        : locale === 'es'
+                        ? 'Resolución de conflictos'
+                        : locale === 'pt'
+                        ? 'Resolução de conflitos'
+                        : 'Conflict Resolution',
                     percent: resolutionPercent,
                     tone: resolutionTone,
                     level: getLevelLabel(resolutionLevel, locale),
@@ -2347,7 +2658,7 @@ export default function AnalysisPage() {
                 );
               })}
               </div>
-            </CardBase>
+          </CardBase>
             )}
 
             {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
@@ -2660,13 +2971,51 @@ export default function AnalysisPage() {
           {/* STATISTICS TAB */}
           <TabsContent value="statistics" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
             {!isPremiumAnalysis && premiumGate}
-            <div className={!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none' : ''}>
-            {/* PART 2: STATISTICAL BREAKDOWN */}
+            <div
+              className={
+                (!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none ' : '') +
+                'space-y-4 sm:space-y-5'
+              }
+            >
+            <Accordion type="multiple" className="space-y-3 sm:space-y-4">
         {analysis.communicationStats && (
+          <AccordionItem value="comm-stats" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>
+                  {locale === 'ru'
+                    ? 'Статистика коммуникации'
+                    : locale === 'fr'
+                    ? 'Statistiques de communication'
+                    : locale === 'de'
+                    ? 'Kommunikationsstatistiken'
+                    : locale === 'es'
+                    ? 'Estadísticas de comunicación'
+                    : locale === 'pt'
+                    ? 'Estatísticas de comunicação'
+                    : 'Communication Statistics'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {analysis.communicationStats.resolutionRate !== undefined
+                    ? `${formatPercent(analysis.communicationStats.resolutionRate)} ${
+                        locale === 'ru'
+                          ? 'разрешено'
+                          : locale === 'fr'
+                          ? 'résolus'
+                          : locale === 'de'
+                          ? 'gelöst'
+                          : locale === 'es'
+                          ? 'resuelto'
+                          : locale === 'pt'
+                          ? 'resolvido'
+                          : 'resolved'
+                      }`
+                    : ''}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
-              {locale === 'ru' ? 'Статистика коммуникации' : 'Communication Statistics'}
-            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {aggregatedInitiatorBalance.length > 0 && (
                 <div>
@@ -2759,21 +3108,21 @@ export default function AnalysisPage() {
                   {locale === 'ru' ? 'Красные флаги' : 'Red Flags'}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 shadow-sm">
                     <span className="text-xl sm:text-2xl">🟡</span>
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
                       <p className="text-sm font-semibold">{analysis.redFlagCounts.yellow}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 shadow-sm">
                     <span className="text-xl sm:text-2xl">🟠</span>
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
                       <p className="text-sm font-semibold">{analysis.redFlagCounts.orange}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 shadow-sm">
                     <span className="text-xl sm:text-2xl">🔴</span>
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
@@ -2784,14 +3133,23 @@ export default function AnalysisPage() {
               </div>
             )}
           </CardBase>
-            )}
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
             {/* PART 3: PATTERN ANALYSIS (extended) */}
             {(analysis.emotionalCycle || analysis.timePatterns) && (
+                <AccordionItem value="pattern-analysis" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>{patternAnalysisLabel}</span>
+                <span className="text-xs text-muted-foreground truncate">
+                  {analysis.timePatterns?.conflictTimes || analysis.emotionalCycle || ''}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
-              {locale === 'ru' ? 'Анализ паттернов' : 'Pattern Analysis'}
-            </h2>
             {analysis.emotionalCycle && (
               <div className="mb-4">
                 <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
@@ -2805,7 +3163,17 @@ export default function AnalysisPage() {
                 {analysis.timePatterns.conflictTimes && (
                   <div className="mb-2">
                     <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      {locale === 'ru' ? 'Когда происходят конфликты' : 'When conflicts happen'}
+                      {locale === 'ru'
+                        ? 'Когда происходят конфликты'
+                        : locale === 'fr'
+                        ? 'Quand les conflits surviennent'
+                        : locale === 'de'
+                        ? 'Wann Konflikte auftreten'
+                        : locale === 'es'
+                        ? 'Cuándo ocurren los conflictos'
+                        : locale === 'pt'
+                        ? 'Quando os conflitos acontecem'
+                        : 'When conflicts happen'}
                     </p>
                     <p className="text-sm sm:text-base leading-relaxed">{analysis.timePatterns.conflictTimes}</p>
                   </div>
@@ -2813,7 +3181,17 @@ export default function AnalysisPage() {
                 {analysis.timePatterns.triggers && analysis.timePatterns.triggers.length > 0 && (
                   <div>
                     <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      {locale === 'ru' ? 'Обычно провоцируется' : 'Usually triggered by'}
+                      {locale === 'ru'
+                        ? 'Обычно провоцируется'
+                        : locale === 'fr'
+                        ? 'Généralement déclenché par'
+                        : locale === 'de'
+                        ? 'Ausgelöst durch'
+                        : locale === 'es'
+                        ? 'Generalmente desencadenado por'
+                        : locale === 'pt'
+                        ? 'Geralmente provocado por'
+                        : 'Usually triggered by'}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {analysis.timePatterns.triggers.map((trigger, idx) => (
@@ -2827,14 +3205,23 @@ export default function AnalysisPage() {
               </div>
             )}
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
 
             {/* PART 4: CONTRADICTION TRACKER */}
             {analysis.contradictions && analysis.contradictions.length > 0 && (
+                <AccordionItem value="contradictions" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>{contradictionLabel}</span>
+                <span className="text-xs text-muted-foreground">
+                  {analysis.contradictions.length} {contradictionCountLabel}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
-              {locale === 'ru' ? 'Трекер противоречий' : 'Contradiction Tracker'}
-            </h2>
             <div className="space-y-4">
               {analysis.contradictions.map((contradiction, idx) => (
                 <div key={idx} className="border-l-4 border-amber-500/50 pl-4 py-3 bg-amber-50/30 dark:bg-amber-950/20 rounded-r-md">
@@ -2864,18 +3251,41 @@ export default function AnalysisPage() {
               ))}
             </div>
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
+            </Accordion>
 
             {/* PART 5: REALITY CHECK */}
             {analysis.realityCheck && (
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
-              {locale === 'ru' ? 'Проверка реальности' : 'Reality Check'}
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
+              {locale === 'ru'
+                ? 'Проверка реальности'
+                : locale === 'fr'
+                ? 'Vérification de la réalité'
+                : locale === 'de'
+                ? 'Realitätscheck'
+                : locale === 'es'
+                ? 'Verificación de la realidad'
+                : locale === 'pt'
+                ? 'Verificação da realidade'
+                : 'Reality Check'}
             </h2>
             {analysis.realityCheck.whatParticipantWasRightAbout && analysis.realityCheck.whatParticipantWasRightAbout.length > 0 && (
               <div className="mb-4">
                 <h3 className="text-base sm:text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
-                  {locale === 'ru' ? 'В чем участники были правы' : 'What participants were right about'}
+                  {locale === 'ru'
+                    ? 'В чем участники были правы'
+                    : locale === 'fr'
+                    ? 'Sur quoi les participants avaient raison'
+                    : locale === 'de'
+                    ? 'Worin die Teilnehmenden recht hatten'
+                    : locale === 'es'
+                    ? 'En qué tenían razón los participantes'
+                    : locale === 'pt'
+                    ? 'No que os participantes estavam certos'
+                    : 'What participants were right about'}
                 </h3>
                 <div className="space-y-2">
                   {analysis.realityCheck.whatParticipantWasRightAbout.map((item, idx) => (
@@ -2886,10 +3296,36 @@ export default function AnalysisPage() {
                         </p>
                       )}
                       <p className="text-sm sm:text-base font-semibold mb-1.5 leading-relaxed">
-                        <span className="text-muted-foreground">{locale === 'ru' ? 'Думали:' : 'Thought:'}</span> <span className="italic">"{item.thought}"</span>
+                        <span className="text-muted-foreground">
+                          {locale === 'ru'
+                            ? 'Думали:'
+                            : locale === 'fr'
+                            ? 'Pensée :'
+                            : locale === 'de'
+                            ? 'Gedanke:'
+                            : locale === 'es'
+                            ? 'Pensó:'
+                            : locale === 'pt'
+                            ? 'Pensou:'
+                            : 'Thought:'}
+                        </span>{' '}
+                        <span className="italic">"{item.thought}"</span>
                       </p>
                       <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{locale === 'ru' ? 'Были ПРАВЫ. Доказательство:' : 'Were RIGHT. Proof:'}</span> {item.evidence}
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          {locale === 'ru'
+                            ? 'Были ПРАВЫ. Доказательство:'
+                            : locale === 'fr'
+                            ? 'AVAIENT RAISON. Preuve :'
+                            : locale === 'de'
+                            ? 'HATTEN RECHT. Beleg:'
+                            : locale === 'es'
+                            ? 'TENÍAN RAZÓN. Prueba:'
+                            : locale === 'pt'
+                            ? 'ESTAVAM CERTOS. Prova:'
+                            : 'Were RIGHT. Proof:'}
+                        </span>{' '}
+                        {item.evidence}
                       </p>
                     </div>
                   ))}
@@ -2936,13 +3372,26 @@ export default function AnalysisPage() {
           {/* INSIGHTS TAB */}
           <TabsContent value="insights" className="space-y-4 sm:space-y-5 pt-10 sm:pt-0">
             {!isPremiumAnalysis && premiumGate}
-            <div className={!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none' : ''}>
+            <div
+              className={
+                (!isPremiumAnalysis ? 'pointer-events-none blur-sm select-none ' : '') +
+                'space-y-4 sm:space-y-5'
+              }
+            >
+            <Accordion type="multiple" className="space-y-3 sm:space-y-4">
             {/* PART 6: FRAMEWORK DIAGNOSIS */}
             {analysis.frameworkDiagnosis && (
+          <AccordionItem value="frameworks" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>{frameworkLabel}</span>
+                <span className="text-xs text-muted-foreground">
+                  {frameworkSubtitle}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
-              {locale === 'ru' ? 'Диагностика по фреймворкам' : 'Framework Diagnosis'}
-            </h2>
             <div className="space-y-4">
               {analysis.frameworkDiagnosis.nvc && (
                 <div>
@@ -3014,8 +3463,78 @@ export default function AnalysisPage() {
                       </>
                     )}
                     <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>{locale === 'ru' ? 'Потребности прямо озвучены:' : 'Needs directly stated:'} {analysis.frameworkDiagnosis.nvc.needsDirectlyStated ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}</span>
-                      <span>{locale === 'ru' ? 'Могло быть разрешено:' : 'Could be resolved:'} {analysis.frameworkDiagnosis.nvc.couldBeResolved ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}</span>
+                      <span>
+                        {locale === 'ru'
+                          ? 'Потребности прямо озвучены:'
+                          : locale === 'fr'
+                          ? 'Besoins explicitement exprimés :'
+                          : locale === 'de'
+                          ? 'Bedürfnisse direkt geäußert:'
+                          : locale === 'es'
+                          ? 'Necesidades expresadas directamente:'
+                          : locale === 'pt'
+                          ? 'Necessidades ditas diretamente:'
+                          : 'Needs directly stated:'}{' '}
+                        {analysis.frameworkDiagnosis.nvc.needsDirectlyStated
+                          ? locale === 'ru'
+                            ? 'Да'
+                            : locale === 'fr'
+                            ? 'Oui'
+                            : locale === 'de'
+                            ? 'Ja'
+                            : locale === 'es'
+                            ? 'Sí'
+                            : locale === 'pt'
+                            ? 'Sim'
+                            : 'Yes'
+                          : locale === 'ru'
+                          ? 'Нет'
+                          : locale === 'fr'
+                          ? 'Non'
+                          : locale === 'de'
+                          ? 'Nein'
+                          : locale === 'es'
+                          ? 'No'
+                          : locale === 'pt'
+                          ? 'Não'
+                          : 'No'}
+                      </span>
+                      <span>
+                        {locale === 'ru'
+                          ? 'Могло быть разрешено:'
+                          : locale === 'fr'
+                          ? 'Pouvait être résolu :'
+                          : locale === 'de'
+                          ? 'Hätte gelöst werden können:'
+                          : locale === 'es'
+                          ? 'Podría haberse resuelto:'
+                          : locale === 'pt'
+                          ? 'Poderia ter sido resolvido:'
+                          : 'Could be resolved:'}{' '}
+                        {analysis.frameworkDiagnosis.nvc.couldBeResolved
+                          ? locale === 'ru'
+                            ? 'Да'
+                            : locale === 'fr'
+                            ? 'Oui'
+                            : locale === 'de'
+                            ? 'Ja'
+                            : locale === 'es'
+                            ? 'Sí'
+                            : locale === 'pt'
+                            ? 'Sim'
+                            : 'Yes'
+                          : locale === 'ru'
+                          ? 'Нет'
+                          : locale === 'fr'
+                          ? 'Non'
+                          : locale === 'de'
+                          ? 'Nein'
+                          : locale === 'es'
+                          ? 'No'
+                          : locale === 'pt'
+                          ? 'Não'
+                          : 'No'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -3175,14 +3694,35 @@ export default function AnalysisPage() {
               )}
             </div>
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
 
             {/* PART 7: THE HARD TRUTH */}
             {analysis.hardTruth && (
+          <AccordionItem value="hard-truth" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>
+                  {locale === 'ru'
+                    ? 'Жесткая правда'
+                    : locale === 'fr'
+                    ? 'La dure vérité'
+                    : locale === 'de'
+                    ? 'Die harte Wahrheit'
+                    : locale === 'es'
+                    ? 'La dura verdad'
+                    : locale === 'pt'
+                    ? 'A dura verdade'
+                    : 'The Hard Truth'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {getVerdictLabel(analysis.hardTruth.verdict)}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4 border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">
-              {locale === 'ru' ? 'Жесткая правда' : 'The Hard Truth'}
-            </h2>
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${
@@ -3218,14 +3758,35 @@ export default function AnalysisPage() {
               )}
             </div>
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
 
             {/* PART 8: WHAT YOU SHOULD KNOW */}
             {analysis.whatYouShouldKnow && (
+          <AccordionItem value="what-know" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>
+                  {locale === 'ru'
+                    ? 'Что вам нужно знать'
+                    : locale === 'fr'
+                    ? 'Ce que vous devez savoir'
+                    : locale === 'de'
+                    ? 'Was Sie wissen sollten'
+                    : locale === 'es'
+                    ? 'Lo que debes saber'
+                    : locale === 'pt'
+                    ? 'O que você deve saber'
+                    : 'What You Should Know'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {analysis.whatYouShouldKnow.patternsToWatch?.length ?? 0} {locale === 'ru' ? 'пунктов' : 'items'}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
-              {locale === 'ru' ? 'Что вам нужно знать' : 'What You Should Know'}
-            </h2>
             <div className="space-y-4">
               {analysis.whatYouShouldKnow.couldHaveDoneDifferently && analysis.whatYouShouldKnow.couldHaveDoneDifferently.length > 0 && (
                 <div>
@@ -3313,85 +3874,178 @@ export default function AnalysisPage() {
               )}
             </div>
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
 
             {/* PART 8.5: WHAT'S NEXT */}
             {analysis.whatsNext && (
+          <AccordionItem value="whats-next" className="border border-primary/10 dark:border-primary/20 rounded-2xl bg-card/90 px-4">
+            <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
+              <div className="flex items-center justify-between w-full gap-3">
+                <span>{t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {locale === 'ru' ? 'Персональные шаги' : 'Personalized steps'}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 sm:px-4 pb-4">
           <CardBase className="p-3 sm:p-4 border border-primary/40 bg-primary/5 dark:bg-primary/10">
             <div className="flex flex-col gap-1 mb-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary/80">
                 {t('whats_next_kicker') ?? (locale === 'ru' ? 'План действий' : 'Action plan')}
               </p>
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                {t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?")}
-              </h2>
               <p className="text-sm text-muted-foreground">
-                {t('whats_next_subtitle') ?? (locale === 'ru' ? 'Практические шаги по итогам анализа.' : 'Practical steps based on this analysis.')}
+                {t('whats_next_subtitle') ??
+                  (locale === 'ru'
+                    ? 'Практические шаги по итогам анализа.'
+                    : 'Practical steps based on this analysis.')}
               </p>
             </div>
-            <div className="space-y-4">
-              {analysis.whatsNext.actions && analysis.whatsNext.actions.length > 0 && (
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                    {t('whats_next_actions') ?? (locale === 'ru' ? 'Действия' : 'Actions')}
-                  </h3>
-                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
-                    {analysis.whatsNext.actions.map((step, idx) => (
-                      <li key={idx}>{replaceParticipantIds(step)}</li>
-                    ))}
-                  </ul>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              {primaryParticipantNames.map((name, idx) => {
+                const participantCount = Math.max(primaryParticipantNames.length, 1);
+                const participantActions = partitionByParticipant(analysis.whatsNext?.actions, idx, participantCount);
+                const participantBoundaries = partitionByParticipant(analysis.whatsNext?.boundaries, idx, participantCount);
+                const participantSupport = partitionByParticipant(analysis.whatsNext?.supportResources, idx, participantCount);
+
+                return (
+                <div
+                  key={`plan-${idx}`}
+                  className="rounded-lg border border-border/60 bg-background/60 p-3 sm:p-4 space-y-3 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.35)]"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                        {locale === 'ru' ? 'Для участника' : 'For'} {name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {analysis.hardTruth?.verdict
+                          ? getPlanTitleForVerdict(analysis.hardTruth.verdict)
+                          : locale === 'ru'
+                          ? 'Практические шаги'
+                          : 'Practical steps'}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[11px]">
+                      {getPlanTitleForVerdict(analysis.hardTruth?.verdict)}
+                    </Badge>
+                  </div>
+
+                  {participantActions.length > 0 && (
+                    <div className="space-y-1.5">
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {t('whats_next_actions') ?? (locale === 'ru' ? 'Действия' : 'Actions')}
+                      </h4>
+                      <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                        {participantActions.map((step, stepIdx) => (
+                          <li key={stepIdx}>{replaceParticipantIds(step)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {participantBoundaries.length > 0 && (
+                    <div className="space-y-1.5">
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries')}
+                      </h4>
+                      <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                        {participantBoundaries.map((boundary, bIdx) => (
+                          <li key={bIdx}>{replaceParticipantIds(boundary)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {participantSupport.length > 0 && (
+                    <div className="space-y-1.5">
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {t('whats_next_support') ??
+                          (locale === 'ru' ? 'Поддержка и ресурсы' : 'Support & resources')}
+                      </h4>
+                      <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
+                        {participantSupport.map((resource, rIdx) => (
+                          <li key={rIdx}>{replaceParticipantIds(resource)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              )}
-              {analysis.whatsNext.boundaries && analysis.whatsNext.boundaries.length > 0 && (
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                    {t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries')}
-                  </h3>
-                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
-                    {analysis.whatsNext.boundaries.map((boundary, idx) => (
-                      <li key={idx}>{replaceParticipantIds(boundary)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {analysis.whatsNext.supportResources && analysis.whatsNext.supportResources.length > 0 && (
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                    {t('whats_next_support') ?? (locale === 'ru' ? 'Поддержка и ресурсы' : 'Support & resources')}
-                  </h3>
-                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
-                    {analysis.whatsNext.supportResources.map((resource, idx) => (
-                      <li key={idx}>{replaceParticipantIds(resource)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                );
+              })}
             </div>
+
             </CardBase>
+            </AccordionContent>
+          </AccordionItem>
             )}
+
+            </Accordion>
 
             {/* PART 9: CLOSURE STATEMENTS */}
             {analysis.closure && (
           <CardBase className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 dark:bg-primary/10">
             <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 tracking-tight">
-              {locale === 'ru' ? 'Замыкающие утверждения' : 'Closure Statements'}
+              {locale === 'ru'
+                ? 'Замыкающие утверждения'
+                : locale === 'fr'
+                ? 'Énoncés de clôture'
+                : locale === 'de'
+                ? 'Abschließende Aussagen'
+                : locale === 'es'
+                ? 'Declaraciones finales'
+                : locale === 'pt'
+                ? 'Declarações finais'
+                : 'Closure Statements'}
             </h2>
             <div className="space-y-3 text-sm">
               <div>
                 <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-1">
-                  {locale === 'ru' ? 'В чем были правы:' : 'What was right about:'}
+                  {locale === 'ru'
+                    ? 'В чем были правы:'
+                    : locale === 'fr'
+                    ? 'Ce qui était juste :'
+                    : locale === 'de'
+                    ? 'Was richtig war:'
+                    : locale === 'es'
+                    ? 'Lo que fue correcto:'
+                    : locale === 'pt'
+                    ? 'O que estava certo:'
+                    : 'What was right about:'}
                 </p>
                 <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasRightAbout)}</p>
               </div>
               <div>
                 <p className="font-semibold text-sm text-foreground mb-1">
-                  {locale === 'ru' ? 'Участники заслуживали:' : 'Participants deserved:'}
+                  {locale === 'ru'
+                    ? 'Участники заслуживали:'
+                    : locale === 'fr'
+                    ? 'Ce que méritaient les participants :'
+                    : locale === 'de'
+                    ? 'Teilnehmende verdienten:'
+                    : locale === 'es'
+                    ? 'Los participantes merecían:'
+                    : locale === 'pt'
+                    ? 'Os participantes mereciam:'
+                    : 'Participants deserved:'}
                 </p>
                 <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasDeserved)}</p>
               </div>
               <div>
                 <p className="font-semibold text-sm text-foreground mb-1">
-                  {locale === 'ru' ? 'Участники получили:' : 'Participants got:'}
+                  {locale === 'ru'
+                    ? 'Участники получили:'
+                    : locale === 'fr'
+                    ? 'Ce que les participants ont reçu :'
+                    : locale === 'de'
+                    ? 'Teilnehmende bekamen:'
+                    : locale === 'es'
+                    ? 'Lo que recibieron los participantes:'
+                    : locale === 'pt'
+                    ? 'O que os participantes receberam:'
+                    : 'Participants got:'}
                 </p>
                 <p className="text-sm text-muted-foreground">{replaceParticipantIds(analysis.closure.whatWasGot)}</p>
               </div>
