@@ -1,20 +1,17 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { BackgroundAnimation } from './BackgroundAnimation';
+import { LoveBackgroundText } from './LoveBackgroundText';
 
 /**
  * Conditionally renders BackgroundAnimation only on specific pages
  * to save GPU resources on admin and other pages
  */
 export function ConditionalBackgroundAnimation() {
-  const pathname = usePathname();
-  
-  // Only the blob variant is active now; ripple is intentionally removed.
-  const isHome = pathname === '/';
-  const variant = 'blob';
-
-  return <BackgroundAnimation variant={variant} isHome={isHome} key={isHome ? 'home' : 'page'} />;
+  return (
+    <div className="pointer-events-none fixed inset-0 -z-10">
+      <LoveBackgroundText />
+    </div>
+  );
 }
 
 

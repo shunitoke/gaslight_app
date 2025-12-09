@@ -65,33 +65,33 @@ html, body {
 
   :root[data-color-scheme='dark'],
   .dark {
-    /* Shadcn color system - Dark mode (reddish-pink theme) - HSL format */
-    --background: 0 10% 10%; /* #1a1616 - deep dark with red tint */
-    --foreground: 0 0% 98%; /* #fafafa - soft light text */
-    --card: 0 10% 12%; /* Lighter card in dark mode */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 10% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 350 60% 60%; /* #e85a7a - vibrant rose-red (lighter for dark mode) */
+    /* Shadcn color system - Dark mode (richer, darker rose-red) - HSL format */
+    --background: 348 24% 7%; /* deeper red-black */
+    --foreground: 0 0% 96%; /* soft light text */
+    --card: 348 22% 10%; /* slightly lifted */
+    --card-foreground: 0 0% 96%;
+    --popover: 348 22% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 348 70% 48%; /* deeper rose-red */
     --primary-foreground: 0 0% 98%;
-    --secondary: 355 65% 80%; /* #f5b8c8 - soft rose (lighter for dark mode) */
-    --secondary-foreground: 0 10% 10%;
-    --muted: 0 10% 10%;
-    --muted-foreground: 0 0% 72%; /* Improved contrast for dark mode */
-    --accent: 350 60% 60%; /* #e85a7a - vibrant rose-red */
+    --secondary: 348 46% 54%; /* muted rose */
+    --secondary-foreground: 350 18% 10%;
+    --muted: 348 18% 10%; /* dark red-muted */
+    --muted-foreground: 0 0% 72%; /* maintain contrast */
+    --accent: 348 70% 50%; /* aligned with primary but richer */
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 68% 54%;
     --destructive-foreground: 0 0% 98%;
-    --border: 350 55% 70% / 0.25; /* soft rose border */
-    --input: 350 55% 70% / 0.25;
-    --ring: 350 60% 60%; /* vibrant rose-red ring */
+    --border: 348 30% 22% / 0.32; /* subtle rose border */
+    --input: 348 30% 22% / 0.32;
+    --ring: 348 70% 48%; /* rose ring */
     
     /* Legacy color variables for backward compatibility */
-    --color-primary: #f5b8c8; /* soft rose (lighter) */
-    --color-accent: #e85a7a; /* vibrant rose-red (lighter) */
+    --color-primary: #d33b63; /* deeper rose */
+    --color-accent: #d6456b; /* vibrant dark rose-red */
     --color-warning: #e68a5a;
-    --color-neutral: #1a1616; /* deep dark with red tint */
-    --color-text: #fafafa; /* soft light */
+    --color-neutral: #12090e; /* deeper dark red */
+    --color-text: #f3f3f3; /* soft light */
     --color-highlight: #f0d870;
   }
 
@@ -129,33 +129,33 @@ html, body {
   /* Alternative theme - Dark - HSL format */
   [data-color-theme='alternative']:root[data-color-scheme='dark'],
   [data-color-theme='alternative'].dark {
-    --background: 210 40% 8%; /* #0f1419 - elegant dark blue */
-    --foreground: 0 0% 96%; /* #f5f5f5 - soft light */
-    --card: 210 40% 12%; /* Lighter card for alternative dark theme */
-    --card-foreground: 0 0% 96%;
-    --popover: 210 40% 8%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 195 35% 48%; /* #5a8a9a - elegant blue (lighter for dark mode) */
-    --primary-foreground: 0 0% 96%;
-    --secondary: 215 40% 70%; /* #9db3d0 - soft blue (lighter for dark mode) */
-    --secondary-foreground: 210 40% 8%;
-    --muted: 210 40% 8%;
-    --muted-foreground: 0 0% 70%; /* Improved contrast for dark mode */
-    --accent: 195 35% 48%; /* #5a8a9a - elegant blue */
-    --accent-foreground: 0 0% 96%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 96%;
-    --border: 215 20% 50% / 0.2; /* soft blue-gray border */
-    --input: 215 20% 50% / 0.2;
-    --ring: 195 35% 48%; /* elegant blue ring */
+    --background: 210 45% 6%; /* deeper midnight blue */
+    --foreground: 0 0% 95%; /* soft light */
+    --card: 210 44% 10%; /* slightly lifted */
+    --card-foreground: 0 0% 95%;
+    --popover: 210 44% 8%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 195 42% 40%; /* darker elegant blue */
+    --primary-foreground: 0 0% 95%;
+    --secondary: 215 42% 55%; /* muted blue */
+    --secondary-foreground: 210 32% 8%;
+    --muted: 210 36% 9%;
+    --muted-foreground: 0 0% 70%; /* maintain contrast */
+    --accent: 195 40% 40%; /* aligned with primary, darker */
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 78% 56%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 215 26% 28% / 0.32; /* subtle blue-gray border */
+    --input: 215 26% 28% / 0.32;
+    --ring: 195 42% 40%; /* blue ring */
     
     /* Legacy color variables for backward compatibility */
-    --color-primary: #9db3d0; /* soft blue (lighter) */
-    --color-accent: #5a8a9a; /* elegant blue (lighter) */
+    --color-primary: #5a7fa1; /* darker soft blue */
+    --color-accent: #4b738f; /* darker elegant blue */
     --color-warning: #e68a5a;
-    --color-neutral: #0f1419; /* elegant dark blue */
-    --color-text: #f5f5f5; /* soft light */
-    --color-highlight: #e0c880;
+    --color-neutral: #0a1016; /* deeper dark blue */
+    --color-text: #f3f3f3; /* soft light */
+    --color-highlight: #d9c27a;
   }
 }
 
@@ -487,6 +487,30 @@ html, body {
   }
 }
 
+@keyframes gaslight-flicker {
+  0% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0.94;
+  }
+  22% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.92;
+  }
+  82% {
+    opacity: 1;
+  }
+}
+
 /* Enhanced upload card hover effects */
 [data-upload-card].group\/upload-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -506,8 +530,11 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .animate-blob,
   .animate-blob-gaslight,
-  .animate-ripple {
+  .animate-ripple,
+  .matrix-stream::before,
+  .matrix-stream::after {
     animation: none !important;
+    opacity: 0 !important;
   }
 }
 
@@ -515,8 +542,11 @@ html, body {
 @media (max-width: 768px) {
   .animate-blob,
   .animate-blob-gaslight,
-  .animate-ripple {
+  .animate-ripple,
+  .matrix-stream::before,
+  .matrix-stream::after {
     animation: none !important;
+    opacity: 0 !important;
   }
 }
 
@@ -538,16 +568,18 @@ html, body {
 }
 
 .animate-blob-gaslight {
-  animation: blob 12s ease-in-out infinite alternate, gaslight-wobble 22s ease-in-out infinite;
+  animation:
+    blob 16s ease-in-out infinite alternate,
+    gaslight-flicker 18s ease-in-out infinite;
   will-change: transform, opacity;
   backface-visibility: hidden;
   perspective: 1000px;
 }
 
 .gaslight-blob {
-  filter: blur(48px) saturate(1.15) contrast(1.05);
+  filter: blur(32px) saturate(1.08) contrast(1.02);
   mix-blend-mode: screen;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 
 .dark .gaslight-blob,
@@ -558,8 +590,8 @@ html, body {
 :root:not(.dark) .gaslight-blob,
 [data-color-scheme='light'] .gaslight-blob {
   mix-blend-mode: multiply;
-  opacity: 0.48;
-  filter: blur(44px) saturate(1.08) contrast(1.05);
+  opacity: 0.38;
+  filter: blur(28px) saturate(1.02) contrast(1.0);
 }
 
 .gaslight-noise {
@@ -569,16 +601,16 @@ html, body {
     radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.06) 0%, transparent 34%),
     radial-gradient(circle at 18% 74%, rgba(255, 255, 255, 0.04) 0%, transparent 32%);
   mix-blend-mode: soft-light;
-  opacity: 0.32;
-  animation: gaslight-noise 18s ease-in-out infinite;
-  filter: blur(24px) saturate(1.05);
+  opacity: 0.24;
+  animation: gaslight-noise 22s ease-in-out infinite;
+  filter: blur(14px) saturate(1.02);
 }
 
 :root:not(.dark) .gaslight-noise,
 [data-color-scheme='light'] .gaslight-noise {
   mix-blend-mode: multiply;
-  opacity: 0.24;
-  filter: blur(20px) saturate(1.02);
+  opacity: 0.18;
+  filter: blur(12px) saturate(1.0);
 }
 
 .will-change-transform {
@@ -593,6 +625,144 @@ html, body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Mid-size fallback: soften blob/noise to cut GPU overdraw */
+@media (max-width: 1200px) {
+  .animate-blob-gaslight {
+    animation: blob 18s ease-in-out infinite alternate;
+  }
+  .gaslight-blob,
+  .gaslight-noise {
+    filter: none;
+    opacity: 0.22;
+  }
+}
+
+/* Matrix-style running text background with soft, shifting highlights */
+.matrix-stream {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  --matrix-text: 'echo shift delta nova flux \A prism drift coil glitch synapse \A neon cipher drift ghost trace bloom \A locus shard qubit fold arc node \A vector bloom signal frost pulse \A dune veil cipher spark drift neon \A coil shard prism echo nova flux \A shard neon vector ghost code pulse';
+  --matrix-speed: 24s;
+  --pulse-x: 22%;
+  --pulse-y: 32%;
+}
+
+.matrix-stream::before,
+.matrix-stream::after {
+  content: var(--matrix-text);
+  position: absolute;
+  inset: -40% 0;
+  font-family: 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
+  font-size: clamp(10px, 0.9vw, 13px);
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  white-space: pre-wrap;
+  text-transform: lowercase;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+.matrix-stream::before {
+  color: hsl(var(--foreground) / 0.05);
+  filter: blur(0.6px) saturate(0.9);
+  animation: matrix-scroll var(--matrix-speed) linear infinite;
+}
+
+.matrix-stream::after {
+  color: hsl(var(--primary, var(--foreground)) / 0.22);
+  opacity: 0.32;
+  filter: blur(0.4px) saturate(1.05);
+  mix-blend-mode: screen;
+  animation:
+    matrix-scroll calc(var(--matrix-speed) * 0.85) linear infinite,
+    matrix-pulse 10s ease-in-out infinite alternate;
+  mask-image: radial-gradient(
+    140% 80% at var(--pulse-x, 50%) var(--pulse-y, 50%),
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.0) 65%
+  );
+  -webkit-mask-image: radial-gradient(
+    140% 80% at var(--pulse-x, 50%) var(--pulse-y, 50%),
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.0) 65%
+  );
+}
+
+/* Love background helpers */
+.love-cloud-item {
+  transition:
+    opacity 1.2s ease,
+    filter 1.2s ease;
+  opacity: var(--love-opacity, 0.12);
+  filter: blur(var(--love-blur, 1.8px));
+}
+
+.love-appearing {
+  opacity: 0;
+  filter: blur(calc(var(--love-blur-strong, 2.2px) * 1.4));
+}
+
+.love-cloud-item.love-fading {
+  opacity: 0;
+  filter: blur(calc(var(--love-blur-strong, 2.2px) * 1.35));
+}
+
+
+.love-spotlight-mask {
+  pointer-events: none;
+  background: radial-gradient(
+    38% 38% at 50% 50%,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.12) 35%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+}
+
+@keyframes love-spotlight {
+  0% { transform: translate3d(-12%, -8%, 0) scale(1.05); }
+  25% { transform: translate3d(6%, -4%, 0) scale(1.08); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.02); }
+  75% { transform: translate3d(-8%, 10%, 0) scale(1.06); }
+  100% { transform: translate3d(-12%, -8%, 0) scale(1.05); }
+}
+
+@keyframes matrix-scroll {
+  0% {
+    transform: translate3d(0, -25%, 0);
+  }
+  100% {
+    transform: translate3d(0, 25%, 0);
+  }
+}
+
+@keyframes matrix-pulse {
+  0% {
+    --pulse-x: 18%;
+    --pulse-y: 26%;
+    opacity: 0.18;
+  }
+  35% {
+    --pulse-x: 72%;
+    --pulse-y: 38%;
+    opacity: 0.34;
+  }
+  65% {
+    --pulse-x: 42%;
+    --pulse-y: 72%;
+    opacity: 0.26;
+  }
+  100% {
+    --pulse-x: 86%;
+    --pulse-y: 58%;
+    opacity: 0.32;
+  }
 }
 
 
@@ -769,6 +939,25 @@ html, body {
   contain-intrinsic-size: auto 500px;
 }
 
+[data-testimonial-track] {
+  will-change: transform;
+}
+
+.animate-testimonial-marquee {
+  animation-name: testimonial-marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes testimonial-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Phone glass effect - dark, transparent, with reflections */
 .phone-glass-card {
   background: 
@@ -903,6 +1092,49 @@ html, body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Love background helpers */
+.love-cloud-item {
+  transition:
+    opacity 2.8s ease,
+    transform 2.8s ease,
+    filter 2.8s ease,
+    left 2.8s ease,
+    top 2.8s ease,
+    font-size 2.8s ease;
+}
+
+@keyframes love-float {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4px, -4px, 0) scale(1.01); }
+  100% { transform: translate3d(-4px, 4px, 0) scale(0.99); }
+}
+
+.love-float {
+  animation-name: love-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.love-spotlight-mask {
+  pointer-events: none;
+  background: radial-gradient(
+    38% 38% at 50% 50%,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.08) 35%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.4;
+}
+
+@keyframes love-spotlight {
+  0% { transform: translate3d(-12%, -8%, 0) scale(1.05); }
+  25% { transform: translate3d(6%, -4%, 0) scale(1.08); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.02); }
+  75% { transform: translate3d(-8%, 10%, 0) scale(1.06); }
+  100% { transform: translate3d(-12%, -8%, 0) scale(1.05); }
 }
 
 /* Testimonial cards - responsive width for desktop */

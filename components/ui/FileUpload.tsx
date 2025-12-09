@@ -106,6 +106,25 @@ export function FileUpload({
     [ZIP_MEDIA_MAX_BYTES, pickLocalizedMessage]
   );
 
+  const confirmBeforeUpload = useCallback(
+    (file: File): boolean => {
+      const localized = t('confirmImportPrompt');
+      const message =
+        localized && localized !== 'confirmImportPrompt'
+          ? localized.replace('{file}', file.name)
+          : pickLocalizedMessage({
+              ru: `Импортировать файл «${file.name}»? Убедитесь, что в экспорте нет лишних данных.`,
+              en: `Import “${file.name}”? Make sure the export only contains the conversation you want analyzed.`,
+              es: `¿Importar “${file.name}”? Asegúrate de que la exportación solo contenga la conversación que quieres analizar.`,
+              fr: `Importer « ${file.name} » ? Vérifie que l'export ne contient que la conversation à analyser.`,
+              de: `„${file.name}“ jetzt importieren? Stelle sicher, dass der Export nur den gewünschten Chat enthält.`,
+              pt: `Importar “${file.name}”? Confirme que a exportação contém apenas a conversa que deseja analisar.`
+            });
+      return window.confirm(message);
+    },
+    [pickLocalizedMessage, t]
+  );
+
   // Hide filename after successful import
   useEffect(() => {
     if (importSuccessful) {
@@ -126,10 +145,14 @@ export function FileUpload({
         event.target.value = '';
         return;
       }
+      if (!confirmBeforeUpload(file)) {
+        event.target.value = '';
+        return;
+      }
       setFileName(file.name);
       await onFileSelect(file, selectedPlatform);
     },
-    [disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
+    [confirmBeforeUpload, disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
   );
 
   const handleDrop = useCallback(
@@ -141,11 +164,14 @@ export function FileUpload({
         if (!validateBeforeUpload(file)) {
           return;
         }
+        if (!confirmBeforeUpload(file)) {
+          return;
+        }
         setFileName(file.name);
         await onFileSelect(file, selectedPlatform);
       }
     },
-    [disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
+    [confirmBeforeUpload, disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
   );
 
   return (

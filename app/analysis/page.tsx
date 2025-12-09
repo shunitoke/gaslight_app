@@ -1067,6 +1067,21 @@ export default function AnalysisPage() {
       report += '\n';
     }
 
+    if (analysis.whatsNext) {
+      const whatsNextTitle = t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?");
+      const pushList = (label: string, arr?: string[]) => {
+        if (arr && arr.length) {
+          report += `${label}:\n`;
+          arr.forEach((item) => (report += `- ${replaceParticipantIds(item)}\n`));
+        }
+      };
+      report += `${whatsNextTitle}:\n`;
+      pushList(t('whats_next_actions') ?? (locale === 'ru' ? 'Шаги' : 'Actions'), analysis.whatsNext.actions);
+      pushList(t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries'), analysis.whatsNext.boundaries);
+      pushList(t('whats_next_support') ?? (locale === 'ru' ? 'Поддержка' : 'Support'), analysis.whatsNext.supportResources);
+      report += '\n';
+    }
+
     if (analysis.closure) {
       report += `${t('pdf_closure_title')}:\n`;
       if (analysis.closure.whatWasRightAbout) report += `- ${t('pdf_closure_right')}: ${replaceParticipantIds(analysis.closure.whatWasRightAbout)}\n`;
@@ -1399,6 +1414,13 @@ export default function AnalysisPage() {
             redFlagsForNextTime: analysis.whatYouShouldKnow.redFlagsForNextTime?.map((i) => replaceParticipantIds(i))
           }
         : undefined,
+      whatsNext: analysis.whatsNext
+        ? {
+            actions: analysis.whatsNext.actions?.map((item) => replaceParticipantIds(item)),
+            boundaries: analysis.whatsNext.boundaries?.map((item) => replaceParticipantIds(item)),
+            supportResources: analysis.whatsNext.supportResources?.map((item) => replaceParticipantIds(item))
+          }
+        : undefined,
       sections: analysis.sections.map((s) => ({
         id: s.id,
         title: s.title,
@@ -1722,6 +1744,28 @@ export default function AnalysisPage() {
             ${mapList(analysis.whatYouShouldKnow.patternsToWatch)}
             ${mapList(analysis.whatYouShouldKnow.resources)}
             ${mapList(analysis.whatYouShouldKnow.redFlagsForNextTime)}
+          </div>
+        `;
+      }
+
+      if (analysis.whatsNext && (
+        (analysis.whatsNext.actions && analysis.whatsNext.actions.length > 0) ||
+        (analysis.whatsNext.boundaries && analysis.whatsNext.boundaries.length > 0) ||
+        (analysis.whatsNext.supportResources && analysis.whatsNext.supportResources.length > 0)
+      )) {
+        const mapListSimple = (items?: string[]) =>
+          items && items.length
+            ? `<ul style="margin: 0 0 6px 0; padding-left: 12px; font-size: 9px; color: #0f172a; line-height: 1.45;">${items
+                .map((i) => `<li>${escapeHtml(replaceParticipantIds(i))}</li>`)
+                .join('')}</ul>`
+            : '';
+
+        html += `
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #dbeafe; background: #eff6ff; page-break-inside: avoid;">
+            <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 6px 0; color: #1d4ed8;">${escapeHtml(t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?"))}</h2>
+            ${mapListSimple(analysis.whatsNext.actions)}
+            ${mapListSimple(analysis.whatsNext.boundaries)}
+            ${mapListSimple(analysis.whatsNext.supportResources)}
           </div>
         `;
       }
@@ -3263,6 +3307,61 @@ export default function AnalysisPage() {
                   <ul className="list-disc list-inside ml-2 space-y-1 text-sm text-muted-foreground">
                     {analysis.whatYouShouldKnow.redFlagsForNextTime.map((flag, idx) => (
                       <li key={idx}>{replaceParticipantIds(flag)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            </CardBase>
+            )}
+
+            {/* PART 8.5: WHAT'S NEXT */}
+            {analysis.whatsNext && (
+          <CardBase className="p-3 sm:p-4 border border-primary/40 bg-primary/5 dark:bg-primary/10">
+            <div className="flex flex-col gap-1 mb-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary/80">
+                {t('whats_next_kicker') ?? (locale === 'ru' ? 'План действий' : 'Action plan')}
+              </p>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                {t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t('whats_next_subtitle') ?? (locale === 'ru' ? 'Практические шаги по итогам анализа.' : 'Practical steps based on this analysis.')}
+              </p>
+            </div>
+            <div className="space-y-4">
+              {analysis.whatsNext.actions && analysis.whatsNext.actions.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {t('whats_next_actions') ?? (locale === 'ru' ? 'Действия' : 'Actions')}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
+                    {analysis.whatsNext.actions.map((step, idx) => (
+                      <li key={idx}>{replaceParticipantIds(step)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatsNext.boundaries && analysis.whatsNext.boundaries.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries')}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
+                    {analysis.whatsNext.boundaries.map((boundary, idx) => (
+                      <li key={idx}>{replaceParticipantIds(boundary)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {analysis.whatsNext.supportResources && analysis.whatsNext.supportResources.length > 0 && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    {t('whats_next_support') ?? (locale === 'ru' ? 'Поддержка и ресурсы' : 'Support & resources')}
+                  </h3>
+                  <ul className="list-disc list-inside ml-2 space-y-1.5 text-sm text-muted-foreground">
+                    {analysis.whatsNext.supportResources.map((resource, idx) => (
+                      <li key={idx}>{replaceParticipantIds(resource)}</li>
                     ))}
                   </ul>
                 </div>

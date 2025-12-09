@@ -9,7 +9,10 @@ import {
   TrendingUp,
   HelpCircle,
   X,
-  AlertCircle
+  AlertCircle,
+  ArrowUpRight,
+  BookOpen,
+  Clock3
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
@@ -1092,9 +1095,98 @@ export default function HomePageClient() {
     [previewScript]
   );
 
+  const articles = useMemo(
+    () => [
+      {
+        id: 'toxic-signs',
+        title: t('articles_toxic_title'),
+        description: t('articles_toxic_description'),
+        tag: t('articles_tag_awareness'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/toxic-signs'
+      },
+      {
+        id: 'manipulation-types',
+        title: t('articles_manipulation_title'),
+        description: t('articles_manipulation_description'),
+        tag: t('articles_tag_awareness'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/manipulation-types'
+      },
+      {
+        id: 'covert-narcissism',
+        title: t('articles_covert_title'),
+        description: t('articles_covert_description'),
+        tag: t('articles_tag_awareness'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/covert-narcissism'
+      },
+      {
+        id: 'practical-steps',
+        title: t('articles_steps_title'),
+        description: t('articles_steps_description'),
+        tag: t('articles_tag_practice'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/practical-steps'
+      },
+      {
+        id: 'grief-guide',
+        title: t('articles_grief_title'),
+        description: t('articles_grief_description'),
+        tag: t('articles_tag_support'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/grief-guide'
+      },
+      {
+        id: 'letting-go',
+        title: t('articles_letgo_title'),
+        description: t('articles_letgo_description'),
+        tag: t('articles_tag_support'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/letting-go'
+      },
+      {
+        id: 'psychological-consequences',
+        title: t('articles_consequences_title'),
+        description: t('articles_consequences_description'),
+        tag: t('articles_tag_awareness'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/psychological-consequences'
+      },
+      {
+        id: 'relationship-chances',
+        title: t('articles_chances_title'),
+        description: t('articles_chances_description'),
+        tag: t('articles_tag_howto'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/relationship-chances'
+      },
+      {
+        id: 'healthy-relationships',
+        title: t('articles_healthy_title'),
+        description: t('articles_healthy_description'),
+        tag: t('articles_tag_product'),
+        readTime: t('articles_read_time_short'),
+        href: '/articles/healthy-relationships-dont-exist'
+      }
+    ],
+    [t]
+  );
+
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [visibleMessages, setVisibleMessages] = useState<typeof previewScript>([]);
   const [messageKey, setMessageKey] = useState(0);
+  const articlesScrollRef = React.useRef<HTMLDivElement | null>(null);
+
+  const scrollArticles = useCallback((direction: 'left' | 'right') => {
+    const container = articlesScrollRef.current;
+    if (!container) return;
+    const step = container.clientWidth * 0.9;
+    container.scrollTo({
+      left: direction === 'left' ? container.scrollLeft - step : container.scrollLeft + step,
+      behavior: 'smooth'
+    });
+  }, []);
 
   useEffect(() => {
     if (previewScript.length === 0) return;
@@ -1131,8 +1223,8 @@ export default function HomePageClient() {
   }, [currentMessageIndex, previewScript]);
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 md:gap-12 px-4 sm:px-6 py-8 sm:py-12">
-      <div className="w-full grid lg:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
+    <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 md:gap-12 px-4 sm:px-6 py-8 sm:py-12">
+      <div className="w-full grid xl:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-5 w-full">
           <Badge
             variant="outline"
@@ -1159,7 +1251,7 @@ export default function HomePageClient() {
           </p>
         </div>
 
-        <div className="relative w-full max-w-md lg:max-w-xl mx-auto lg:ml-auto">
+        <div className="relative w-full max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:ml-auto">
           <Card className="phone-glass-card relative z-10 border-border/40 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
             <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 phone-glass-content">
               <div className="space-y-1">
@@ -1593,6 +1685,102 @@ export default function HomePageClient() {
               <p className="text-body-xs sm:text-body-sm text-muted-foreground leading-relaxed">{t('step3_description')}</p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <section
+        className="w-full max-w-5xl animate-fade-in"
+        style={{ animationDelay: '0.45s', animationFillMode: 'both' }}
+      >
+        <div className="flex flex-col items-center text-center gap-3 mb-6">
+          <Badge
+            variant="outline"
+            className="border-primary/30 text-primary px-3 py-1.5 text-[11px] uppercase tracking-wider inline-flex items-center gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            {t('articles_label')}
+          </Badge>
+          <h2 className="text-heading-lg sm:text-heading-xl font-bold text-foreground">
+            {t('articles_title')}
+          </h2>
+          <p className="max-w-2xl text-body-sm sm:text-body-md text-muted-foreground">
+            {t('articles_subtitle')}
+          </p>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 z-10 flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-border"
+              onClick={() => scrollArticles('left')}
+              aria-label="Previous articles"
+            >
+              ‹
+            </Button>
+          </div>
+          <div className="absolute inset-y-0 right-0 z-10 flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-border"
+              onClick={() => scrollArticles('right')}
+              aria-label="Next articles"
+            >
+              ›
+            </Button>
+          </div>
+
+          <div
+            ref={articlesScrollRef}
+            className="flex gap-4 sm:gap-5 overflow-x-auto pb-2 pt-1 px-1 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {articles.map((article) => (
+              <Card
+                key={article.id}
+                className="group border-border/50 backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20 snap-start flex-shrink-0 w-[260px] sm:w-[300px]"
+                style={{
+                  backgroundColor: 'hsl(var(--card) / 0.85)',
+                  willChange: 'background-color, transform',
+                  backfaceVisibility: 'hidden'
+                }}
+              >
+                <CardHeader className="space-y-2 pb-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <Badge variant="outline" className="border-primary/30 text-primary px-2 py-0.5 text-[11px]">
+                        {article.tag}
+                      </Badge>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Clock3 className="h-3.5 w-3.5" />
+                        {article.readTime}
+                      </span>
+                    </div>
+                    <FileText className="h-4 w-4 text-primary/80" />
+                  </div>
+                  <CardTitle className="text-heading-sm sm:text-heading-md leading-tight text-foreground group-hover:text-primary transition-colors duration-200">
+                    {article.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+                  <p className="text-body-xs sm:text-body-sm text-muted-foreground leading-relaxed">
+                    {article.description}
+                  </p>
+                  <a
+                    href={article.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {t('articles_cta')}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 

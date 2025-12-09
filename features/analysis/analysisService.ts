@@ -454,6 +454,7 @@ async function analyzeChunk(
     frameworkDiagnosis?: any;
     hardTruth?: any;
     whatYouShouldKnow?: any;
+    whatsNext?: any;
     closure?: any;
     safetyConcern?: any;
   };
@@ -1090,6 +1091,7 @@ export async function analyzeConversation(
     let aggregatedFrameworkDiagnosis: any = undefined;
     let aggregatedHardTruth: any = undefined;
     let aggregatedWhatYouShouldKnow: any = undefined;
+    let aggregatedWhatsNext: any = undefined;
     let aggregatedClosure: any = undefined;
     let aggregatedSafetyConcern: any = undefined;
     
@@ -1283,6 +1285,10 @@ export async function analyzeConversation(
       if (parsed.whatYouShouldKnow && (!aggregatedWhatYouShouldKnow ||
           JSON.stringify(parsed.whatYouShouldKnow).length > JSON.stringify(aggregatedWhatYouShouldKnow).length)) {
         aggregatedWhatYouShouldKnow = parsed.whatYouShouldKnow;
+      }
+      if (parsed.whatsNext && (!aggregatedWhatsNext ||
+          JSON.stringify(parsed.whatsNext).length > JSON.stringify(aggregatedWhatsNext).length)) {
+        aggregatedWhatsNext = parsed.whatsNext;
       }
       if (parsed.closure && (!aggregatedClosure ||
           JSON.stringify(parsed.closure).length > JSON.stringify(aggregatedClosure).length)) {
@@ -1681,6 +1687,7 @@ Respond ONLY with a single, well-structured paragraph (3-5 sentences) in ${getLa
       frameworkDiagnosis: aggregatedFrameworkDiagnosis,
       hardTruth: aggregatedHardTruth,
       whatYouShouldKnow: aggregatedWhatYouShouldKnow,
+      whatsNext: aggregatedWhatsNext,
       closure: aggregatedClosure,
       safetyConcern: aggregatedSafetyConcern
     };

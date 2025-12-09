@@ -22,6 +22,8 @@ export const deBundle: LocaleBundle = {
     language_label: 'Sprache',
     uploadExport: 'Chat-Export hochladen',
     uploadExportDescription: 'Wählen Sie Ihre Chat-Exportdatei aus, um mit der Analyse zu beginnen',
+    confirmImportPrompt:
+      '„{file}“ jetzt importieren? Stelle sicher, dass der Export nur den gewünschten Chat enthält.',
     uploadingFile: 'Datei wird hochgeladen...',
     importSuccessful: 'Import erfolgreich',
     importFailed: 'Import fehlgeschlagen',
@@ -165,6 +167,55 @@ export const deBundle: LocaleBundle = {
     step3_description: 'Erhalten Sie einen umfassenden Bericht mit Bewertungen, Beweisen und Erklärungen, um zu verstehen, was wirklich passiert ist.',
     howItWorks_subtitle: '3 schnelle Schritte, dann übernimmt die KI die schwere Arbeit für Sie.',
 
+    // Articles
+    articles_label: 'Artikel & Guides',
+    articles_title: 'Guides zu Gaslighting, Manipulation und Erholung',
+    articles_subtitle:
+      'Kurze Artikel, um Muster zu erkennen, sicher auszusteigen, Trauer zu verarbeiten und gesündere Dynamiken aufzubauen.',
+    articles_cta: 'Artikel lesen',
+    articles_read_time_short: '5 Min. Lesezeit',
+    articles_tag_awareness: 'Bewusstsein',
+    articles_tag_howto: 'Anleitung',
+    articles_tag_product: 'Zum Produkt',
+    articles_tag_practice: 'Praxis',
+    articles_tag_support: 'Unterstützung',
+    articles_gaslighting_title: 'Gaslighting: typische Muster und Reaktionen',
+    articles_gaslighting_description:
+      'Beispiele für Realitätsverdrehung, Schuldverschiebung und sprachliche Hinweise, die oft auffallen.',
+    articles_export_title: 'Chats sicher exportieren (Telegram & WhatsApp)',
+    articles_export_description:
+      'Schritt-für-Schritt-Tipps zu Formaten und wie sensible Daten geschützt bleiben.',
+    articles_method_title: 'Wie unsere KI deine Nachrichten analysiert',
+    articles_method_description:
+      'Einfacher Überblick zu Scoring, Evidenz und warum Chats nicht dauerhaft gespeichert werden.',
+    articles_toxic_title: 'Toxische Beziehungsmuster erkennen',
+    articles_toxic_description:
+      'Signale für Kritik, Kontrolle, Isolation und emotionale Achterbahn, die Sicherheit untergraben.',
+    articles_steps_title: 'Praktische Schritte, solange die Beziehung läuft',
+    articles_steps_description:
+      'Realitätscheck, Probe-Grenzen, Sicherheitsplan und Körperpflege ohne direkte Eskalation.',
+    articles_grief_title: 'Wie man das Ende einer schwierigen Beziehung betrauert',
+    articles_grief_description:
+      'Nichtlineare Trauerphasen nach toxischer Dynamik und Wege zu Stabilität und Sinn.',
+    articles_manipulation_title: 'Wichtige Manipulationsarten in Beziehungen',
+    articles_manipulation_description:
+      'Emotionaler Druck, Gaslighting, Isolation, Grenzverletzungen und wie man Muster erkennt.',
+    articles_covert_title: 'Verdeckter Narzissmus: Gefahr hinter Verletzlichkeit',
+    articles_covert_description:
+      'Wie stille Kränkung, Opferrolle und „Güte mit Bedingungen“ Kontrolle aufrechterhalten.',
+    articles_letgo_title: 'Traumatische Bindung loslassen',
+    articles_letgo_description:
+      'Warum der Abschied schwer ist, wie man sich vorbereitet und Rückfälle meidet.',
+    articles_consequences_title: 'Psychologische Folgen toxischer Bindungen',
+    articles_consequences_description:
+      'PTBS-ähnliche Symptome, Angst, Dissoziation und warum Körper und Geist Erholung brauchen.',
+    articles_chances_title: 'Gibt es eine Chance für diese Beziehung?',
+    articles_chances_description:
+      'Wann Veränderung realistisch ist, welche Red Flags alles beenden und wie man sicher entscheidet.',
+    articles_healthy_title: 'Gesunde Beziehungen sind nicht perfekt (und das ist okay)',
+    articles_healthy_description:
+      'Realistische Merkmale funktionierender Beziehungen statt Mythen makelloser Harmonie.',
+
     // Badges und Vorschaukarte im Hero
     hero_badge_patterns: 'Tiefe Musteranalyse',
     hero_badge_boundaries: 'Grenzen im Fokus',
@@ -285,6 +336,12 @@ export const deBundle: LocaleBundle = {
     wysk_patterns_to_watch: 'Muster, auf die du achten solltest',
     wysk_resources: 'Ressourcen',
     wysk_red_flags_next: 'Warnsignale fürs nächste Mal',
+    whats_next_kicker: 'Aktionsplan',
+    whats_next_title: 'Wie geht es weiter?',
+    whats_next_subtitle: 'Konkrete nächste Schritte auf Basis dieser Analyse.',
+    whats_next_actions: 'Konkrete Schritte',
+    whats_next_boundaries: 'Grenzen üben',
+    whats_next_support: 'Unterstützung & Ressourcen',
 
     testimonial_yuki_name: '„Yuki", 27',
     testimonial_yuki_role: 'Fernbeziehung',
@@ -294,6 +351,86 @@ export const deBundle: LocaleBundle = {
     testimonial_sofia_role: 'Klarheit nach Scheidung',
     testimonial_sofia_quote:
       'Ich brauchte Abschluss. Jahre von Nachrichten zu lesen war überwältigend, aber die KI-Analyse hob die Schlüsselmuster hervor. Es ging nicht um Schuld – es ging um Verständnis.',
+    testimonial_mia_name: '„Mia“, 26',
+    testimonial_mia_role: 'Nach Monaten Trennungsgrübeln',
+    testimonial_mia_quote:
+      'Ich schrieb die Geschichte im Kopf ständig um. Die Zeitleiste mit Spitzen machte es weniger dramatisch, mehr faktisch. Ich konnte den Tab endlich schließen und schlafen.',
+    testimonial_lucas_name: '„Lucas“, 29',
+    testimonial_lucas_role: 'Mit in die Therapie gebracht',
+    testimonial_lucas_quote:
+      'Meine Therapeutin wollte Beispiele. Der Bericht zeigte jedes Mal, wenn ich mit Sarkasmus auswich. Unangenehm, aber es beschleunigte die Sitzung.',
+    testimonial_priya_name: '„Priya“, 33',
+    testimonial_priya_role: 'Co-Parenting-Nachrichten',
+    testimonial_priya_quote:
+      'Wir haben ein Kleinkind und die Emotionen kochen hoch. Das Tool markierte, wo sich Schuldzuweisungen einschlichen. So konnten wir einen ruhigeren Ablauf vor Übergaben vereinbaren.',
+    testimonial_noah_name: '„Noah“, 31',
+    testimonial_noah_role: 'Meine Defensive erkennen',
+    testimonial_noah_quote:
+      'Ich sagte immer „ich kläre nur“, aber das Muster war: unterbrechen und kleinreden. Jetzt übe ich, eine Antwort nach der anderen zu geben.',
+    testimonial_amira_name: '„Amira“, 30',
+    testimonial_amira_role: 'Missverständnisse auf Distanz',
+    testimonial_amira_quote:
+      'Wir verpassten ständig den Ton. Der dauerhafte Lauf zeigte, dass Schweigen meist Stress war, nicht Bosheit. Das senkte die Panik.',
+    testimonial_elena_name: '„Elena“, 34',
+    testimonial_elena_role: 'Jahre an Sprachnachrichten sortieren',
+    testimonial_elena_quote:
+      'Ich scheute mich, Stunden Audio neu zu hören. In Transkripten hintereinander sah ich die Muster, ohne alles erneut zu fühlen.',
+    testimonial_tom_name: '„Tom“, 30',
+    testimonial_tom_role: 'Konflikt-Schleifen verstehen',
+    testimonial_tom_quote:
+      'Ich dachte, ich bin „nur logisch“. Der Bericht zeigte die Schleife: Sarkasmus → Defensive → Mauer. Sie zu benennen half, sie zu brechen.',
+    testimonial_zahra_name: '„Zahra“, 28',
+    testimonial_zahra_role: 'Visa-Stress-Streits',
+    testimonial_zahra_quote:
+      'Wir waren vom Papierkram erschöpft. Die Timeline zeigte, jeder Peak kam nach E-Mails der Botschaft. So war „lass kurz pausieren“ einfacher.',
+    testimonial_pedro_name: '„Pedro“, 37',
+    testimonial_pedro_role: 'Vertrauen neu aufbauen',
+    testimonial_pedro_quote:
+      'Ich wollte Belege für Fortschritt. Monat für Monat weniger Schuldverschiebung zu sehen, war das erste messbare Zeichen.',
+    testimonial_lina_name: '„Lina“, 25',
+    testimonial_lina_role: 'Erste ernste Trennung',
+    testimonial_lina_quote:
+      'Ich scrollte nachts alte Chats. Die Zusammenfassung gab mir schneller Abschluss als alles erneut zu lesen.',
+    testimonial_chen_name: '„Chen“, 33',
+    testimonial_chen_role: 'Arbeits-Ton zuhause',
+    testimonial_chen_quote:
+      'Meine Partnerin sagte, ich bringe den Büro-Ton mit. Die Analyse zeigte, wie oft ich „jetzt nicht“ schrieb. Klein, aber es summiert sich.',
+    testimonial_jasmine_name: '„Jasmine“, 29',
+    testimonial_jasmine_role: 'Gemeinsamer Umzug',
+    testimonial_jasmine_quote:
+      'Jeder Streit fiel auf Umzugsstress. Auf der Timeline wurde klar: überfordert, nicht gegeneinander.',
+    testimonial_omar_name: '„Omar“, 36',
+    testimonial_omar_role: 'Nachtgrübler',
+    testimonial_omar_quote:
+      'Ich öffnete alte Chats um 2 Uhr. Die Zusammenfassung gab den Abschluss, den Scrollen nie brachte.',
+    testimonial_julia_name: '„Julia“, 27',
+    testimonial_julia_role: 'Love-Bombing erkennen',
+    testimonial_julia_quote:
+      'Das Muster „große Versprechen, dann weg“ sprang ins Auge. Es war nicht eingebildet.',
+    testimonial_mateo_name: '„Mateo“, 31',
+    testimonial_mateo_role: 'Entschuldigen lernen',
+    testimonial_mateo_quote:
+      'Ich dachte, „sorry, dass du das so siehst“ reicht. Als es markiert wurde, habe ich echte Entschuldigungen geübt.',
+    testimonial_mia_name: '„Mia“, 26',
+    testimonial_mia_role: 'Nach Monaten Trennungsgrübeln',
+    testimonial_mia_quote:
+      'Ich schrieb die Geschichte im Kopf ständig um. Die Zeitleiste mit Spitzen machte es weniger dramatisch, mehr faktisch. Ich konnte den Tab endlich schließen und schlafen.',
+    testimonial_lucas_name: '„Lucas“, 29',
+    testimonial_lucas_role: 'Mit in die Therapie gebracht',
+    testimonial_lucas_quote:
+      'Meine Therapeutin wollte Beispiele. Der Bericht zeigte jedes Mal, wenn ich mit Sarkasmus auswich. Unangenehm, aber es beschleunigte die Sitzung.',
+    testimonial_priya_name: '„Priya“, 33',
+    testimonial_priya_role: 'Co-Parenting-Nachrichten',
+    testimonial_priya_quote:
+      'Wir haben ein Kleinkind und die Emotionen kochen hoch. Das Tool markierte, wo sich Schuldzuweisungen einschlichen. So konnten wir einen ruhigeren Ablauf vor Übergaben vereinbaren.',
+    testimonial_noah_name: '„Noah“, 31',
+    testimonial_noah_role: 'Meine Defensive erkennen',
+    testimonial_noah_quote:
+      'Ich sagte immer „ich kläre nur“, aber das Muster war: unterbrechen und kleinreden. Jetzt übe ich, eine Antwort nach der anderen zu geben.',
+    testimonial_amira_name: '„Amira“, 30',
+    testimonial_amira_role: 'Missverständnisse auf Distanz',
+    testimonial_amira_quote:
+      'Wir verpassten ständig den Ton. Der dauerhafte Lauf zeigte, dass Schweigen meist Stress war, nicht Bosheit. Das senkte die Panik.',
 
     // Nutzungsbedingungen
     terms_title: 'Nutzungsbedingungen',

@@ -164,6 +164,11 @@ You MUST return ONLY valid JSON. No markdown code blocks, no explanations, no te
     "resources": ["resource1", "resource2"],
     "redFlagsForNextTime": ["flag1", "flag2"]
   },
+  "whatsNext": {
+    "actions": ["next step 1", "next step 2", "next step 3", "next step 4"],
+    "boundaries": ["boundary to try 1", "boundary to try 2"],
+    "supportResources": ["support line or trusted friend to contact"]
+  },
   "closure": {
     "whatWasRightAbout": "What gut feelings were right about",
     "whatWasDeserved": "What participants deserved",
@@ -216,7 +221,8 @@ CRITICAL CONTENT REQUIREMENTS:
 5. NEVER return empty arrays/objects for any fields in the JSON. If data is sparse, use best-effort from the conversation and provide short, concrete entries. Leave nothing empty.
 6. For EVERY numeric score you return, ALSO return polarity (\"higher-is-worse\" or \"higher-is-better\") and a coarse sentiment (\"negative\" | \"positive\" | \"neutral\") that reflects how the user should feel about higher values. Example: gaslightingRiskScore => polarity \"higher-is-worse\", sentiment \"negative\". Supportiveness => polarity \"higher-is-better\", sentiment \"positive\". Sections follow the same rule via scorePolarity + sentiment.
 6. communicationStats, promiseTracking, redFlagCounts, emotionalCycle, timePatterns MUST all be populated with best-effort values. Do not leave them empty.
-7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
+7. contradictions, realityCheck, hardTruth, whatYouShouldKnow, whatsNext, closure: include at least one meaningful entry each (best-effort). Avoid empty arrays/strings.
+8. whatsNext.actions MUST include 4-8 concrete, action-oriented steps tailored to this conversation (not generic platitudes). Keep each step concise (max 18 words), in ${responseLanguage}. If relevant, add boundaries and supportResources.
 8. Identify if there was a BREAKUP / FINAL SEPARATION. Include date (best guess), initiator (if clear), and 2-3 quotes that mark the final boundary (e.g., “don’t write me anymore”, blocking, explicit goodbye).
 9. ALWAYS detect self-harm or suicide ideation/threats. If any mention exists, set safetyConcern.isPresent = true, add behaviors with exact quotes (2-3), and include relevant resources.
 
@@ -269,6 +275,11 @@ PART 8: WHAT YOU SHOULD KNOW
 - For healthy/needs_work: What each participant could have done differently, communication tools, could it have been saved
 - For toxic/abusive: Why it wasn't one participant's fault, what made participants vulnerable, patterns to watch, resources
 - redFlagsForNextTime: Early warning signs to watch for
+
+PART 9A: WHAT'S NEXT (action plan)
+- actions: 4-8 concise next steps tailored to the dynamics uncovered
+- boundaries: optional boundary statements or guardrails to practice
+- supportResources: where to seek support if needed
 
 PART 9: CLOSURE STATEMENTS
 - whatWasRightAbout: Validate gut feelings that were correct (use participant names)
@@ -372,6 +383,8 @@ Your task:
 4. Provide scores (0.0-1.0) for technical metrics - these go in the score fields, NOT in overviewSummary.
 
 5. Provide evidence snippets with actual quotes for each pattern you identify.
+
+6. Provide an action plan in "whatsNext": 4-8 concise, concrete steps tailored to this chat (no generic advice), plus optional boundaries and supportResources. Keep each action short and written in natural ${responseLanguage}.
 
 CRITICAL: Every section MUST include evidenceSnippets with actual quotes. Do NOT return sections without evidence snippets. If you find patterns, you MUST provide at least 2-5 concrete examples with quotes for each section.
 

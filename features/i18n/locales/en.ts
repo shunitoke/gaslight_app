@@ -23,6 +23,8 @@ export const enBundle: LocaleBundle = {
     language_label: 'Language',
     uploadExport: 'Upload Chat Export',
     uploadExportDescription: 'Select your chat export file to begin analysis.',
+    confirmImportPrompt:
+      'Import "{file}"? Make sure the export only contains the conversation you want analyzed.',
     uploadingFile: 'Uploading file...',
     importSuccessful: 'Import Successful',
     importFailed: 'Import failed',
@@ -163,6 +165,55 @@ export const enBundle: LocaleBundle = {
     step3_description: 'Receive a comprehensive report with scores, evidence, and explanations to help you understand what really happened.',
     howItWorks_subtitle: '3 quick steps, then the AI does the heavy lifting for you.',
 
+    // Articles
+    articles_label: 'Articles & guides',
+    articles_title: 'Guides on gaslighting, manipulation, and recovery',
+    articles_subtitle:
+      'Short reads on spotting patterns, exiting safely, processing grief, and moving toward healthier dynamics.',
+    articles_cta: 'Read article',
+    articles_read_time_short: '5 min read',
+    articles_tag_awareness: 'Awareness',
+    articles_tag_howto: 'How-to',
+    articles_tag_product: 'Behind the AI',
+    articles_tag_practice: 'Practice',
+    articles_tag_support: 'Support',
+    articles_gaslighting_title: 'Gaslighting: common patterns and how to respond',
+    articles_gaslighting_description:
+      'Examples of reality distortion, blame shifting, and language cues the detector flags most often.',
+    articles_export_title: 'How to export chats safely from Telegram & WhatsApp',
+    articles_export_description:
+      'Step-by-step export tips, file formats we accept, and how to keep sensitive data private.',
+    articles_method_title: 'How our AI analyzes your messages',
+    articles_method_description:
+      'A plain-language walkthrough of scoring, evidence extraction, and why your chats are never stored permanently.',
+    articles_toxic_title: 'How to recognize toxic relationship patterns',
+    articles_toxic_description:
+      'Key signals of criticism, control, isolation, and emotional whiplash that erode safety.',
+    articles_steps_title: 'Practical steps while the relationship is ongoing',
+    articles_steps_description:
+      'Grounding actions: reality checks, boundary practice, safety planning, and body care.',
+    articles_grief_title: 'How to grieve the end of a difficult relationship',
+    articles_grief_description:
+      'Non-linear stages of grief after toxic dynamics and ways to regain meaning and stability.',
+    articles_manipulation_title: 'Key types of manipulation in relationships',
+    articles_manipulation_description:
+      'Emotional blackmail, gaslighting, isolation, boundary violations, and how to spot the patterns.',
+    articles_covert_title: 'Covert narcissism: danger behind vulnerability',
+    articles_covert_description:
+      'How quiet entitlement, victim stance, and weaponized kindness keep control in disguise.',
+    articles_letgo_title: 'Letting go of traumatic attachment',
+    articles_letgo_description:
+      'Why leaving is hard, how to prepare, and what helps hold no-contact through withdrawal.',
+    articles_consequences_title: 'Psychological consequences of toxic bonds',
+    articles_consequences_description:
+      'PTSD-like symptoms, anxiety, dissociation, and why body and mind both need recovery.',
+    articles_chances_title: 'Is there a chance for these relationships?',
+    articles_chances_description:
+      'When change is realistic, red flags that end the discussion, and how to decide safely.',
+    articles_healthy_title: 'Healthy relationships are not perfect (and that is fine)',
+    articles_healthy_description:
+      'Realistic traits of workable relationships versus myths of flawless harmony.',
+
     // Hero badges & preview card
     hero_badge_patterns: 'Deep pattern analysis',
     hero_badge_boundaries: 'Boundaries first',
@@ -286,6 +337,12 @@ export const enBundle: LocaleBundle = {
     wysk_patterns_to_watch: 'Patterns to watch',
     wysk_resources: 'Resources',
     wysk_red_flags_next: 'Red flags for next time',
+    whats_next_kicker: 'Action plan',
+    whats_next_title: "What's next?",
+    whats_next_subtitle: 'Practical next steps based on this analysis.',
+    whats_next_actions: 'Actionable steps',
+    whats_next_boundaries: 'Boundaries to practice',
+    whats_next_support: 'Support & resources',
 
     // Testimonials
     testimonials_label: 'REAL STORIES, CHANGED PERSPECTIVES',
@@ -318,6 +375,66 @@ export const enBundle: LocaleBundle = {
     testimonial_sofia_role: 'Post-divorce clarity',
     testimonial_sofia_quote:
       'I needed closure. Reading through years of messages was overwhelming, but the AI analysis highlighted the key patterns. It wasn\'t about blame — it was about understanding.',
+    testimonial_mia_name: '“Mia”, 26',
+    testimonial_mia_role: 'After months of breakup spiral',
+    testimonial_mia_quote:
+      'I kept rewriting the story in my head. The timeline and spikes made it less dramatic and more factual. I could finally close the tab and sleep.',
+    testimonial_lucas_name: '“Lucas”, 29',
+    testimonial_lucas_role: 'Brought to therapy',
+    testimonial_lucas_quote:
+      'My therapist asked for concrete examples. The report showed every time I deflected with sarcasm. Seeing it in one place was uncomfortable, but it sped up the session.',
+    testimonial_priya_name: '“Priya”, 33',
+    testimonial_priya_role: 'Co-parenting messages',
+    testimonial_priya_quote:
+      'We share a toddler and emotions run hot. The tool highlighted where blame crept in. It helped us agree on a calmer script before pickups.',
+    testimonial_noah_name: '“Noah”, 31',
+    testimonial_noah_role: 'Catching my defensiveness',
+    testimonial_noah_quote:
+      'I always said “I’m just clarifying,” but the pattern was me interrupting and minimizing. Now I practice one response at a time.',
+    testimonial_amira_name: '“Amira”, 30',
+    testimonial_amira_role: 'Long-distance misreads',
+    testimonial_amira_quote:
+      'We kept missing each other’s tone. The nonstop view made it clear that silence was usually stress, not malice. It lowered the panic.',
+    testimonial_elena_name: '“Elena”, 34',
+    testimonial_elena_role: 'Sorting years of voice notes',
+    testimonial_elena_quote:
+      'I dreaded re-listening to hours of audio. Seeing transcripts lined up let me skim patterns instead of reliving everything.',
+    testimonial_tom_name: '“Tom”, 30',
+    testimonial_tom_role: 'Figuring out conflict loops',
+    testimonial_tom_quote:
+      'I thought I was being “logical.” The report showed a loop: sarcasm → defensiveness → stonewall. Naming it helped me break it.',
+    testimonial_zahra_name: '“Zahra”, 28',
+    testimonial_zahra_role: 'Visa-stress arguments',
+    testimonial_zahra_quote:
+      'We were exhausted by paperwork. The timeline highlighted every spike was after embassy emails. It made it easier to say “let’s pause” next time.',
+    testimonial_pedro_name: '“Pedro”, 37',
+    testimonial_pedro_role: 'Rebuilding trust',
+    testimonial_pedro_quote:
+      'I wanted proof I was improving. Seeing fewer blame-shifts month over month was the first time it felt measurable.',
+    testimonial_lina_name: '“Lina”, 25',
+    testimonial_lina_role: 'First serious breakup',
+    testimonial_lina_quote:
+      'I kept scrolling old chats at night. The summary gave me closure faster than rereading everything.',
+    testimonial_chen_name: '“Chen”, 33',
+    testimonial_chen_role: 'Work-life spillover',
+    testimonial_chen_quote:
+      'My partner said I brought office tone home. The analysis showed how often I replied with “not now.” Small, but it added up.',
+    testimonial_jasmine_name: '“Jasmine”, 29',
+    testimonial_jasmine_role: 'Moving cities together',
+    testimonial_jasmine_quote:
+      'Every fight mapped to moving stress. Seeing it plotted made it easier to say “we’re overwhelmed, not enemies.”',
+    testimonial_omar_name: '“Omar”, 36',
+    testimonial_omar_role: 'Late-night overthinker',
+    testimonial_omar_quote:
+      'I kept reopening old chats at 2 a.m. The summary gave me the closure my scrolling never did.',
+    testimonial_julia_name: '“Julia”, 27',
+    testimonial_julia_role: 'Calling out love-bombing',
+    testimonial_julia_quote:
+      'The pattern of big promises then disappearances jumped off the page. It wasn’t in my head.',
+    testimonial_mateo_name: '“Mateo”, 31',
+    testimonial_mateo_role: 'Learning to apologize',
+    testimonial_mateo_quote:
+      'I thought “sorry you feel that way” was fine. Seeing it flagged made me practice real apologies.',
 
     // Terms & Conditions
     terms_title: 'Terms & Conditions',

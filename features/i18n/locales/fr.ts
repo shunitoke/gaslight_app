@@ -22,6 +22,8 @@ export const frBundle: LocaleBundle = {
     language_label: 'Langue',
     uploadExport: "Télécharger l'export de chat",
     uploadExportDescription: 'Sélectionnez votre fichier d\'export de chat pour commencer l\'analyse',
+    confirmImportPrompt:
+      'Importer « {file} » ? Vérifie que l’export ne contient que la conversation à analyser.',
     uploadingFile: 'Téléchargement du fichier...',
     importSuccessful: 'Importation réussie',
     importFailed: 'Échec de l\'importation',
@@ -165,6 +167,55 @@ export const frBundle: LocaleBundle = {
     step3_description: "Recevez un rapport complet avec des scores, des preuves et des explications pour vous aider à comprendre ce qui s'est vraiment passé.",
     howItWorks_subtitle: '3 étapes rapides, puis l\'IA fait le gros du travail pour vous.',
 
+    // Articles
+    articles_label: 'Articles & guides',
+    articles_title: 'Guides sur le gaslighting, la manipulation et la reconstruction',
+    articles_subtitle:
+      'Lectures courtes pour repérer les schémas, sortir en sécurité, traverser le deuil et aller vers des dynamiques plus saines.',
+    articles_cta: 'Lire l’article',
+    articles_read_time_short: '5 min de lecture',
+    articles_tag_awareness: 'Conscience',
+    articles_tag_howto: 'Mode d’emploi',
+    articles_tag_product: 'Sur le produit',
+    articles_tag_practice: 'Pratique',
+    articles_tag_support: 'Soutien',
+    articles_gaslighting_title: 'Gaslighting : schémas courants et réponses',
+    articles_gaslighting_description:
+      'Exemples de distorsion de réalité, de déplacement de faute et d’indices linguistiques fréquemment relevés.',
+    articles_export_title: 'Exporter vos chats en sécurité (Telegram & WhatsApp)',
+    articles_export_description:
+      'Conseils pas à pas sur les formats acceptés et la protection des données sensibles.',
+    articles_method_title: 'Comment notre IA analyse vos messages',
+    articles_method_description:
+      'Vue simple du scoring, de l’extraction d’indices et des raisons pour lesquelles les chats ne sont pas stockés durablement.',
+    articles_toxic_title: 'Reconnaître des schémas relationnels toxiques',
+    articles_toxic_description:
+      'Signaux de critique, contrôle, isolement et montagnes russes émotionnelles qui sapent la sécurité.',
+    articles_steps_title: 'Étapes pratiques tant que la relation continue',
+    articles_steps_description:
+      'Vérification de réalité, limites à l’essai, plan de sécurité et soin du corps sans escalade directe.',
+    articles_grief_title: 'Vivre le deuil après une relation difficile',
+    articles_grief_description:
+      'Phases non linéaires du deuil après une dynamique toxique et manières de retrouver stabilité et sens.',
+    articles_manipulation_title: 'Principales formes de manipulation dans les relations',
+    articles_manipulation_description:
+      'Chantage émotionnel, gaslighting, isolement, contrôle et comment repérer les schémas répétés.',
+    articles_covert_title: 'Narcissisme caché : danger derrière la vulnérabilité',
+    articles_covert_description:
+      'Comment la posture de victime, le silence punitif et la “gentillesse conditionnelle” servent à garder le contrôle.',
+    articles_letgo_title: 'Se détacher d’un lien traumatique',
+    articles_letgo_description:
+      'Pourquoi quitter est difficile, comment préparer la sécurité et tenir le no-contact sans rechute.',
+    articles_consequences_title: 'Conséquences psychologiques des liens toxiques',
+    articles_consequences_description:
+      'Symptômes proches du PTSD, anxiété, dissociation, impacts corps-esprit et pistes de rétablissement.',
+    articles_chances_title: 'Y a-t-il une chance pour cette relation ?',
+    articles_chances_description:
+      'Quand le changement est réaliste, quels drapeaux rouges arrêtent les tentatives et comment décider en sécurité.',
+    articles_healthy_title: 'Des relations saines ne sont pas parfaites (et c’est normal)',
+    articles_healthy_description:
+      'Signes d’une dynamique fonctionnelle, différences avec la toxicité et repères pour évaluer le quotidien.',
+
     // Badges et carte de prévisualisation dans le héros
     hero_badge_patterns: 'Analyse approfondie des schémas',
     hero_badge_boundaries: 'Les limites d’abord',
@@ -285,6 +336,12 @@ export const frBundle: LocaleBundle = {
     wysk_patterns_to_watch: 'Schémas à surveiller',
     wysk_resources: 'Ressources',
     wysk_red_flags_next: 'Signaux d’alerte pour la suite',
+    whats_next_kicker: 'Plan d’action',
+    whats_next_title: 'La suite ?',
+    whats_next_subtitle: 'Prochaines étapes pratiques basées sur cette analyse.',
+    whats_next_actions: 'Actions concrètes',
+    whats_next_boundaries: 'Limites à pratiquer',
+    whats_next_support: 'Soutien et ressources',
 
     testimonial_yuki_name: '« Yuki », 27 ans',
     testimonial_yuki_role: 'Relation à distance',
@@ -294,6 +351,66 @@ export const frBundle: LocaleBundle = {
     testimonial_sofia_role: 'Clarté post-divorce',
     testimonial_sofia_quote:
       'J\'avais besoin de clôture. Lire des années de messages était accablant, mais l\'analyse IA a mis en évidence les schémas clés. Il ne s\'agissait pas de blâme — il s\'agissait de compréhension.',
+    testimonial_mia_name: '« Mia », 26 ans',
+    testimonial_mia_role: 'Après des mois à ruminer la rupture',
+    testimonial_mia_quote:
+      'Je réécrivais l’histoire dans ma tête. La chronologie et les pics rendaient tout moins dramatique, plus factuel. J’ai enfin pu fermer l’onglet et dormir.',
+    testimonial_lucas_name: '« Lucas », 29 ans',
+    testimonial_lucas_role: 'Apporté en thérapie',
+    testimonial_lucas_quote:
+      'Ma thérapeute voulait des exemples concrets. Le rapport montrait chaque fois que je détournais avec du sarcasme. Inconfortable, mais ça a accéléré la séance.',
+    testimonial_priya_name: '« Priya », 33 ans',
+    testimonial_priya_role: 'Messages de coparentalité',
+    testimonial_priya_quote:
+      'On partage un tout-petit et les émotions montent vite. L’outil a surligné où le blâme s’infiltrait. Ça nous a aidés à convenir d’un script plus calme avant les passages.',
+    testimonial_noah_name: '« Noah », 31 ans',
+    testimonial_noah_role: 'Repérer ma défensivité',
+    testimonial_noah_quote:
+      'Je disais toujours « je clarifie », mais le schéma était que j’interrompais et minimisais. Maintenant je pratique une réponse à la fois.',
+    testimonial_amira_name: '« Amira », 30 ans',
+    testimonial_amira_role: 'Malentendus à distance',
+    testimonial_amira_quote:
+      'On se ratait sur le ton. La vue continue montrait que le silence venait surtout du stress, pas de la malveillance. Ça a réduit la panique.',
+    testimonial_elena_name: '« Elena », 34 ans',
+    testimonial_elena_role: 'Trier des années de notes vocales',
+    testimonial_elena_quote:
+      'Je redoutais de réécouter des heures d’audio. Voir les transcriptions alignées m’a permis de repérer les schémas sans tout revivre.',
+    testimonial_tom_name: '« Tom », 30 ans',
+    testimonial_tom_role: 'Comprendre nos boucles de conflit',
+    testimonial_tom_quote:
+      'Je pensais être “logique”. Le rapport a montré la boucle : sarcasme → défensive → mur. Mettre un nom dessus m’a aidé à la casser.',
+    testimonial_zahra_name: '« Zahra », 28 ans',
+    testimonial_zahra_role: 'Disputes liées au visa',
+    testimonial_zahra_quote:
+      'On était épuisés par l’administratif. La timeline montrait que chaque pic suivait un e-mail de l’ambassade. Plus facile de dire « on fait une pause » la prochaine fois.',
+    testimonial_pedro_name: '« Pedro », 37 ans',
+    testimonial_pedro_role: 'Reconstruire la confiance',
+    testimonial_pedro_quote:
+      'Je voulais des preuves que je progressais. Voir moins de renversements de blâme mois après mois, c’est la première fois que ça devenait mesurable.',
+    testimonial_lina_name: '« Lina », 25 ans',
+    testimonial_lina_role: 'Première vraie rupture',
+    testimonial_lina_quote:
+      'Je relisais nos messages la nuit. Le résumé m’a donné de la clôture plus vite que tout relire.',
+    testimonial_chen_name: '« Chen », 33 ans',
+    testimonial_chen_role: 'Pollution travail-vie perso',
+    testimonial_chen_quote:
+      'Ma partenaire disait que je ramenais le ton du bureau. L’analyse a montré combien de fois je répondais « pas maintenant ». Petit, mais cumulatif.',
+    testimonial_jasmine_name: '« Jasmine », 29 ans',
+    testimonial_jasmine_role: 'Déménagement à deux',
+    testimonial_jasmine_quote:
+      'Chaque dispute suivait le stress du déménagement. Le voir tracé a rendu plus facile de dire « on est débordés, pas ennemis ».',
+    testimonial_omar_name: '« Omar », 36 ans',
+    testimonial_omar_role: 'Rumination nocturne',
+    testimonial_omar_quote:
+      'Je rouvrais les anciens chats à 2h du matin. Le résumé a donné la clôture que le scroll n’apportait pas.',
+    testimonial_julia_name: '« Julia », 27 ans',
+    testimonial_julia_role: 'Voir le love-bombing',
+    testimonial_julia_quote:
+      'Le schéma promesses énormes puis disparitions sautait aux yeux. Ce n’était pas dans ma tête.',
+    testimonial_mateo_name: '« Mateo », 31 ans',
+    testimonial_mateo_role: 'Apprendre à s’excuser',
+    testimonial_mateo_quote:
+      'Je pensais que « désolé que tu le prennes comme ça » suffisait. Le voir signalé m’a fait pratiquer de vraies excuses.',
 
     // Conditions d'utilisation
     terms_title: 'Conditions d\'utilisation',

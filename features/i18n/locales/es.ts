@@ -22,6 +22,8 @@ export const esBundle: LocaleBundle = {
     language_label: 'Idioma',
     uploadExport: 'Subir exportación de chat',
     uploadExportDescription: 'Seleccione su archivo de exportación de chat para comenzar el análisis',
+    confirmImportPrompt:
+      '¿Importar “{file}”? Asegúrate de que la exportación solo contenga la conversación que quieres analizar.',
     uploadingFile: 'Subiendo archivo...',
     importSuccessful: 'Importación exitosa',
     importFailed: 'Importación fallida',
@@ -165,6 +167,55 @@ export const esBundle: LocaleBundle = {
     step3_description: 'Recibe un informe completo con puntuaciones, evidencia y explicaciones para ayudarte a entender lo que realmente sucedió.',
     howItWorks_subtitle: '3 pasos rápidos, luego la IA hace el trabajo pesado por ti.',
 
+    // Articles
+    articles_label: 'Artículos y guías',
+    articles_title: 'Guías sobre gaslighting, manipulación y recuperación',
+    articles_subtitle:
+      'Lecturas breves para detectar patrones, salir con seguridad, procesar el duelo y avanzar hacia dinámicas más sanas.',
+    articles_cta: 'Leer artículo',
+    articles_read_time_short: '5 min de lectura',
+    articles_tag_awareness: 'Conciencia',
+    articles_tag_howto: 'Cómo hacer',
+    articles_tag_product: 'Sobre el producto',
+    articles_tag_practice: 'Práctica',
+    articles_tag_support: 'Apoyo',
+    articles_gaslighting_title: 'Gaslighting: patrones comunes y respuestas',
+    articles_gaslighting_description:
+      'Ejemplos de distorsión de la realidad, cambio de culpa y señales lingüísticas que suelen aparecer.',
+    articles_export_title: 'Cómo exportar chats de forma segura (Telegram y WhatsApp)',
+    articles_export_description:
+      'Consejos paso a paso sobre formatos aceptados y cómo proteger datos sensibles.',
+    articles_method_title: 'Cómo nuestra IA analiza tus mensajes',
+    articles_method_description:
+      'Explicación simple del puntaje, extracción de evidencias y por qué los chats no se almacenan permanentemente.',
+    articles_toxic_title: 'Cómo reconocer patrones de relación tóxica',
+    articles_toxic_description:
+      'Señales de crítica, control, aislamiento y altibajos emocionales que erosionan la seguridad.',
+    articles_steps_title: 'Pasos prácticos mientras la relación sigue en curso',
+    articles_steps_description:
+      'Chequeo de realidad, límites de prueba, plan de seguridad y cuidado del cuerpo sin escalar.',
+    articles_grief_title: 'Cómo procesar el duelo tras una relación difícil',
+    articles_grief_description:
+      'Fases no lineales del duelo después de una dinámica tóxica y formas de recuperar estabilidad y sentido.',
+    articles_manipulation_title: 'Tipos clave de manipulación en relaciones',
+    articles_manipulation_description:
+      'Chantaje emocional, gaslighting, aislamiento, violación de límites y cómo detectar los patrones.',
+    articles_covert_title: 'Narcisismo encubierto: peligro tras la vulnerabilidad',
+    articles_covert_description:
+      'Cómo la victimización, la queja silenciosa y la “bondad con condiciones” mantienen el control.',
+    articles_letgo_title: 'Soltar un apego traumático',
+    articles_letgo_description:
+      'Por qué es difícil irse, cómo prepararse y qué ayuda a evitar recaídas en el contacto.',
+    articles_consequences_title: 'Consecuencias psicológicas de vínculos tóxicos',
+    articles_consequences_description:
+      'Síntomas tipo TEPT, ansiedad, disociación y por qué mente y cuerpo necesitan recuperación.',
+    articles_chances_title: '¿Hay una oportunidad para esta relación?',
+    articles_chances_description:
+      'Cuándo el cambio es realista, qué banderas rojas cierran el intento y cómo decidir con seguridad.',
+    articles_healthy_title: 'Las relaciones sanas no son perfectas (y está bien)',
+    articles_healthy_description:
+      'Rasgos realistas de relaciones que funcionan frente al mito de la armonía perfecta.',
+
     // Insignias y tarjeta de vista previa en el héroe
     hero_badge_patterns: 'Análisis profundo de patrones',
     hero_badge_boundaries: 'Límites primero',
@@ -285,6 +336,12 @@ export const esBundle: LocaleBundle = {
     wysk_patterns_to_watch: 'Patrones a vigilar',
     wysk_resources: 'Recursos',
     wysk_red_flags_next: 'Alertas para la próxima vez',
+    whats_next_kicker: 'Plan de acción',
+    whats_next_title: '¿Qué sigue?',
+    whats_next_subtitle: 'Pasos prácticos basados en este análisis.',
+    whats_next_actions: 'Pasos accionables',
+    whats_next_boundaries: 'Límites a practicar',
+    whats_next_support: 'Apoyo y recursos',
 
     testimonial_yuki_name: '«Yuki», 27',
     testimonial_yuki_role: 'Relación a distancia',
@@ -294,6 +351,86 @@ export const esBundle: LocaleBundle = {
     testimonial_sofia_role: 'Claridad post-divorcio',
     testimonial_sofia_quote:
       'Necesitaba cerrar. Leer años de mensajes era abrumador, pero el análisis de IA destacó los patrones clave. No se trataba de culpa — se trataba de comprensión.',
+    testimonial_mia_name: '«Mia», 26',
+    testimonial_mia_role: 'Meses después de la ruptura',
+    testimonial_mia_quote:
+      'Reescribía la historia en mi cabeza. La línea de tiempo con picos lo hizo menos dramático y más factual. Por fin pude cerrar la pestaña y dormir.',
+    testimonial_lucas_name: '«Lucas», 29',
+    testimonial_lucas_role: 'Llevado a terapia',
+    testimonial_lucas_quote:
+      'Mi terapeuta pidió ejemplos concretos. El informe mostró cada vez que desvié con sarcasmo. Incómodo, pero aceleró la sesión.',
+    testimonial_priya_name: '«Priya», 33',
+    testimonial_priya_role: 'Mensajes de coparentalidad',
+    testimonial_priya_quote:
+      'Compartimos una niña pequeña y las emociones suben. La herramienta resaltó dónde se colaba la culpa. Nos ayudó a acordar un guion más calmado antes de los intercambios.',
+    testimonial_noah_name: '«Noah», 31',
+    testimonial_noah_role: 'Detectar mi defensiva',
+    testimonial_noah_quote:
+      'Siempre decía “solo aclaro”, pero el patrón era interrumpir y minimizar. Ahora practico responder de uno en uno.',
+    testimonial_amira_name: '«Amira», 30',
+    testimonial_amira_role: 'Malos entendidos a distancia',
+    testimonial_amira_quote:
+      'Fallábamos con el tono. La vista continua mostró que el silencio era casi siempre estrés, no mala intención. Bajó la ansiedad.',
+    testimonial_elena_name: '«Elena», 34',
+    testimonial_elena_role: 'Ordenando años de audios',
+    testimonial_elena_quote:
+      'Temía volver a escuchar horas de notas de voz. Ver las transcripciones alineadas me dejó ver patrones sin revivirlo todo.',
+    testimonial_tom_name: '«Tom», 30',
+    testimonial_tom_role: 'Entender bucles de conflicto',
+    testimonial_tom_quote:
+      'Creía que era “lógico”. El informe mostró el bucle: sarcasmo → defensiva → muro. Nombrarlo ayudó a romperlo.',
+    testimonial_zahra_name: '«Zahra», 28',
+    testimonial_zahra_role: 'Peleas por estrés de visa',
+    testimonial_zahra_quote:
+      'Estábamos agotados por el papeleo. La línea de tiempo mostraba que cada pico era después de correos del consulado. Decir “pausa” fue más fácil después.',
+    testimonial_pedro_name: '«Pedro», 37',
+    testimonial_pedro_role: 'Reconstruyendo confianza',
+    testimonial_pedro_quote:
+      'Quería prueba de que mejoraba. Ver menos cambios de culpa mes a mes fue la primera señal medible.',
+    testimonial_lina_name: '«Lina», 25',
+    testimonial_lina_role: 'Primera ruptura seria',
+    testimonial_lina_quote:
+      'Releía chats de noche. El resumen me dio cierre más rápido que releer todo.',
+    testimonial_chen_name: '«Chen», 33',
+    testimonial_chen_role: 'Tono laboral en casa',
+    testimonial_chen_quote:
+      'Mi pareja decía que traía el tono de oficina. El análisis mostró cuántas veces respondía “ahora no”. Pequeño, pero se acumula.',
+    testimonial_jasmine_name: '«Jasmine», 29',
+    testimonial_jasmine_role: 'Mudándonos juntos',
+    testimonial_jasmine_quote:
+      'Cada pelea coincidía con estrés de la mudanza. Verlo trazado hizo más fácil decir “estamos saturados, no somos enemigos”.',
+    testimonial_omar_name: '«Omar», 36',
+    testimonial_omar_role: 'Pensador nocturno',
+    testimonial_omar_quote:
+      'Reabría chats a las 2 am. El resumen dio el cierre que el scroll nunca dio.',
+    testimonial_julia_name: '«Julia», 27',
+    testimonial_julia_role: 'Detectar love-bombing',
+    testimonial_julia_quote:
+      'El patrón de promesas grandes y luego desapariciones saltaba a la vista. No era imaginación.',
+    testimonial_mateo_name: '«Mateo», 31',
+    testimonial_mateo_role: 'Aprender a disculparse',
+    testimonial_mateo_quote:
+      'Pensaba que “perdón si te sientes así” bastaba. Verlo marcado me hizo practicar disculpas de verdad.',
+    testimonial_mia_name: '«Mia», 26',
+    testimonial_mia_role: 'Tras meses de la ruptura',
+    testimonial_mia_quote:
+      'Reescribía la historia en mi cabeza. La línea de tiempo con picos lo hizo menos dramático y más factual. Por fin pude cerrar la pestaña y dormir.',
+    testimonial_lucas_name: '«Lucas», 29',
+    testimonial_lucas_role: 'Llevado a terapia',
+    testimonial_lucas_quote:
+      'Mi terapeuta pidió ejemplos concretos. El informe mostró cada vez que desvié con sarcasmo. Incómodo, pero aceleró la sesión.',
+    testimonial_priya_name: '«Priya», 33',
+    testimonial_priya_role: 'Mensajes de coparentalidad',
+    testimonial_priya_quote:
+      'Compartimos una niña pequeña y las emociones suben. La herramienta resaltó dónde se colaba la culpa. Nos ayudó a acordar un guion más calmado antes de los intercambios.',
+    testimonial_noah_name: '«Noah», 31',
+    testimonial_noah_role: 'Detectar mi defensiva',
+    testimonial_noah_quote:
+      'Siempre decía “solo aclaro”, pero el patrón era interrumpir y minimizar. Ahora practico responder de uno en uno.',
+    testimonial_amira_name: '«Amira», 30',
+    testimonial_amira_role: 'Malos entendidos a distancia',
+    testimonial_amira_quote:
+      'Fallábamos con el tono. La vista continua mostró que el silencio era casi siempre estrés, no mala intención. Bajó la ansiedad.',
 
     // Términos y condiciones
     terms_title: 'Términos y Condiciones',

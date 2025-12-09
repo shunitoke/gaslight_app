@@ -67,8 +67,21 @@ export type EvidenceSnippet = {
   explanation: string;
 };
 
-export type ScorePolarity = 'higher-is-worse' | 'higher-is-better';
-export type ScoreSentiment = 'negative' | 'positive' | 'neutral';
+export type RecommendedReply = {
+  /**
+   * Free-form reply text, in the same language as the conversation.
+   */
+  text: string;
+  /**
+   * Optional high-level tone or style marker (e.g. "soft", "firm", "boundary").
+   */
+  tone?: string | null;
+  /**
+   * Optional role indicator for whom this reply is written.
+   * This is advisory only; the UI remains neutral.
+   */
+  fromRole?: 'user' | 'other' | 'neutral';
+};
 
 export type AnalysisSection = {
   id: string;
@@ -76,9 +89,8 @@ export type AnalysisSection = {
   summary: string; // Scientific/technical summary
   plainSummary?: string; // Layman's terms summary (simple, everyday language)
   score?: number;
-  scorePolarity?: ScorePolarity;
-  sentiment?: ScoreSentiment;
   evidenceSnippets: EvidenceSnippet[];
+  recommendedReplies?: RecommendedReply[];
 };
 
 export type ParticipantProfile = {
@@ -251,14 +263,8 @@ export type AnalysisResult = {
   createdAt: string;
   version: string;
   gaslightingRiskScore: number;
-  gaslightingRiskPolarity?: ScorePolarity;
-  gaslightingRiskSentiment?: ScoreSentiment;
   conflictIntensityScore: number;
-  conflictIntensityPolarity?: ScorePolarity;
-  conflictIntensitySentiment?: ScoreSentiment;
   supportivenessScore: number;
-  supportivenessPolarity?: ScorePolarity;
-  supportivenessSentiment?: ScoreSentiment;
   apologyFrequencyScore: number;
   otherPatternScores: Record<string, number>;
   overviewSummary: string;

@@ -5,6 +5,7 @@ import type {
   RealityCheck,
   HardTruth,
   WhatYouShouldKnow,
+  WhatsNext,
   ClosureStatements,
   SafetyConcern
 } from './types';
@@ -29,6 +30,13 @@ const cleanString = (value: unknown, fallback = ''): string => {
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const toStringArray = (arr: unknown): string[] | undefined =>
+  Array.isArray(arr)
+    ? arr
+        .map((v) => cleanString(v, ''))
+        .filter((v) => v.length > 0)
+    : undefined;
 
 const normalizeRealityCheck = (value: unknown): RealityCheck | undefined => {
   if (!isPlainObject(value)) return undefined;
@@ -102,16 +110,11 @@ const normalizeHardTruth = (value: unknown): HardTruth | undefined => {
 const normalizeWhatYouShouldKnow = (value: unknown): WhatYouShouldKnow | undefined => {
   if (!isPlainObject(value)) return undefined;
 
-  const stringArray = (arr: unknown): string[] | undefined =>
-    Array.isArray(arr)
-      ? arr.map((v) => cleanString(v, '')).filter((v) => v.length > 0)
-      : undefined;
-
   const normalized: WhatYouShouldKnow = {};
-  const couldHaveDoneDifferently = stringArray((value as any).couldHaveDoneDifferently);
+  const couldHaveDoneDifferently = toStringArray((value as any).couldHaveDoneDifferently);
   if (couldHaveDoneDifferently?.length) normalized.couldHaveDoneDifferently = couldHaveDoneDifferently;
 
-  const communicationTools = stringArray((value as any).communicationTools);
+  const communicationTools = toStringArray((value as any).communicationTools);
   if (communicationTools?.length) normalized.communicationTools = communicationTools;
 
   if (typeof (value as any).couldHaveBeenSaved === 'boolean') {
@@ -124,16 +127,32 @@ const normalizeWhatYouShouldKnow = (value: unknown): WhatYouShouldKnow | undefin
   const whatMadeVulnerable = cleanString((value as any).whatMadeVulnerable, '');
   if (whatMadeVulnerable) normalized.whatMadeVulnerable = whatMadeVulnerable;
 
-  const patternsToWatch = stringArray((value as any).patternsToWatch);
+  const patternsToWatch = toStringArray((value as any).patternsToWatch);
   if (patternsToWatch?.length) normalized.patternsToWatch = patternsToWatch;
 
-  const resources = stringArray((value as any).resources);
+  const resources = toStringArray((value as any).resources);
   if (resources?.length) normalized.resources = resources;
 
-  const redFlagsForNextTime = stringArray((value as any).redFlagsForNextTime);
+  const redFlagsForNextTime = toStringArray((value as any).redFlagsForNextTime);
   if (redFlagsForNextTime?.length) normalized.redFlagsForNextTime = redFlagsForNextTime;
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
+const normalizeWhatsNext = (value: unknown): WhatsNext | undefined => {
+  if (!isPlainObject(value)) return undefined;
+
+  const actions = toStringArray((value as any).actions);
+  if (!actions || actions.length === 0) return undefined;
+
+  const boundaries = toStringArray((value as any).boundaries);
+  const supportResources = toStringArray((value as any).supportResources);
+
+  const normalized: WhatsNext = { actions };
+  if (boundaries?.length) normalized.boundaries = boundaries;
+  if (supportResources?.length) normalized.supportResources = supportResources;
+
+  return normalized;
 };
 
 const normalizeClosureStatements = (value: unknown): ClosureStatements | undefined => {
@@ -331,6 +350,7 @@ export const normalizeAnalysisResult = (
     frameworkDiagnosis: isPlainObject(source.frameworkDiagnosis) ? source.frameworkDiagnosis : undefined,
     hardTruth: normalizeHardTruth(source.hardTruth),
     whatYouShouldKnow: normalizeWhatYouShouldKnow(source.whatYouShouldKnow),
+    whatsNext: normalizeWhatsNext(source.whatsNext),
     closure: normalizeClosureStatements(source.closure),
     safetyConcern: normalizeSafetyConcern(source.safetyConcern)
   };

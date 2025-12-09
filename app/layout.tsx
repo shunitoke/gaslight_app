@@ -156,10 +156,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={`${inter.className} ${playfair.variable} bg-background text-foreground`} suppressHydrationWarning>
         <AnimationProvider>
-          <ConditionalBackgroundClient />
-          <PWAInstaller />
           <ThemeProvider>
             <LanguageProvider initialLocale={initialLocale as SupportedLocale}>
+              <ConditionalBackgroundClient />
+              <PWAInstaller />
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-1" id="main-content" tabIndex={-1}>

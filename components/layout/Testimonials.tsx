@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Quote } from 'lucide-react';
 
 import { CardBase as Card } from '../ui/card';
@@ -55,115 +55,183 @@ const TESTIMONIALS: Testimonial[] = [
     nameKey: 'testimonial_sofia_name',
     roleKey: 'testimonial_sofia_role',
     quoteKey: 'testimonial_sofia_quote'
+  },
+  {
+    id: 'mia-26',
+    nameKey: 'testimonial_mia_name',
+    roleKey: 'testimonial_mia_role',
+    quoteKey: 'testimonial_mia_quote'
+  },
+  {
+    id: 'lucas-29',
+    nameKey: 'testimonial_lucas_name',
+    roleKey: 'testimonial_lucas_role',
+    quoteKey: 'testimonial_lucas_quote'
+  },
+  {
+    id: 'priya-33',
+    nameKey: 'testimonial_priya_name',
+    roleKey: 'testimonial_priya_role',
+    quoteKey: 'testimonial_priya_quote'
+  },
+  {
+    id: 'noah-31',
+    nameKey: 'testimonial_noah_name',
+    roleKey: 'testimonial_noah_role',
+    quoteKey: 'testimonial_noah_quote'
+  },
+  {
+    id: 'amira-30',
+    nameKey: 'testimonial_amira_name',
+    roleKey: 'testimonial_amira_role',
+    quoteKey: 'testimonial_amira_quote'
+  },
+  {
+    id: 'elena-34',
+    nameKey: 'testimonial_elena_name',
+    roleKey: 'testimonial_elena_role',
+    quoteKey: 'testimonial_elena_quote'
+  },
+  {
+    id: 'tom-30',
+    nameKey: 'testimonial_tom_name',
+    roleKey: 'testimonial_tom_role',
+    quoteKey: 'testimonial_tom_quote'
+  },
+  {
+    id: 'zahra-28',
+    nameKey: 'testimonial_zahra_name',
+    roleKey: 'testimonial_zahra_role',
+    quoteKey: 'testimonial_zahra_quote'
+  },
+  {
+    id: 'pedro-37',
+    nameKey: 'testimonial_pedro_name',
+    roleKey: 'testimonial_pedro_role',
+    quoteKey: 'testimonial_pedro_quote'
+  },
+  {
+    id: 'lina-25',
+    nameKey: 'testimonial_lina_name',
+    roleKey: 'testimonial_lina_role',
+    quoteKey: 'testimonial_lina_quote'
+  },
+  {
+    id: 'chen-33',
+    nameKey: 'testimonial_chen_name',
+    roleKey: 'testimonial_chen_role',
+    quoteKey: 'testimonial_chen_quote'
+  },
+  {
+    id: 'jasmine-29',
+    nameKey: 'testimonial_jasmine_name',
+    roleKey: 'testimonial_jasmine_role',
+    quoteKey: 'testimonial_jasmine_quote'
+  },
+  {
+    id: 'omar-36',
+    nameKey: 'testimonial_omar_name',
+    roleKey: 'testimonial_omar_role',
+    quoteKey: 'testimonial_omar_quote'
+  },
+  {
+    id: 'julia-27',
+    nameKey: 'testimonial_julia_name',
+    roleKey: 'testimonial_julia_role',
+    quoteKey: 'testimonial_julia_quote'
+  },
+  {
+    id: 'mateo-31',
+    nameKey: 'testimonial_mateo_name',
+    roleKey: 'testimonial_mateo_role',
+    quoteKey: 'testimonial_mateo_quote'
   }
 ];
 
+const ROW_CONFIG = [
+  { id: 'row-1', direction: 'normal' as const, speed: 150, offset: 0 },
+  { id: 'row-2', direction: 'reverse' as const, speed: 170, offset: 2 }
+];
+
+const buildLoop = (items: Testimonial[], offset: number) => {
+  if (!items.length) return [];
+  const normalizedOffset = offset % items.length;
+  const rotated = [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
+  return [...rotated, ...rotated];
+};
+
 export const TestimonialsSection: React.FC = () => {
   const { t } = useLanguage();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const startAutoScroll = () => {
-      if (scrollIntervalRef.current) {
-        clearInterval(scrollIntervalRef.current);
-      }
-
-      scrollIntervalRef.current = setInterval(() => {
-        if (isPaused || !container) return;
-
-        const scrollLeft = container.scrollLeft;
-        const scrollWidth = container.scrollWidth;
-        const clientWidth = container.clientWidth;
-        const firstCard = container.querySelector('[data-testimonial-card]') as HTMLElement;
-        if (!firstCard) return;
-        
-        const cardWidth = firstCard.offsetWidth;
-        const gap = window.innerWidth < 640 ? 0 : 16; // gap-0 on mobile, gap-4 on desktop
-        const scrollAmount = cardWidth + gap;
-        const currentIndex = Math.round(scrollLeft / scrollAmount);
-        const nextScrollPosition = (currentIndex + 1) * scrollAmount;
-
-        if (nextScrollPosition + clientWidth > scrollWidth) {
-          // Reached the end, scroll back to start
-          container.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          // Scroll to next card position (snap to card)
-          container.scrollTo({ left: nextScrollPosition, behavior: 'smooth' });
-        }
-      }, 6000); // Scroll every 6 seconds
-    };
-
-    const handleMouseEnter = () => setIsPaused(true);
-    const handleMouseLeave = () => setIsPaused(false);
-    const handleTouchStart = () => setIsPaused(true);
-    const handleTouchEnd = () => {
-      setTimeout(() => setIsPaused(false), 2000); // Resume after 2 seconds of no touch
-    };
-
-    container.addEventListener('mouseenter', handleMouseEnter);
-    container.addEventListener('mouseleave', handleMouseLeave);
-    // Mark touch events as passive to improve scroll performance
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    startAutoScroll();
-
-    return () => {
-      if (scrollIntervalRef.current) {
-        clearInterval(scrollIntervalRef.current);
-      }
-      container.removeEventListener('mouseenter', handleMouseEnter);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isPaused]);
 
   return (
-    <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
+    <section
+      className="w-full max-w-6xl mx-auto px-4 sm:px-6 animate-fade-in"
+      style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+    >
       <div className="flex items-center justify-center gap-2 mb-4">
         <Quote className="h-4 w-4 text-primary animate-pulse-glow" />
         <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">
           {t('testimonials_label')}
         </p>
       </div>
-      <h2 className="text-center text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-5">
+      <h2 className="text-center text-lg sm:text-xl font-semibold text-foreground mb-5">
         {t('testimonials_title')}
       </h2>
-      <div
-        ref={scrollContainerRef}
-        className="relative overflow-x-auto pb-4 -mx-4 sm:-mx-6 md:mx-0 scrollbar-hide snap-x snap-mandatory md:overflow-hidden"
-        style={{ 
-          scrollBehavior: 'smooth', 
-          WebkitOverflowScrolling: 'touch'
-        }}
-      >
-        <div className="flex gap-0 sm:gap-4 min-w-max md:min-w-0 md:max-w-[calc(3*310px+2*1rem)] md:mx-auto pl-4 pr-4 sm:pl-6 sm:pr-6 md:pl-0 md:pr-0">
-          {TESTIMONIALS.map((item) => (
-            <Card
-              key={item.id}
-              data-testimonial-card
-              className="h-[280px] sm:h-[270px] md:h-[290px] border-border/50 backdrop-blur-lg shadow-lg w-[calc(100vw-2rem)] sm:w-[320px] md:w-[310px] flex-shrink-0 snap-center md:snap-start md:min-w-[310px] md:max-w-[310px]"
-              style={{ backgroundColor: 'hsl(var(--card) / 0.75)', willChange: 'background-color, opacity', backfaceVisibility: 'hidden' }}
-            >
-              <div className="p-5 sm:p-5 flex flex-col gap-2.5 sm:gap-3 h-full">
-                <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] font-medium flex-shrink-0">
-                  {t(item.roleKey)}
-                </p>
-                <p className="text-sm text-foreground leading-relaxed sm:leading-relaxed italic flex-1 overflow-y-auto scrollbar-hide min-h-0">
-                  "{t(item.quoteKey)}"
-                </p>
-                <p className="text-sm font-semibold text-foreground mt-auto flex-shrink-0 pt-1">
-                  {t(item.nameKey)}
-                </p>
+
+      <div className="relative overflow-hidden scrollbar-hide">
+        <div className="flex flex-col gap-4 sm:gap-6 py-1">
+          {ROW_CONFIG.map((row) => {
+            const loop = buildLoop(TESTIMONIALS, row.offset);
+            const half = loop.length / 2;
+
+            return (
+              <div
+                key={row.id}
+                data-testimonial-row
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-background/60 via-background/30 to-background/60"
+                style={{
+                  maskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%)',
+                  WebkitMaskImage:
+                    'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%)'
+                }}
+              >
+                <div
+                  data-testimonial-track
+                  className="flex min-w-max gap-3 sm:gap-4 animate-testimonial-marquee px-3 sm:px-4"
+                  style={{
+                    animationDuration: `${row.speed}s`,
+                    animationDirection: row.direction
+                  }}
+                >
+                  {loop.map((item, index) => (
+                    <Card
+                      key={`${item.id}-${index}`}
+                      data-testimonial-card
+                      aria-hidden={index >= half}
+                      className="h-[260px] sm:h-[250px] md:h-[260px] backdrop-blur-lg shadow-lg w-[calc(100vw-3rem)] sm:w-[260px] md:w-[260px] flex-shrink-0 transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02]"
+                      style={{
+                        backgroundColor: 'hsl(var(--card) / 0.78)',
+                        willChange: 'transform, opacity',
+                        backfaceVisibility: 'hidden'
+                      }}
+                    >
+                      <div className="p-5 sm:p-5 flex flex-col gap-2.5 sm:gap-3 h-full">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-[0.18em] font-medium flex-shrink-0">
+                          {t(item.roleKey)}
+                        </p>
+                        <p className="text-sm text-foreground leading-relaxed sm:leading-relaxed italic flex-1 overflow-y-auto scrollbar-hide min-h-0">
+                          "{t(item.quoteKey)}"
+                        </p>
+                        <p className="text-sm font-semibold text-foreground mt-auto flex-shrink-0 pt-1">
+                          {t(item.nameKey)}
+                        </p>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
