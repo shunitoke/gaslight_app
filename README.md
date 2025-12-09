@@ -1,138 +1,116 @@
-# AI Gaslight Detection App
+# Gaslight Analysis App
 
-A privacy-first, anonymous web application that uses AI to analyze relationship chat exports (Telegram, WhatsApp) to provide impartial, science-informed insights about communication patterns.
+AI assistant that analyzes chat exports and media to highlight manipulation and gaslighting patterns. Runs on the Next.js App Router with anonymous, short-lived data handling.
 
-## Features
+## Highlights
 
-- **Anonymous & Ephemeral**: No user accounts, no persistent storage. All data is processed temporarily and deleted after analysis.
-- **Multi-platform Support**: Import and analyze chats from Telegram and WhatsApp
-- **Freemium Model**: 
-  - **Free**: Text/JSON imports, up to 50k messages, basic analysis
-  - **Premium**: ZIP imports with media, media analysis, enhanced analysis, up to 500k messages
-- **Multimodal Analysis**: Analyzes text, images, stickers, GIFs, and voice messages using Vision API (premium)
-- **Multilingual UI**: Supports English, Russian, French, German, Spanish, and Portuguese
-- **Theme Support**: Choose between default and visual concept themes
-- **GDPR Compliant**: Strict data handling with explicit consent and deletion capabilities
+- Multi‑format import: Telegram, WhatsApp, Signal, Viber, iMessage, Messenger, Discord, generic text/JSON, plus manual paste (up to ~8k chars).
+- Multimodal: text, images/stickers/GIF, and voice notes (automatic transcription) via OpenRouter text + vision models.
+- Premium flow: Paddle checkout → time-limited premium token stored in `localStorage`; development override headers supported.
+- Fast UX: background upload to Vercel Blob, Redis-backed job/progress tracking, analysis caching by chat hash.
+- Internationalized UI: en, ru, fr, de, es, pt; light/dark themes and PWA install.
+- Privacy-minded: no accounts; uploads and analysis results are ephemeral and can be offloaded to Blob/Redis only for processing.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router, React 19)
-- **Styling**: Tailwind CSS with custom design system
-- **Language**: TypeScript
-- **AI/LLM**: OpenRouter API for text and vision analysis
-- **Testing**: Vitest (unit/integration), Playwright (E2E)
-- **PWA**: Progressive Web App support
+- Next.js 16 (App Router) + React 19, TypeScript
+- Tailwind + shadcn/ui components
+- OpenRouter (text + vision) with model fallback chain
+- Vercel Blob for uploads/results; Redis for rate limits, progress, and caching
+- Paddle payments for premium access
+- Vitest + Testing Library, Playwright E2E; PWA support enabled
 
 ## Getting Started
 
-### Prerequisites
+Prerequisites: Node 18+ and npm (or pnpm/yarn/bun), OpenRouter key, Vercel Blob token, optional Redis + Paddle keys for full flow.
 
-- Node.js 18+ 
-- npm, yarn, pnpm, or bun
-- OpenRouter API key
-
-### Installation
-
-1. Clone the repository and navigate to the `site` directory:
-```bash
-cd site
-```
-
-2. Install dependencies:
+1) Install deps (project root):
 ```bash
 npm install
 ```
-
-3. Create a `.env.local` file:
-```env
-OPENROUTER_API_KEY=your_api_key_here
-GASLIGHT_TEXT_MODEL=openai/gpt-4o-mini
-GASLIGHT_VISION_MODEL=openai/gpt-4o-mini
-MAX_UPLOAD_SIZE_MB=25
-ANALYSIS_TIMEOUT_MS=120000
-```
-
-4. **Testing Premium Features**: To test premium features (ZIP imports, media analysis, enhanced analysis), add the `x-subscription-tier: premium` header to your API requests. In development, you can use browser dev tools or a tool like Postman.
-
-4. Run the development server:
+2) Create `.env.local` (see template below).
+3) Run dev server:
 ```bash
 npm run dev
 ```
+4) Open http://localhost:3000
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## Environment Variables
 
-## Available Scripts
+Required
+- `OPENROUTER_API_KEY` – OpenRouter key
+- `GASLIGHT_VISION_MODEL` – vision-capable model id (e.g. `openai/gpt-4o-mini`)
+- `BLOB_READ_WRITE_TOKEN` – Vercel Blob token for direct uploads
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint errors automatically
-- `npm run test` - Run unit tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:e2e` - Run E2E tests with Playwright
+Important optional (defaults shown where relevant)
+- `OPENROUTER_BASE_URL` (default `https://openrouter.ai/api/v1`)
+- `GASLIGHT_TEXT_MODEL` (default `x-ai/grok-4.1-fast`)
+- `GASLIGHT_TEXT_MODEL_FALLBACKS` (default `anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free`)
+- `MAX_UPLOAD_SIZE_MB` (default `25`)
+- `ANALYSIS_TIMEOUT_MS` (default `120000`)
+- `REDIS_URL` (enables shared rate limits/progress/cache)
+- `PREMIUM_EVERYONE` (`true` to force premium server-side)
+- `NEXT_PUBLIC_PREMIUM_EVERYONE` (`true` to force premium UI)
+- `PADDLE_API_KEY`, `PADDLE_PRICE_ID_REPORT`, `PADDLE_ENV` (`sandbox`|`live`), `PADDLE_API_BASE` (override)
 
-## Project Structure
-
-```
-site/
-├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
-│   ├── analysis/          # Analysis report page
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── layout/           # Layout components (Header, Footer)
-│   ├── report/           # Report display components
-│   └── ui/               # UI primitives (Button, Card, Input)
-├── features/             # Feature modules
-│   ├── analysis/         # Analysis logic and types
-│   ├── i18n/            # Internationalization
-│   ├── import/          # Chat import parsers
-│   ├── report/          # Report mapping
-│   └── theme/           # Theme system
-├── lib/                  # Shared utilities
-│   ├── config.ts        # Runtime configuration
-│   ├── openrouter.ts    # OpenRouter API client
-│   ├── telemetry.ts     # Logging
-│   └── vision.ts        # Vision/audio analysis
-└── tests/               # Test files
-    ├── unit/            # Unit tests
-    ├── integration/      # Integration tests
-    └── e2e/             # E2E tests
+Example `.env.local`:
+```env
+OPENROUTER_API_KEY=sk-...
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+GASLIGHT_TEXT_MODEL=x-ai/grok-4.1-fast
+GASLIGHT_TEXT_MODEL_FALLBACKS=anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free
+GASLIGHT_VISION_MODEL=openai/gpt-4o-mini
+MAX_UPLOAD_SIZE_MB=25
+ANALYSIS_TIMEOUT_MS=120000
+BLOB_READ_WRITE_TOKEN=vercel_blob_token
+REDIS_URL=redis://user:pass@host:port
+PADDLE_API_KEY=live_or_sandbox_key
+PADDLE_PRICE_ID_REPORT=pri_...
+PADDLE_ENV=sandbox
+# Dev helpers
+PREMIUM_EVERYONE=false
+NEXT_PUBLIC_PREMIUM_EVERYONE=false
 ```
 
-## Configuration
+## Development & Scripts
 
-### Environment Variables
+- `npm run dev` — start Next dev server
+- `npm run build` / `npm run start` — production build/run
+- `npm run lint` / `npm run lint:fix` — ESLint
+- `npm run test` / `npm run test:watch` — Vitest unit/integration
+- `npm run test:e2e` — Playwright E2E (run after `npm run dev`)
 
-- `OPENROUTER_API_KEY` (required) - Your OpenRouter API key
-- `OPENROUTER_BASE_URL` (optional) - OpenRouter API base URL (default: https://openrouter.ai/api/v1)
-- `GASLIGHT_TEXT_MODEL` (optional) - Model for text analysis (default: openai/gpt-4o-mini)
-- `GASLIGHT_VISION_MODEL` (optional) - Model for vision analysis (default: openai/gpt-4o-mini)
-- `MAX_UPLOAD_SIZE_MB` (optional) - Maximum upload size in MB (default: 25)
-- `ANALYSIS_TIMEOUT_MS` (optional) - Analysis timeout in milliseconds (default: 120000)
+## Data Handling & Limits
 
-## Security & Privacy
+- Analysis start rate limit: 3 req/min/IP (`/api/analyze/start`); defaults to 5 req/min for other rate-limited keys.
+- Upload size: defaults to 25 MB (configurable).
+- Results may be cached by chat hash to speed repeat analyses; large results can be stored in Vercel Blob with Redis pointers.
+- No user accounts; premium tokens are short-lived and stored client-side only.
 
-- **Rate Limiting**: API routes are rate-limited (5 requests/minute for import, 3/minute for analysis)
-- **File Size Limits**: Configurable maximum upload size
-- **Security Headers**: CSP, HSTS, X-Frame-Options, and more
-- **Ephemeral Processing**: No persistent storage of user data
-- **Anonymous**: No user accounts or login required
+## Premium & Payments
 
-## Accessibility
+- Checkout: `POST /api/payment/paddle/checkout` (creates Paddle transaction).
+- Confirmation: `POST /api/payment/paddle/confirm` (verifies transaction, returns premium token).
+- Client stores token in `localStorage` and sends `x-premium-token` on imports/analysis.
+- Dev/testing shortcut: `x-subscription-tier: premium` header or `PREMIUM_EVERYONE=true`.
 
-- Semantic HTML with proper ARIA labels
-- Keyboard navigation support
-- Focus management
-- Screen reader friendly
-- WCAG 2.1 AA compliant color contrasts
+## Project Structure (top-level)
 
-## License
+- `app/` — App Router pages and API routes (`analysis`, `pricing`, `admin`, etc.)
+- `components/` — UI, layout, analysis/report widgets, PWA prompts
+- `features/` — domain logic (analysis, import/parsers, i18n, subscription, theme, report mapping)
+- `lib/` — config, OpenRouter client, telemetry, rate limiting, blob/kv helpers
+- `public/` — PWA assets and icons
+- `tests/` — unit/integration (`vitest`), e2e (`playwright`)
 
-[Add your license here]
+## Troubleshooting
+
+- Upload failing with 503: ensure `BLOB_READ_WRITE_TOKEN` is set and Blob is accessible.
+- Progress stuck: check `REDIS_URL`; without Redis, progress falls back to in-memory (single worker only).
+- Vision/media analysis errors: verify `GASLIGHT_VISION_MODEL` supports images/audio.
+- Paddle sandbox: set `PADDLE_ENV=sandbox` and use sandbox price ID.
 
 ## Support
 
-For issues and questions, please [open an issue](link-to-issues).
+Please open an issue or start a discussion in the repo with logs and steps to reproduce.
 
