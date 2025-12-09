@@ -15,6 +15,7 @@ import {
   Clock3
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
@@ -1768,15 +1769,14 @@ export default function HomePageClient() {
                   <p className="text-body-xs sm:text-body-sm text-muted-foreground leading-relaxed">
                     {article.description}
                   </p>
-                  <a
+                  <Link
                     href={article.href}
-                    target="_blank"
-                    rel="noreferrer"
+                    prefetch
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
                   >
                     {t('articles_cta')}
                     <ArrowUpRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
