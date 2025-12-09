@@ -1389,7 +1389,12 @@ export default function HomePageClient() {
                 <button
                   type="button"
                   onClick={toggleExportHelp}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/30 bg-background/60 hover:bg-primary/10 hover:border-primary/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 flex-shrink-0"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/30 bg-background/60 hover:bg-primary/10 hover:border-primary/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 flex-shrink-0 animate-[pulse-glow-strong_3.6s_ease-in-out_infinite]"
+                  style={{
+                    boxShadow:
+                      '0 0 0 1px hsla(var(--primary),0.35), 0 0 14px hsla(var(--primary),0.28), 0 6px 14px rgba(0,0,0,0.08)',
+                    willChange: 'transform, box-shadow, opacity'
+                  }}
                   aria-label={t('exportHelpTitle')}
                   aria-expanded={showExportHelp}
                 >

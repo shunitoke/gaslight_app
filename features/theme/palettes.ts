@@ -46,26 +46,26 @@ export const palettes: PaletteConfig = {
       cardForeground: '0 0% 15%',
       popover: '0 0% 100%',
       popoverForeground: '0 0% 15%',
-      primary: '350 65% 45%',
+      primary: '350 70% 50%', // lighter rose
       primaryForeground: '0 0% 100%',
-      secondary: '355 70% 75%',
+      secondary: '355 75% 78%', // softer, brighter accent
       secondaryForeground: '0 0% 15%',
       muted: '0 0% 96%',
       mutedForeground: '0 0% 45%',
-      accent: '350 65% 45%',
+      accent: '350 70% 50%',
       accentForeground: '0 0% 100%',
       destructive: '0 84% 60%',
       destructiveForeground: '0 0% 100%',
-      border: '350 60% 80% / 0.4',
-      input: '350 60% 80% / 0.4',
-      ring: '350 65% 45%',
+      border: '350 65% 82% / 0.4',
+      input: '350 65% 82% / 0.4',
+      ring: '350 70% 50%',
       legacy: {
-        colorPrimary: '#f5a8b8',
-        colorAccent: '#c7365a',
+        colorPrimary: '#f7b2c8',
+        colorAccent: '#d24f78',
         colorWarning: '#d17a47',
         colorNeutral: '#fafafa',
         colorText: '#262626',
-        colorHighlight: '#d4af37'
+        colorHighlight: '#d9b84b'
       }
     },
     dark: {
@@ -76,26 +76,26 @@ export const palettes: PaletteConfig = {
       popover: '230 14% 10%',
       popoverForeground: '0 0% 96%',
       // Align accent tones with light theme for a friendlier dark palette
-      primary: '350 65% 45%',
+      primary: '350 70% 52%',
       primaryForeground: '0 0% 100%',
-      secondary: '355 70% 75%',
+      secondary: '355 75% 78%',
       secondaryForeground: '0 0% 96%',
       muted: '230 12% 18%',
       mutedForeground: '210 12% 72%',
-      accent: '350 65% 45%',
+      accent: '350 70% 52%',
       accentForeground: '0 0% 100%',
       destructive: '0 70% 56%',
       destructiveForeground: '0 0% 98%',
-      border: '350 60% 80% / 0.35',
-      input: '350 60% 80% / 0.35',
-      ring: '350 65% 45%',
+      border: '350 65% 82% / 0.35',
+      input: '350 65% 82% / 0.35',
+      ring: '350 70% 52%',
       legacy: {
-        colorPrimary: '#f5a8b8',
-        colorAccent: '#c7365a',
+        colorPrimary: '#f7b2c8',
+        colorAccent: '#d24f78',
         colorWarning: '#e68a5a',
         colorNeutral: '#0f1218',
         colorText: '#f3f3f3',
-        colorHighlight: '#d4af37'
+        colorHighlight: '#d9b84b'
       }
     }
   },

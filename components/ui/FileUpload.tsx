@@ -245,7 +245,7 @@ export function FileUpload({
         onDragOver={importSuccessful ? undefined : ((e) => e.preventDefault())}
         className={cn(
             'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all overflow-hidden',
-            'bg-card/60 hover:bg-card/80',
+          'bg-card/60 hover:bg-card/80',
           disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
             : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5'
