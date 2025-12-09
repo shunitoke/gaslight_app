@@ -1504,15 +1504,15 @@ export default function HomePageClient() {
             <div className="w-full flex flex-col items-center justify-center">
               {!uploading && !analyzing && !error && !conversation && (
                 <div className="flex justify-center w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs">
+                  <div className="inline-flex items-center rounded-full border border-border/60 bg-card/70 p-0.5 text-xs shadow-sm backdrop-blur-sm">
                     <button
                       type="button"
                       onClick={() => setInputMode('file')}
                       className={cn(
-                        'px-3 py-1 rounded-full transition-all duration-300',
+                        'px-3 py-1 rounded-full transition-all duration-300 border',
                         inputMode === 'file'
-                          ? 'bg-background text-foreground shadow-sm scale-105'
-                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                          ? 'bg-primary/15 text-foreground shadow-sm scale-105 border-primary/40 ring-1 ring-primary/20'
+                          : 'text-muted-foreground border-transparent hover:text-foreground hover:scale-105 hover:bg-muted/70'
                       )}
                     >
                       {t('inputMode_upload')}
@@ -1521,10 +1521,10 @@ export default function HomePageClient() {
                       type="button"
                       onClick={() => setInputMode('paste')}
                       className={cn(
-                        'px-3 py-1 rounded-full transition-all duration-300',
+                        'px-3 py-1 rounded-full transition-all duration-300 border',
                         inputMode === 'paste'
-                          ? 'bg-background text-foreground shadow-sm scale-105'
-                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                          ? 'bg-primary/15 text-foreground shadow-sm scale-105 border-primary/40 ring-1 ring-primary/20'
+                          : 'text-muted-foreground border-transparent hover:text-foreground hover:scale-105 hover:bg-muted/70'
                       )}
                     >
                       {t('inputMode_paste')}
@@ -1533,10 +1533,10 @@ export default function HomePageClient() {
                       type="button"
                       onClick={() => setInputMode('media')}
                       className={cn(
-                        'px-3 py-1 rounded-full transition-all duration-300',
+                        'px-3 py-1 rounded-full transition-all duration-300 border',
                         inputMode === 'media'
-                          ? 'bg-background text-foreground shadow-sm scale-105'
-                          : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                          ? 'bg-primary/15 text-foreground shadow-sm scale-105 border-primary/40 ring-1 ring-primary/20'
+                          : 'text-muted-foreground border-transparent hover:text-foreground hover:scale-105 hover:bg-muted/70'
                       )}
                     >
                       {t('inputMode_media')}
