@@ -92,6 +92,8 @@ export type AnalysisSection = {
   summary: string; // Scientific/technical summary
   plainSummary?: string; // Layman's terms summary (simple, everyday language)
   score?: number;
+  scorePolarity?: ScorePolarity;
+  sentiment?: ScoreSentiment;
   evidenceSnippets: EvidenceSnippet[];
   recommendedReplies?: RecommendedReply[];
 };
