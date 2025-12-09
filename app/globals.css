@@ -603,6 +603,17 @@ html, body {
     filter 1.2s ease;
   opacity: var(--love-opacity, 0.12);
   filter: blur(var(--love-blur, 1.8px));
+  animation: love-float var(--love-float-duration, 22s) ease-in-out infinite alternate;
+  animation-delay: var(--love-float-delay, 0s);
+}
+
+.love-cloud-wrapper {
+  position: absolute;
+  left: var(--love-left-start, 0%);
+  top: var(--love-top-start, 0%);
+  animation: love-drift var(--love-drift-duration, 62s) ease-in-out infinite alternate;
+  animation-delay: var(--love-drift-delay, 0s);
+  will-change: transform;
 }
 
 .love-appearing {
@@ -613,6 +624,42 @@ html, body {
 .love-cloud-item.love-fading {
   opacity: 0;
   filter: blur(calc(var(--love-blur-strong, 2.2px) * 1.35));
+}
+
+@keyframes love-float {
+  0% {
+    transform: translate3d(calc(var(--love-float-x, 6px) * -0.5), calc(var(--love-float-y, 4px) * -0.5), 0);
+  }
+  50% {
+    transform: translate3d(calc(var(--love-float-x, 6px) * 0.7), calc(var(--love-float-y, 4px) * 0.7), 0);
+  }
+  100% {
+    transform: translate3d(calc(var(--love-float-x, 6px)), calc(var(--love-float-y, 4px)), 0);
+  }
+}
+
+@keyframes love-drift {
+  0% {
+    transform: translate3d(
+      calc(var(--love-drift-x-px, 0px) * -0.35),
+      calc(var(--love-drift-y-px, 0px) * -0.35 + var(--love-parallax-y, 0px)),
+      0
+    );
+  }
+  50% {
+    transform: translate3d(
+      calc(var(--love-drift-x-px, 0px) * 0.55),
+      calc(var(--love-drift-y-px, 0px) * 0.55 + var(--love-parallax-y, 0px)),
+      0
+    );
+  }
+  100% {
+    transform: translate3d(
+      var(--love-drift-x-px, 0px),
+      calc(var(--love-drift-y-px, 0px) + var(--love-parallax-y, 0px)),
+      0
+    );
+  }
 }
 
 

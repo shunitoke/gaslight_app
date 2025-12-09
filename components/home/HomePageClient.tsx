@@ -41,12 +41,15 @@ import type { Conversation, Message, Participant } from '@/features/analysis/typ
 import { useLanguage } from '@/features/i18n';
 import { cn } from '@/lib/utils';
 import { MediaUpload } from '@/components/ui/MediaUpload';
+import { TextGenerateEffect } from '@/components/ui/shadcn-io/text-generate-effect';
 
 type ParsedManualConversation = {
   conversation: Conversation;
   participants: Participant[];
   messages: Message[];
 };
+
+const DEFAULT_TAGLINES = ['Честный взгляд ИИ на то, что произошло.'];
 
 function detectLanguagesFromText(text: string): string[] {
   const detected: string[] = [];
@@ -1014,13 +1017,16 @@ export default function HomePageClient() {
     }
   };
 
-  const taglines = useMemo(
-    () =>
-      [t('hero_tagline'), t('hero_tagline_alt1'), t('hero_tagline_alt2'), t('hero_tagline_alt3')].filter(
-        Boolean
-      ),
-    [t]
-  );
+  const taglines = useMemo(() => {
+    const localized = [
+      t('hero_tagline'),
+      t('hero_tagline_alt1'),
+      t('hero_tagline_alt2'),
+      t('hero_tagline_alt3')
+    ].filter(Boolean);
+
+    return localized.length > 0 ? localized : DEFAULT_TAGLINES;
+  }, [t]);
 
   const currentTagline = useMemo(
     () => (taglines.length > 0 ? taglines[taglineIndex % taglines.length] : ''),
@@ -1036,14 +1042,6 @@ export default function HomePageClient() {
 
     return () => window.clearInterval(id);
   }, [taglines.length]);
-
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 600);
-    return () => clearTimeout(timer);
-  }, [taglineIndex]);
 
   const previewScript = React.useMemo(
     () =>
@@ -1216,15 +1214,14 @@ export default function HomePageClient() {
           </Badge>
 
           <div className="relative w-full h-[9rem] sm:h-[10rem] md:h-[11rem] lg:h-[12rem] -translate-y-3 sm:-translate-y-4 md:-translate-y-5 lg:-translate-y-6">
-          <h1
-            key={taglineIndex}
-            className={cn(
-                'absolute inset-0 text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground flex items-center justify-center lg:justify-start py-2 sm:py-3 pointer-events-none',
-              isAnimating && 'tagline-animate'
-            )}
-          >
-            {currentTagline}
-          </h1>
+            <TextGenerateEffect
+              key={taglineIndex}
+              words={currentTagline || DEFAULT_TAGLINES[0]}
+              duration={0.35}
+              staggerDelay={0.08}
+              filter
+              className="absolute inset-0 text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground flex items-center justify-center lg:justify-start py-2 sm:py-3 pointer-events-none"
+            />
           </div>
 
           <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">

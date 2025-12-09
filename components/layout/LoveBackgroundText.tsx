@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { useLanguage } from '@/features/i18n';
 import type { SupportedLocale } from '@/features/i18n/types';
+import { useAnimation } from '@/contexts/AnimationContext';
+import { cn } from '@/lib/utils';
 
 type CloudItem = {
   id: string;
@@ -16,6 +17,16 @@ type CloudItem = {
   blur: number;
   highlight: boolean;
   depth: number;
+  floatX: number;
+  floatY: number;
+  floatDuration: number;
+  floatDelay: number;
+  driftX: number;
+  driftY: number;
+  driftXPx: number;
+  driftYPx: number;
+  driftDuration: number;
+  driftDelay: number;
   fading?: boolean;
   appearing?: boolean;
 };
@@ -413,6 +424,16 @@ function makeItem(idx: number, phrases: string[], highlight?: boolean): CloudIte
   const blur = isHighlight ? randomBetween(0.9, 2.2) : randomBetween(1.2, 3.0);
   const weight = isHighlight ? 650 : Math.random() > 0.5 ? 500 : 600;
   const depth = randomBetween(0.015, 0.06); // parallax factor
+  const floatX = randomBetween(-10, 10);
+  const floatY = randomBetween(-8, 8);
+  const floatDuration = randomBetween(16, 28);
+  const floatDelay = randomBetween(-6, 4);
+  const driftX = randomBetween(-6, 8);
+  const driftY = randomBetween(-5, 7);
+  const driftXPx = randomBetween(-120, 140);
+  const driftYPx = randomBetween(-90, 110);
+  const driftDuration = randomBetween(46, 78);
+  const driftDelay = randomBetween(-12, 10);
 
   return {
     id: `love-cloud-${idx}-${Math.random().toString(36).slice(2, 8)}`,
@@ -425,6 +446,16 @@ function makeItem(idx: number, phrases: string[], highlight?: boolean): CloudIte
     blur,
     highlight: isHighlight,
     depth,
+    floatX,
+    floatY,
+    floatDuration,
+    floatDelay,
+    driftX,
+    driftY,
+    driftDuration,
+    driftDelay,
+    driftXPx,
+    driftYPx,
     fading: false,
     appearing: true
   };
@@ -434,14 +465,28 @@ function buildCloud(count = 42, phrases: string[]): CloudItem[] {
   return Array.from({ length: count }).map((_, idx) => makeItem(idx, phrases));
 }
 
+function pickCloudCount(prefersLowMotion: boolean) {
+  if (prefersLowMotion) return 10;
+  if (typeof window === 'undefined') return 28;
+  const w = window.innerWidth;
+  if (w < 640) return 12;
+  if (w < 900) return 16;
+  if (w < 1200) return 22;
+  if (w < 1600) return 28;
+  return 34;
+}
+
 export function LoveBackgroundText() {
   const [cloud, setCloud] = React.useState<CloudItem[]>([]);
   const [reduceMotion, setReduceMotion] = React.useState(false);
+  const [cloudCount, setCloudCount] = React.useState(42);
   const [scrollY, setScrollY] = React.useState(0);
   const spotlightRef = React.useRef<HTMLDivElement | null>(null);
 
   const { locale } = useLanguage();
   const phrases = React.useMemo(() => PHRASES_BY_LOCALE[locale] ?? PHRASES_BY_LOCALE.en, [locale]);
+  const { isPageVisible, prefersReducedMotion: ctxPrefersReducedMotion, isProcessing } = useAnimation();
+  const effectiveReduceMotion = reduceMotion || ctxPrefersReducedMotion || isProcessing || !isPageVisible;
 
   const randomPhrase = React.useCallback(() => {
     const idx = Math.floor(Math.random() * phrases.length);
@@ -449,16 +494,43 @@ export function LoveBackgroundText() {
   }, [phrases]);
 
   React.useEffect(() => {
-    setCloud(buildCloud(42, phrases));
+    const initialCount = pickCloudCount(effectiveReduceMotion);
+    setCloudCount(initialCount);
+    setCloud(initialCount ? buildCloud(initialCount, phrases) : []);
+
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     setReduceMotion(mq.matches);
     const handler = (ev: MediaQueryListEvent) => setReduceMotion(ev.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [phrases]);
+  }, [phrases, effectiveReduceMotion]);
 
-  // Parallax on scroll (rAF throttled; disabled if prefers-reduced-motion).
+  // Recompute density on resize and motion changes.
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const update = () => {
+      const next = pickCloudCount(effectiveReduceMotion);
+      setCloudCount((prev) => (prev === next ? prev : next));
+    };
+    const handle = () => {
+      window.requestAnimationFrame(update);
+    };
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, [effectiveReduceMotion]);
+
+  // Rebuild cloud when density or phrases change (or when motion is re-enabled).
+  React.useEffect(() => {
+    if (effectiveReduceMotion) {
+      setCloud([]);
+      return;
+    }
+    setCloud(buildCloud(cloudCount, phrases));
+  }, [cloudCount, phrases, effectiveReduceMotion]);
+
+  // Parallax on scroll (rAF throttled); disabled when motion is off or tab hidden.
+  React.useEffect(() => {
+    if (effectiveReduceMotion || !isPageVisible) return;
     let ticking = false;
     const handleScroll = () => {
       if (ticking) return;
@@ -470,7 +542,7 @@ export function LoveBackgroundText() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [effectiveReduceMotion, isPageVisible]);
 
   // Clear initial appearing flags after mount to let fade-in run once.
   React.useEffect(() => {
@@ -481,11 +553,25 @@ export function LoveBackgroundText() {
     return () => window.clearTimeout(t);
   }, [cloud]);
 
-  // Text rotation with fade/blur and new positions; skip if reduced motion.
+  // Text rotation with fade/blur and new positions; paused when motion/visibility is off.
   React.useEffect(() => {
-    if (reduceMotion) return;
+    if (effectiveReduceMotion || !isPageVisible) return;
     const fadeMs = 1200;
-    const interval = window.setInterval(() => {
+    let intervalId: number | null = null;
+    const timeoutIds: number[] = [];
+
+    const clearTimers = () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+        intervalId = null;
+      }
+      while (timeoutIds.length) {
+        const id = timeoutIds.pop();
+        if (id !== undefined) window.clearTimeout(id);
+      }
+    };
+
+    intervalId = window.setInterval(() => {
       setCloud((prev) => {
         if (!prev.length) return prev;
         const count = Math.max(3, Math.min(6, Math.floor(prev.length * 0.12)));
@@ -523,22 +609,23 @@ export function LoveBackgroundText() {
             };
           })
         );
-        // Clear appearing after fade-in.
         const t2 = window.setTimeout(() => {
-          setCloud((prev) => prev.map((item) => (item.appearing ? { ...item, appearing: false } : item)));
+          setCloud((prev) =>
+            prev.map((item) => (item.appearing ? { ...item, appearing: false } : item))
+          );
         }, fadeMs);
-        return () => window.clearTimeout(t2);
+        timeoutIds.push(t2);
       }, fadeMs);
 
-      return () => window.clearTimeout(timeout);
+      timeoutIds.push(timeout);
     }, 5200);
 
-    return () => window.clearInterval(interval);
-  }, [reduceMotion, randomPhrase, phrases]);
+    return clearTimers;
+  }, [effectiveReduceMotion, randomPhrase, phrases, isPageVisible]);
 
   if (!cloud.length) return null;
 
-  const showMask = !reduceMotion;
+  const showMask = !effectiveReduceMotion;
 
   return (
     <div
@@ -550,12 +637,19 @@ export function LoveBackgroundText() {
         {cloud.map((item) => (
           <div
             key={item.id}
+            className="love-cloud-wrapper"
             style={{
-              position: 'absolute',
-              left: `${item.left}%`,
-              top: `${item.top}%`,
-              transform: reduceMotion ? undefined : `translate3d(0, ${-(scrollY * item.depth)}px, 0)`,
-              willChange: reduceMotion ? undefined : 'transform'
+              '--love-left-start': `${item.left}%`,
+              '--love-top-start': `${item.top}%`,
+              '--love-drift-x': effectiveReduceMotion ? '0%' : `${item.driftX}%`,
+              '--love-drift-y': effectiveReduceMotion ? '0%' : `${item.driftY}%`,
+              '--love-drift-x-px': effectiveReduceMotion ? '0px' : `${item.driftXPx}px`,
+              '--love-drift-y-px': effectiveReduceMotion ? '0px' : `${item.driftYPx}px`,
+              '--love-drift-duration': `${item.driftDuration}s`,
+              '--love-drift-delay': `${item.driftDelay}s`,
+              '--love-parallax-y': effectiveReduceMotion ? '0px' : `${-(scrollY * item.depth)}px`,
+              willChange: effectiveReduceMotion ? undefined : 'transform',
+              animationPlayState: effectiveReduceMotion ? 'paused' : 'running'
             }}
           >
             <span
@@ -571,7 +665,12 @@ export function LoveBackgroundText() {
                 '--love-opacity': item.opacity,
                 '--love-blur': `${item.blur}px`,
                 '--love-blur-soft': `${(item.blur * 0.85).toFixed(2)}px`,
-                '--love-blur-strong': `${(item.blur * 1.35).toFixed(2)}px`
+                '--love-blur-strong': `${(item.blur * 1.35).toFixed(2)}px`,
+                '--love-float-x': effectiveReduceMotion ? '0px' : `${item.floatX}px`,
+                '--love-float-y': effectiveReduceMotion ? '0px' : `${item.floatY}px`,
+                '--love-float-duration': `${item.floatDuration}s`,
+                '--love-float-delay': `${item.floatDelay}s`,
+                animationPlayState: effectiveReduceMotion ? 'paused' : 'running'
               } as React.CSSProperties}
             >
               {item.text}
