@@ -1166,7 +1166,19 @@ export default function AnalysisPage() {
     }
 
     // Нормальный детальный отчёт
-    report += `${t('exportOverview')}: ${replaceParticipantIds(getOverviewSummaryText())}\n\n`;
+    const overviewText = replaceParticipantIds(getOverviewSummaryText());
+    const overviewParagraphs = overviewText
+      .split(/\n\s*\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (overviewParagraphs.length > 1) {
+      report += `${t('exportOverview')}:\n`;
+      overviewParagraphs.forEach((p) => {
+        report += `${p}\n\n`;
+      });
+    } else {
+      report += `${t('exportOverview')}: ${overviewText}\n\n`;
+    }
     
     report += `${t('exportScores')}:\n`;
     report += `- ${t('gaslightingRisk')}: ${(analysis.gaslightingRiskScore * 100).toFixed(0)}%\n`;
@@ -1313,16 +1325,30 @@ export default function AnalysisPage() {
 
     if (analysis.whatsNext) {
       const whatsNextTitle = t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?");
-      const pushList = (label: string, arr?: string[]) => {
-        if (arr && arr.length) {
-          report += `${label}:\n`;
-          arr.forEach((item) => (report += `- ${replaceParticipantIds(item)}\n`));
-        }
-      };
+      const participantCount = Math.max(primaryParticipantNames.length, 1);
       report += `${whatsNextTitle}:\n`;
-      pushList(t('whats_next_actions') ?? (locale === 'ru' ? 'Шаги' : 'Actions'), analysis.whatsNext.actions);
-      pushList(t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries'), analysis.whatsNext.boundaries);
-      pushList(t('whats_next_support') ?? (locale === 'ru' ? 'Поддержка' : 'Support'), analysis.whatsNext.supportResources);
+      primaryParticipantNames.forEach((name, idx) => {
+        report += `${name}:\n`;
+        const participantActions = partitionByParticipant(analysis.whatsNext?.actions, idx, participantCount);
+        const participantBoundaries = partitionByParticipant(analysis.whatsNext?.boundaries, idx, participantCount);
+        const participantSupport = partitionByParticipant(analysis.whatsNext?.supportResources, idx, participantCount);
+
+        if (participantActions?.length) {
+          report += `  ${t('whats_next_actions') ?? (locale === 'ru' ? 'Шаги' : 'Actions')}:\n`;
+          participantActions.forEach((item) => (report += `    - ${replaceParticipantIds(item)}\n`));
+        }
+        if (participantBoundaries?.length) {
+          report += `  ${t('whats_next_boundaries') ?? (locale === 'ru' ? 'Границы' : 'Boundaries')}:\n`;
+          participantBoundaries.forEach((item) => (report += `    - ${replaceParticipantIds(item)}\n`));
+        }
+        if (participantSupport?.length) {
+          report += `  ${t('whats_next_support') ?? (locale === 'ru' ? 'Поддержка' : 'Support')}:\n`;
+          participantSupport.forEach((item) => (report += `    - ${replaceParticipantIds(item)}\n`));
+        }
+        if (!participantActions?.length && !participantBoundaries?.length && !participantSupport?.length) {
+          report += `  - ${t('export_no_data') ?? (locale === 'ru' ? 'Нет данных' : 'No data')}\n`;
+        }
+      });
       report += '\n';
     }
 
@@ -1756,6 +1782,12 @@ export default function AnalysisPage() {
       const { escapeHtml } = await import('../../lib/utils');
       
       // Build HTML content with escaped user data to prevent XSS
+      const overviewText = replaceParticipantIds(getOverviewSummaryText());
+      const overviewParagraphs = overviewText
+        .split(/\n\s*\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+
       let html = `
         <div style="margin-bottom: 8px;">
           <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportReportTitle'))}</h1>
@@ -1764,7 +1796,20 @@ export default function AnalysisPage() {
         
         <div style="margin-bottom: 8px;">
           <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #000;">${escapeHtml(t('exportOverview'))}</h2>
-          <p style="margin: 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(replaceParticipantIds(getOverviewSummaryText()))}</p>
+          ${
+            overviewParagraphs.length
+              ? overviewParagraphs
+                  .map(
+                    (p) =>
+                      `<p style="margin: 0 0 4px 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(
+                        p
+                      )}</p>`
+                  )
+                  .join('')
+              : `<p style="margin: 0; text-align: justify; word-wrap: break-word; font-size: 10px;">${escapeHtml(
+                  overviewText
+                )}</p>`
+          }
         </div>
         
         <div style="margin-bottom: 8px;">
@@ -1997,6 +2042,7 @@ export default function AnalysisPage() {
         (analysis.whatsNext.boundaries && analysis.whatsNext.boundaries.length > 0) ||
         (analysis.whatsNext.supportResources && analysis.whatsNext.supportResources.length > 0)
       )) {
+        const participantCount = Math.max(primaryParticipantNames.length, 1);
         const mapListSimple = (items?: string[]) =>
           items && items.length
             ? `<ul style="margin: 0 0 6px 0; padding-left: 12px; font-size: 9px; color: #0f172a; line-height: 1.45;">${items
@@ -2004,12 +2050,30 @@ export default function AnalysisPage() {
                 .join('')}</ul>`
             : '';
 
+        let whatsNextHtml = '';
+        primaryParticipantNames.forEach((name, idx) => {
+          const participantActions = partitionByParticipant(analysis.whatsNext?.actions, idx, participantCount);
+          const participantBoundaries = partitionByParticipant(analysis.whatsNext?.boundaries, idx, participantCount);
+          const participantSupport = partitionByParticipant(analysis.whatsNext?.supportResources, idx, participantCount);
+
+          const hasData =
+            (participantActions && participantActions.length > 0) ||
+            (participantBoundaries && participantBoundaries.length > 0) ||
+            (participantSupport && participantSupport.length > 0);
+
+          whatsNextHtml += `<div style="margin-bottom: 6px;">
+            <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 700; color: #0f172a;">${escapeHtml(name)}</p>
+            ${mapListSimple(participantActions)}
+            ${mapListSimple(participantBoundaries)}
+            ${mapListSimple(participantSupport)}
+            ${hasData ? '' : `<p style="margin: 0; font-size: 9px; color: #6b7280;">${escapeHtml(t('export_no_data') ?? (locale === 'ru' ? 'Нет данных' : 'No data'))}</p>`}
+          </div>`;
+        });
+
         html += `
           <div style="margin-top: 10px; padding: 8px; border: 1px solid #dbeafe; background: #eff6ff; page-break-inside: avoid;">
             <h2 style="font-size: 13px; font-weight: bold; margin: 0 0 6px 0; color: #1d4ed8;">${escapeHtml(t('whats_next_title') ?? (locale === 'ru' ? 'Что дальше?' : "What's next?"))}</h2>
-            ${mapListSimple(analysis.whatsNext.actions)}
-            ${mapListSimple(analysis.whatsNext.boundaries)}
-            ${mapListSimple(analysis.whatsNext.supportResources)}
+            ${whatsNextHtml}
           </div>
         `;
       }
