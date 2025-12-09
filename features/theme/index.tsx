@@ -79,7 +79,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     const root = document.documentElement;
     const palette = getPalette(theme, scheme);
     applyPaletteToElement(root, palette, scheme);
-
+    
     // Set attributes/classes for compatibility
     if (theme === 'alternative') {
       root.setAttribute('data-color-theme', 'alternative');
