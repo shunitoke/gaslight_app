@@ -244,6 +244,12 @@ export type WhatYouShouldKnow = {
   redFlagsForNextTime?: string[];
 };
 
+export type WhatsNext = {
+  actions: string[];
+  boundaries?: string[];
+  supportResources?: string[];
+};
+
 // PART 9: CLOSURE STATEMENTS
 export type ClosureStatements = {
   whatWasRightAbout: string;
@@ -313,6 +319,7 @@ export type AnalysisResult = {
   
   // PART 8: WHAT YOU SHOULD KNOW
   whatYouShouldKnow?: WhatYouShouldKnow;
+  whatsNext?: WhatsNext;
   
   // PART 9: CLOSURE STATEMENTS
   closure?: ClosureStatements;
