@@ -183,6 +183,38 @@ export async function detectFileFormat(
 
   const scores: Array<{ platform: SupportedPlatform; score: number }> = [];
 
+  // Helper: score a root-level JSON array (Telegram-like or generic array)
+  const scoreRootArray = (arr: any[]): Array<{ platform: SupportedPlatform; score: number }> => {
+    if (!Array.isArray(arr) || arr.length === 0) return [];
+    const first = arr[0] || {};
+    let telegramScore = 0;
+    let genericScore = 0;
+
+    // Telegram-ish fields
+    const hasFrom = typeof first.from === 'string' || typeof first.from_id === 'string';
+    const hasText = typeof first.text === 'string' || typeof first.message === 'string' || typeof first.content === 'string';
+    const hasDate =
+      typeof first.date === 'string' ||
+      typeof first.date_unixtime === 'string' ||
+      typeof first.timestamp === 'string' ||
+      typeof first.timestamp_ms === 'number';
+
+    if (hasFrom) telegramScore += 0.25;
+    if (hasText) telegramScore += 0.25;
+    if (hasDate) telegramScore += 0.25;
+    // bonus if id present
+    if (first.id !== undefined) telegramScore += 0.15;
+
+    // Generic array: any sender/text pair
+    if (hasFrom && hasText) genericScore += 0.6;
+    if (hasDate) genericScore += 0.2;
+
+    const results: Array<{ platform: SupportedPlatform; score: number }> = [];
+    if (telegramScore > 0.3) results.push({ platform: 'telegram', score: Math.min(telegramScore, 0.9) });
+    if (genericScore > 0.3) results.push({ platform: 'generic', score: Math.min(genericScore, 0.8) });
+    return results;
+  };
+
   for (const pattern of PLATFORM_PATTERNS) {
     let score = 0;
     const maxScore = 10;
@@ -276,6 +308,11 @@ export async function detectFileFormat(
         score: score / maxScore
       });
     }
+  }
+
+  // Additional scoring for root-level arrays (not covered above)
+  if (Array.isArray(jsonData)) {
+    scores.push(...scoreRootArray(jsonData));
   }
 
   // Sort by score and return best match

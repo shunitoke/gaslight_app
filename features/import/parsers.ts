@@ -68,8 +68,13 @@ export async function parseTelegramExport(
         ? fileContent 
         : await new Response(fileContent).text();
       const data = JSON.parse(content);
-      messages = data.messages || [];
-      conversationName = data.name || null;
+      if (Array.isArray(data)) {
+        // Root-level array (non-standard export) - treat as messages array
+        messages = data;
+      } else {
+        messages = data.messages || [];
+        conversationName = data.name || null;
+      }
     }
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -440,6 +445,112 @@ export async function parseGenericTextExport(
     conversation,
     participants,
     messages: trimmedMessages,
+    media: mediaArtifacts,
+    mediaFiles: new Map()
+  };
+}
+
+/**
+ * Parse a generic JSON array of messages.
+ * Expected minimal shape per item: { from: string, text?: string, message?: string, content?: string, date?: string }
+ */
+export async function parseGenericJsonExport(
+  fileContent: string,
+  fileName: string
+): Promise<NormalizedConversation> {
+  const data = JSON.parse(fileContent);
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('Invalid generic JSON: expected a non-empty array');
+  }
+
+  const conversationId = `generic_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  const participantsMap = new Map<string, Participant>();
+  const normalizedMessages: Message[] = [];
+  const mediaArtifacts: MediaArtifact[] = [];
+
+  const getParticipantId = (name: string): string => {
+    const slug = name
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_а-яё-]/gi, '');
+    const id = `participant_${slug || 'user'}`;
+    if (!participantsMap.has(id)) {
+      const role: 'user' | 'other' | 'groupMember' | 'unknown' =
+        participantsMap.size === 0 ? 'user' : 'other';
+      participantsMap.set(id, {
+        id,
+        displayName: name,
+        role
+      });
+    }
+    return id;
+  };
+
+  data.forEach((item: any, index: number) => {
+    const senderName = item.from || item.from_id || item.sender || item.author || 'Unknown';
+    const senderId = getParticipantId(String(senderName));
+    const text =
+      item.text ??
+      item.message ??
+      item.content ??
+      (typeof item.body === 'string' ? item.body : null) ??
+      null;
+
+    // Date handling
+    let sentAt: Date | null = null;
+    if (item.date_unixtime) {
+      const asNumber = Number(item.date_unixtime);
+      if (!Number.isNaN(asNumber)) sentAt = new Date(asNumber * 1000);
+    } else if (item.timestamp_ms) {
+      const asNumber = Number(item.timestamp_ms);
+      if (!Number.isNaN(asNumber)) sentAt = new Date(asNumber);
+    } else if (item.timestamp) {
+      const asNumber = Number(item.timestamp);
+      sentAt = Number.isNaN(asNumber) ? new Date(item.timestamp) : new Date(asNumber * 1000);
+    } else if (item.date) {
+      sentAt = new Date(item.date);
+    }
+
+    // Fallback to synthetic chronological ordering if no valid date
+    if (!sentAt || Number.isNaN(sentAt.getTime())) {
+      sentAt = new Date(Date.now() + index * 1000);
+    }
+
+    const messageId = `msg_${item.id || Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    normalizedMessages.push({
+      id: messageId,
+      conversationId,
+      senderId,
+      sentAt: sentAt.toISOString(),
+      text,
+      isSystem: false
+    });
+  });
+
+  const participants = Array.from(participantsMap.values());
+  const conversation: Conversation = {
+    id: conversationId,
+    sourcePlatform: 'generic',
+    title: fileName || 'JSON conversation',
+    startedAt: normalizedMessages[0]?.sentAt ?? null,
+    endedAt: normalizedMessages[normalizedMessages.length - 1]?.sentAt ?? null,
+    participantIds: participants.map((p) => p.id),
+    languageCodes: detectLanguages(normalizedMessages),
+    messageCount: normalizedMessages.length,
+    status: 'imported'
+  };
+
+  logInfo('generic_json_import_success', {
+    fileName,
+    messageCount: normalizedMessages.length,
+    participantCount: participants.length
+  });
+
+  return {
+    conversation,
+    participants,
+    messages: normalizedMessages,
     media: mediaArtifacts,
     mediaFiles: new Map()
   };
@@ -1070,8 +1181,18 @@ export async function parseExport(
           return parseSignalExport(textContent, payload.fileName);
         case 'viber':
           return parseViberExport(textContent, payload.fileName);
-        case 'generic':
+        case 'generic': {
+          // Try JSON array first, then fall back to text parser
+          try {
+            const parsed = JSON.parse(textContent);
+            if (Array.isArray(parsed)) {
+              return parseGenericJsonExport(textContent, payload.fileName);
+            }
+          } catch {
+            // not JSON, ignore
+          }
           return parseGenericTextExport(textContent, payload.fileName);
+        }
         default:
           throw new Error(`Unsupported platform: ${payload.platform}`);
       }
