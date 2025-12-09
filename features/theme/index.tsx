@@ -1,15 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
-export type ColorTheme = 'default' | 'alternative';
-export type ColorScheme = 'light' | 'dark';
+import { applyPaletteToElement, getPalette, type PaletteName, type Scheme } from './palettes';
 
 type ThemeContextValue = {
-  colorTheme: ColorTheme;
-  setColorTheme: (theme: ColorTheme) => void;
-  colorScheme: ColorScheme;
-  setColorScheme: (scheme: ColorScheme) => void;
+  colorTheme: PaletteName;
+  setColorTheme: (theme: PaletteName) => void;
+  colorScheme: Scheme;
+  setColorScheme: (scheme: Scheme) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -20,31 +19,29 @@ const COLOR_SCHEME_STORAGE_KEY = 'gaslight-color-scheme';
 /**
  * Detect system color scheme preference
  */
-// Always default to light to keep the UI in the pink/light palette unless user opts in.
-function detectSystemColorScheme(): ColorScheme {
-  return 'light';
-}
+// Always default to light unless user opts in (per requirements).
+const detectInitialScheme = (): Scheme => 'light';
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // Initialize from localStorage / document to avoid flicker on first paint
-  const [colorTheme, setColorThemeState] = useState<ColorTheme>(() => {
+  const [colorTheme, setColorThemeState] = useState<PaletteName>(() => {
     if (typeof window === 'undefined') return 'alternative';
     const stored =
       localStorage.getItem(COLOR_THEME_STORAGE_KEY) ??
       localStorage.getItem('gaslite-color-theme');
-    if (stored === 'default' || stored === 'alternative') return stored;
+    if (stored === 'default' || stored === 'alternative') return stored as PaletteName;
     const current = document.documentElement.getAttribute('data-color-theme');
-    return current === 'alternative' ? 'alternative' : 'alternative';
+    return current === 'default' ? 'default' : 'alternative';
   });
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+  const [colorScheme, setColorSchemeState] = useState<Scheme>(() => {
     if (typeof window === 'undefined') return 'light';
     const stored =
       (localStorage.getItem(COLOR_SCHEME_STORAGE_KEY) ??
-        localStorage.getItem('gaslite-color-scheme')) as ColorScheme | null;
-    if (stored === 'dark' || stored === 'light') return stored;
+        localStorage.getItem('gaslite-color-scheme')) as Scheme | null;
+    if (stored === 'dark' || stored === 'light') return stored as Scheme;
     const isDark = document.documentElement.classList.contains('dark');
-    if (isDark) return 'dark';
-    return detectSystemColorScheme();
+    if (isDark) return 'dark' as Scheme;
+    return detectInitialScheme();
   });
 
   // Load from localStorage immediately on mount (inline script / SSR already applied, we just sync state)
@@ -58,105 +55,75 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'alternative');
       setColorThemeState('alternative');
     } else if (storedTheme && (storedTheme === 'default' || storedTheme === 'alternative')) {
-      setColorThemeState(storedTheme as ColorTheme);
+      setColorThemeState(storedTheme as PaletteName);
     } else {
-      // No stored theme - check what inline script set, or default to 'alternative'
+      // No stored theme - check inline attribute or fall back
       const currentTheme = document.documentElement.getAttribute('data-color-theme');
-      if (currentTheme === 'alternative') {
-        setColorThemeState('alternative');
-      } else {
-        setColorThemeState('alternative');
-      }
+      setColorThemeState(currentTheme === 'default' ? 'default' : 'alternative');
     }
     
     // Load color scheme - prioritize localStorage, fallback to system preference
     const storedScheme = (localStorage.getItem(COLOR_SCHEME_STORAGE_KEY) ??
-      localStorage.getItem('gaslite-color-scheme')) as ColorScheme | null;
+      localStorage.getItem('gaslite-color-scheme')) as Scheme | null;
     if (storedScheme && (storedScheme === 'light' || storedScheme === 'dark')) {
-      setColorSchemeState(storedScheme);
+      setColorSchemeState(storedScheme as Scheme);
     } else {
-      // No stored preference - default to light (pink theme)
       setColorSchemeState('light');
     }
     
-    // Listen for system preference changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemPreferenceChange = (e: MediaQueryListEvent) => {
-      // Only update if user hasn't manually set a preference
-      const storedScheme = localStorage.getItem(COLOR_SCHEME_STORAGE_KEY);
-      if (!storedScheme) {
-        setColorSchemeState(e.matches ? 'dark' : 'light');
-      }
-    };
-    
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleSystemPreferenceChange);
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleSystemPreferenceChange);
-    }
-    
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleSystemPreferenceChange);
-      } else {
-        mediaQuery.removeListener(handleSystemPreferenceChange);
-      }
-    };
+    // No automatic system syncing; user choice / cookies only.
+    return () => {};
   }, []);
 
-  useEffect(() => {
-    // Apply theme changes immediately and save to localStorage + cookies
+  const applyPalette = (theme: PaletteName, scheme: Scheme) => {
     const root = document.documentElement;
-    
-    // Set color theme
-    if (colorTheme === 'alternative') {
+    const palette = getPalette(theme, scheme);
+    applyPaletteToElement(root, palette, scheme);
+
+    // Set attributes/classes for compatibility
+    if (theme === 'alternative') {
       root.setAttribute('data-color-theme', 'alternative');
     } else {
-      root.removeAttribute('data-color-theme');
-    }
-    // Save immediately to localStorage
-    try {
-      localStorage.setItem(COLOR_THEME_STORAGE_KEY, colorTheme);
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-    // Mirror to cookie so the server (Next.js layout) can SSR the correct theme
-    try {
-      document.cookie = `${COLOR_THEME_STORAGE_KEY}=${colorTheme}; path=/; max-age=31536000; samesite=lax`;
-    } catch (e) {
-      // Ignore cookie errors
+      root.setAttribute('data-color-theme', 'default');
     }
 
-    // Set color scheme (light/dark)
-    if (colorScheme === 'dark') {
+    if (scheme === 'dark') {
       root.setAttribute('data-color-scheme', 'dark');
       root.classList.add('dark');
     } else {
-      root.removeAttribute('data-color-scheme');
+      root.setAttribute('data-color-scheme', 'light');
       root.classList.remove('dark');
     }
-    // Save immediately to localStorage
+  };
+
+  useLayoutEffect(() => {
+    applyPalette(colorTheme, colorScheme);
+  }, []); // apply once on mount based on restored state
+
+  useEffect(() => {
+    applyPalette(colorTheme, colorScheme);
+
+    try {
+      localStorage.setItem(COLOR_THEME_STORAGE_KEY, colorTheme);
+      document.cookie = `${COLOR_THEME_STORAGE_KEY}=${colorTheme}; path=/; max-age=31536000; samesite=lax`;
+    } catch {
+      // ignore
+    }
+
     try {
       localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-    // Mirror to cookie so SSR can read it
-    try {
       document.cookie = `${COLOR_SCHEME_STORAGE_KEY}=${colorScheme}; path=/; max-age=31536000; samesite=lax`;
-    } catch (e) {
-      // Ignore cookie errors
+    } catch {
+      // ignore
     }
   }, [colorTheme, colorScheme]);
 
   // These setters immediately update state, which triggers useEffect to save to localStorage
-  const setColorTheme = (newTheme: ColorTheme) => {
+  const setColorTheme = (newTheme: PaletteName) => {
     setColorThemeState(newTheme);
   };
 
-  const setColorScheme = (newScheme: ColorScheme) => {
+  const setColorScheme = (newScheme: Scheme) => {
     setColorSchemeState(newScheme);
   };
 

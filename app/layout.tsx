@@ -13,6 +13,7 @@ import { PWAInstaller } from '../components/PWAInstaller';
 import { LanguageProvider, LOCALE_STORAGE_KEY, supportedLocales } from '../features/i18n';
 import type { SupportedLocale } from '../features/i18n/types';
 import { ThemeProvider } from '../features/theme';
+import { getPalette, paletteToStyleObject, type Scheme, type PaletteName } from '../features/theme/palettes';
 import { AnimationProvider } from '../contexts/AnimationContext';
 
 const inter = Inter({ 
@@ -116,10 +117,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const themeCookie = cookieStore.get('gaslight-color-theme')?.value;
   const localeCookie = cookieStore.get(LOCALE_STORAGE_KEY)?.value;
 
-  const initialScheme = schemeCookie === 'dark' ? 'dark' : 'light';
-  const initialTheme =
+  const initialScheme: Scheme = schemeCookie === 'dark' ? 'dark' : 'light';
+  const initialTheme: PaletteName =
     themeCookie === 'default' || themeCookie === 'alternative'
-      ? themeCookie
+      ? (themeCookie as PaletteName)
       : 'alternative';
   
   // Determine initial locale:
@@ -141,6 +142,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       data-color-theme={initialTheme === 'alternative' ? 'alternative' : undefined}
       data-color-scheme={initialScheme === 'dark' ? 'dark' : undefined}
       className={initialScheme === 'dark' ? 'dark' : undefined}
+      style={paletteToStyleObject(getPalette(initialTheme, initialScheme), initialScheme)}
     >
       <head>
         {/* PWA meta tags */}

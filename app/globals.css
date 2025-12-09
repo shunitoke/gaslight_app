@@ -32,130 +32,33 @@ html, body {
 @layer base {
   :root {
     color-scheme: light;
-    /* Shadcn color system - Light mode (reddish-pink theme) - HSL format */
-    --background: 0 0% 98%; /* #fafafa - warm white */
-    --foreground: 0 0% 15%; /* #262626 - deep dark text */
-    --card: 0 0% 95%; /* Lighter card in light mode */
-    --card-foreground: 0 0% 15%; /* Dark text on card */
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
-    --primary: 350 65% 45%; /* #c7365a - rich rose-red */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 355 70% 75%; /* #f5a8b8 - soft rose */
-    --secondary-foreground: 0 0% 15%;
-    --muted: 0 0% 96%; /* #f5f5f5 - warm gray */
-    --muted-foreground: 0 0% 45%; /* Improved contrast for better readability */
-    --accent: 350 65% 45%; /* #c7365a - rich rose-red */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 350 60% 80% / 0.4; /* soft rose border */
-    --input: 350 60% 80% / 0.4;
-    --ring: 350 65% 45%; /* rich rose-red ring */
-    --radius: 0.5rem;
-    
-    /* Legacy color variables for backward compatibility */
-    --color-primary: #f5a8b8; /* soft rose */
-    --color-accent: #c7365a; /* rich rose-red */
-    --color-warning: #d17a47;
-    --color-neutral: #fafafa; /* warm white */
-    --color-text: #262626; /* deep dark */
-    --color-highlight: #d4af37;
-  }
-
-  :root[data-color-scheme='dark'],
-  .dark {
-    /* Shadcn color system - Dark mode (richer, darker rose-red) - HSL format */
-    --background: 348 24% 7%; /* deeper red-black */
-    --foreground: 0 0% 96%; /* soft light text */
-    --card: 348 22% 10%; /* slightly lifted */
-    --card-foreground: 0 0% 96%;
-    --popover: 348 22% 9%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 348 70% 48%; /* deeper rose-red */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 348 46% 54%; /* muted rose */
-    --secondary-foreground: 350 18% 10%;
-    --muted: 348 18% 10%; /* dark red-muted */
-    --muted-foreground: 0 0% 72%; /* maintain contrast */
-    --accent: 348 70% 50%; /* aligned with primary but richer */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 68% 54%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 348 30% 22% / 0.32; /* subtle rose border */
-    --input: 348 30% 22% / 0.32;
-    --ring: 348 70% 48%; /* rose ring */
-    
-    /* Legacy color variables for backward compatibility */
-    --color-primary: #d33b63; /* deeper rose */
-    --color-accent: #d6456b; /* vibrant dark rose-red */
-    --color-warning: #e68a5a;
-    --color-neutral: #12090e; /* deeper dark red */
-    --color-text: #f3f3f3; /* soft light */
-    --color-highlight: #f0d870;
-  }
-
-  /* Alternative theme (blue/gray) - Light - HSL format */
-  [data-color-theme='alternative'] {
-    --background: 210 20% 98%; /* #f8f9fa - soft neutral blue-gray */
-    --foreground: 0 0% 18%; /* #2d2d2d - elegant dark */
-    --card: 0 0% 95%; /* Lighter card for alternative theme */
+    /* Fallback values (overridden by SSR inline styles & ThemeProvider) */
+    --background: 210 20% 98%;
+    --foreground: 0 0% 18%;
+    --card: 0 0% 95%;
     --card-foreground: 0 0% 18%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 18%;
-    --primary: 195 55% 30%; /* #2c5f6f - elegant blue */
+    --primary: 195 55% 30%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 20% 50%; /* #6b7c93 - soft blue-gray */
+    --secondary: 215 20% 50%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 20% 98%; /* #f8f9fa */
-    --muted-foreground: 0 0% 42%; /* Improved contrast */
-    --accent: 195 55% 30%; /* #2c5f6f - elegant blue */
+    --muted: 210 20% 98%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 195 55% 30%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 50% / 0.3; /* soft blue-gray border */
+    --border: 215 20% 50% / 0.3;
     --input: 215 20% 50% / 0.3;
-    --ring: 195 55% 30%; /* elegant blue ring */
-    
-    /* Legacy color variables for backward compatibility */
-    --color-primary: #6b7c93; /* soft blue-gray */
-    --color-accent: #2c5f6f; /* elegant blue */
+    --ring: 195 55% 30%;
+    --radius: 0.5rem;
+    --color-primary: #6b7c93;
+    --color-accent: #2c5f6f;
     --color-warning: #d17a47;
-    --color-neutral: #f8f9fa; /* soft neutral */
-    --color-text: #2d2d2d; /* elegant dark */
+    --color-neutral: #f8f9fa;
+    --color-text: #2d2d2d;
     --color-highlight: #c9a961;
-  }
-
-  /* Alternative theme - Dark - HSL format */
-  [data-color-theme='alternative']:root[data-color-scheme='dark'],
-  [data-color-theme='alternative'].dark {
-    --background: 210 45% 6%; /* deeper midnight blue */
-    --foreground: 0 0% 95%; /* soft light */
-    --card: 210 44% 10%; /* slightly lifted */
-    --card-foreground: 0 0% 95%;
-    --popover: 210 44% 8%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 195 42% 40%; /* darker elegant blue */
-    --primary-foreground: 0 0% 95%;
-    --secondary: 215 42% 55%; /* muted blue */
-    --secondary-foreground: 210 32% 8%;
-    --muted: 210 36% 9%;
-    --muted-foreground: 0 0% 70%; /* maintain contrast */
-    --accent: 195 40% 40%; /* aligned with primary, darker */
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 78% 56%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 215 26% 28% / 0.32; /* subtle blue-gray border */
-    --input: 215 26% 28% / 0.32;
-    --ring: 195 42% 40%; /* blue ring */
-    
-    /* Legacy color variables for backward compatibility */
-    --color-primary: #5a7fa1; /* darker soft blue */
-    --color-accent: #4b738f; /* darker elegant blue */
-    --color-warning: #e68a5a;
-    --color-neutral: #0a1016; /* deeper dark blue */
-    --color-text: #f3f3f3; /* soft light */
-    --color-highlight: #d9c27a;
   }
 }
 
