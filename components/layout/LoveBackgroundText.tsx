@@ -650,7 +650,7 @@ export function LoveBackgroundText() {
               '--love-parallax-y': effectiveReduceMotion ? '0px' : `${-(scrollY * item.depth)}px`,
               willChange: effectiveReduceMotion ? undefined : 'transform',
               animationPlayState: effectiveReduceMotion ? 'paused' : 'running'
-            }}
+            } as React.CSSProperties}
           >
             <span
               className={cn(
