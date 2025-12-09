@@ -8,7 +8,7 @@ import { LoveBackgroundText } from './LoveBackgroundText';
  */
 export function ConditionalBackgroundAnimation() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10">
+    <div className="pointer-events-none fixed inset-0 -z-10 hidden sm:block">
       <LoveBackgroundText />
     </div>
   );

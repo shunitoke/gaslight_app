@@ -20,6 +20,27 @@ type Platform =
   | 'generic'
   | 'auto';
 
+const platformColors: Record<
+  Platform,
+  { bg: string; border: string; text: string; idleText?: string; hoverBg?: string }
+> = {
+  auto: {
+    bg: 'linear-gradient(135deg, rgba(34,158,217,0.18), rgba(37,211,102,0.22))',
+    border: 'hsla(var(--border), 0.9)',
+    text: 'hsl(var(--foreground))',
+    idleText: 'hsl(var(--foreground))',
+    hoverBg: 'linear-gradient(135deg, rgba(34,158,217,0.22), rgba(37,211,102,0.26))'
+  },
+  telegram: { bg: '#229ED9', border: '#1f8fc4', text: '#ffffff', idleText: '#1f8fc4' },
+  whatsapp: { bg: '#25D366', border: '#1eb85a', text: '#ffffff', idleText: '#1eb85a' },
+  signal: { bg: '#3A76F0', border: '#3166ce', text: '#ffffff', idleText: '#3166ce' },
+  viber: { bg: '#7360F2', border: '#6252cc', text: '#ffffff', idleText: '#6252cc' },
+  discord: { bg: '#5865F2', border: '#4b56c9', text: '#ffffff', idleText: '#4b56c9' },
+  imessage: { bg: '#34C759', border: '#2ca54c', text: '#ffffff', idleText: '#2ca54c' },
+  messenger: { bg: '#0084FF', border: '#006fd6', text: '#ffffff', idleText: '#006fd6' },
+  generic: { bg: '#6b7280', border: '#575e70', text: '#ffffff', idleText: '#4b5563' }
+};
+
 type FileUploadProps = {
   onFileSelect: (file: File, platform: Platform) => void | Promise<void>;
   disabled?: boolean;
@@ -185,11 +206,27 @@ export function FileUpload({
               type="button"
               onClick={() => setSelectedPlatform(option.value)}
               className={cn(
-                'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-all',
-                selectedPlatform === option.value
-                  ? 'border-primary bg-primary/10 text-primary shadow-sm'
-                  : 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-all shadow-sm',
+                'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                selectedPlatform === option.value ? '' : 'hover:opacity-90'
               )}
+              style={
+                selectedPlatform === option.value
+                  ? {
+                      background: platformColors[option.value].bg,
+                      borderColor: platformColors[option.value].border,
+                      color: platformColors[option.value].text,
+                      boxShadow:
+                        option.value === 'auto'
+                          ? '0 0 24px rgba(34,158,217,0.25), 0 0 24px rgba(37,211,102,0.22)'
+                          : '0 6px 16px rgba(0,0,0,0.18)'
+                    }
+                  : {
+                      borderColor: platformColors[option.value].border,
+                      color: platformColors[option.value].idleText ?? platformColors[option.value].border,
+                      background: platformColors[option.value].hoverBg ?? 'transparent'
+                    }
+              }
             >
               <span>{t(option.labelKey as any)}</span>
               {option.hint === 'recommended' && (
@@ -207,13 +244,30 @@ export function FileUpload({
         onDrop={importSuccessful ? undefined : handleDrop}
         onDragOver={importSuccessful ? undefined : ((e) => e.preventDefault())}
         className={cn(
-          'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all',
-          'bg-card/60 hover:bg-card/80',
+            'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all overflow-hidden',
+            'bg-card/60 hover:bg-card/80',
           disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
             : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5'
         )}
+          style={{
+            boxShadow:
+              disabled || importSuccessful
+                ? undefined
+                : '0 0 0 1px hsla(var(--border),0.4), 0 12px 36px hsla(var(--primary),0.25)'
+          }}
       >
+          {!importSuccessful && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-60"
+              style={{
+                background:
+                  'radial-gradient(120% 80% at 50% 20%, hsla(var(--primary),0.12), transparent 50%), radial-gradient(90% 70% at 30% 80%, hsla(var(--accent),0.12), transparent 60%)',
+                animation: 'pulse-glow 5s ease-in-out infinite'
+              }}
+            />
+          )}
         {!importSuccessful && (
           <input
             ref={inputRef}
@@ -224,7 +278,14 @@ export function FileUpload({
             aria-label={t('selectFile')}
           />
         )}
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/15">
+        <div
+          className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/15 animate-[pulse-glow_3.5s_ease-in-out_infinite]"
+          style={{
+            boxShadow: '0 0 0 1px hsla(var(--primary),0.25), 0 0 24px hsla(var(--primary),0.28)',
+            background:
+              'radial-gradient(circle at 30% 30%, hsla(var(--primary),0.22), transparent 55%), radial-gradient(circle at 70% 70%, hsla(var(--accent),0.18), transparent 45%)'
+          }}
+        >
           {importSuccessful ? (
             <CheckCircle2 className="h-6 w-6" />
           ) : uploading ? (
