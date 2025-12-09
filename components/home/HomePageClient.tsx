@@ -15,6 +15,7 @@ import {
   Clock3
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import type { Route } from 'next';
 import Link from 'next/link';
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1096,7 +1097,16 @@ export default function HomePageClient() {
     [previewScript]
   );
 
-  const articles = useMemo(
+  type ArticleCard = {
+    id: string;
+    title: string;
+    description: string;
+    tag: string;
+    readTime: string;
+    href: Route;
+  };
+
+  const articles: ArticleCard[] = useMemo(
     () => [
       {
         id: 'toxic-signs',
