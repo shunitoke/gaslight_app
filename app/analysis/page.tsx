@@ -534,8 +534,10 @@ export default function AnalysisPage() {
     return names;
   }, [participants, safeDisplayName, locale]);
 
+  type HardTruthVerdict = NonNullable<AnalysisResult['hardTruth']>['verdict'];
+
   const getPlanTitleForVerdict = useCallback(
-    (verdict?: AnalysisResult['hardTruth']['verdict']) => {
+    (verdict?: HardTruthVerdict) => {
       switch (verdict) {
         case 'abusive':
         case 'toxic':
@@ -552,7 +554,7 @@ export default function AnalysisPage() {
   );
 
   const getVerdictLabel = useCallback(
-    (verdict?: AnalysisResult['hardTruth']['verdict']) => {
+    (verdict?: HardTruthVerdict) => {
       switch (verdict) {
         case 'abusive':
           return t('hard_truth_abusive_label') ?? (locale === 'ru' ? 'Абьюзивные' : 'Abusive');
