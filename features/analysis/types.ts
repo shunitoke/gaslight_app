@@ -36,6 +36,9 @@ export type Message = {
   patternTags?: string[];
 };
 
+export type ScorePolarity = 'higher-is-worse' | 'higher-is-better';
+export type ScoreSentiment = 'negative' | 'positive' | 'neutral';
+
 export type ConversationStatus = 'imported' | 'analyzing' | 'completed' | 'failed';
 
 export type SupportedPlatform = 
@@ -263,8 +266,14 @@ export type AnalysisResult = {
   createdAt: string;
   version: string;
   gaslightingRiskScore: number;
+  gaslightingRiskPolarity?: ScorePolarity;
+  gaslightingRiskSentiment?: ScoreSentiment;
   conflictIntensityScore: number;
+  conflictIntensityPolarity?: ScorePolarity;
+  conflictIntensitySentiment?: ScoreSentiment;
   supportivenessScore: number;
+  supportivenessPolarity?: ScorePolarity;
+  supportivenessSentiment?: ScoreSentiment;
   apologyFrequencyScore: number;
   otherPatternScores: Record<string, number>;
   overviewSummary: string;
