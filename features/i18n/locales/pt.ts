@@ -215,9 +215,6 @@ export const ptBundle: LocaleBundle = {
     articles_healthy_title: 'Relacionamentos saudáveis não são perfeitos (e tudo bem)',
     articles_healthy_description:
       'Sinais de dinâmica funcional, diferenças para a toxicidade e critérios para avaliar o dia a dia.',
-    articles_manipulation_title: 'Principais tipos de manipulação em relacionamentos',
-    articles_manipulation_description:
-      'Chantagem emocional, gaslighting, isolamento, controle e como perceber os padrões.',
 
     // Insígnias e cartão de pré-visualização no herói
     hero_badge_patterns: 'Análise profunda de padrões',

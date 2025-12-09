@@ -411,26 +411,6 @@ export const esBundle: LocaleBundle = {
     testimonial_mateo_role: 'Aprender a disculparse',
     testimonial_mateo_quote:
       'Pensaba que “perdón si te sientes así” bastaba. Verlo marcado me hizo practicar disculpas de verdad.',
-    testimonial_mia_name: '«Mia», 26',
-    testimonial_mia_role: 'Tras meses de la ruptura',
-    testimonial_mia_quote:
-      'Reescribía la historia en mi cabeza. La línea de tiempo con picos lo hizo menos dramático y más factual. Por fin pude cerrar la pestaña y dormir.',
-    testimonial_lucas_name: '«Lucas», 29',
-    testimonial_lucas_role: 'Llevado a terapia',
-    testimonial_lucas_quote:
-      'Mi terapeuta pidió ejemplos concretos. El informe mostró cada vez que desvié con sarcasmo. Incómodo, pero aceleró la sesión.',
-    testimonial_priya_name: '«Priya», 33',
-    testimonial_priya_role: 'Mensajes de coparentalidad',
-    testimonial_priya_quote:
-      'Compartimos una niña pequeña y las emociones suben. La herramienta resaltó dónde se colaba la culpa. Nos ayudó a acordar un guion más calmado antes de los intercambios.',
-    testimonial_noah_name: '«Noah», 31',
-    testimonial_noah_role: 'Detectar mi defensiva',
-    testimonial_noah_quote:
-      'Siempre decía “solo aclaro”, pero el patrón era interrumpir y minimizar. Ahora practico responder de uno en uno.',
-    testimonial_amira_name: '«Amira», 30',
-    testimonial_amira_role: 'Malos entendidos a distancia',
-    testimonial_amira_quote:
-      'Fallábamos con el tono. La vista continua mostró que el silencio era casi siempre estrés, no mala intención. Bajó la ansiedad.',
 
     // Términos y condiciones
     terms_title: 'Términos y Condiciones',
