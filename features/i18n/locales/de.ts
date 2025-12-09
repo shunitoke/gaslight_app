@@ -411,26 +411,6 @@ export const deBundle: LocaleBundle = {
     testimonial_mateo_role: 'Entschuldigen lernen',
     testimonial_mateo_quote:
       'Ich dachte, „sorry, dass du das so siehst“ reicht. Als es markiert wurde, habe ich echte Entschuldigungen geübt.',
-    testimonial_mia_name: '„Mia“, 26',
-    testimonial_mia_role: 'Nach Monaten Trennungsgrübeln',
-    testimonial_mia_quote:
-      'Ich schrieb die Geschichte im Kopf ständig um. Die Zeitleiste mit Spitzen machte es weniger dramatisch, mehr faktisch. Ich konnte den Tab endlich schließen und schlafen.',
-    testimonial_lucas_name: '„Lucas“, 29',
-    testimonial_lucas_role: 'Mit in die Therapie gebracht',
-    testimonial_lucas_quote:
-      'Meine Therapeutin wollte Beispiele. Der Bericht zeigte jedes Mal, wenn ich mit Sarkasmus auswich. Unangenehm, aber es beschleunigte die Sitzung.',
-    testimonial_priya_name: '„Priya“, 33',
-    testimonial_priya_role: 'Co-Parenting-Nachrichten',
-    testimonial_priya_quote:
-      'Wir haben ein Kleinkind und die Emotionen kochen hoch. Das Tool markierte, wo sich Schuldzuweisungen einschlichen. So konnten wir einen ruhigeren Ablauf vor Übergaben vereinbaren.',
-    testimonial_noah_name: '„Noah“, 31',
-    testimonial_noah_role: 'Meine Defensive erkennen',
-    testimonial_noah_quote:
-      'Ich sagte immer „ich kläre nur“, aber das Muster war: unterbrechen und kleinreden. Jetzt übe ich, eine Antwort nach der anderen zu geben.',
-    testimonial_amira_name: '„Amira“, 30',
-    testimonial_amira_role: 'Missverständnisse auf Distanz',
-    testimonial_amira_quote:
-      'Wir verpassten ständig den Ton. Der dauerhafte Lauf zeigte, dass Schweigen meist Stress war, nicht Bosheit. Das senkte die Panik.',
 
     // Nutzungsbedingungen
     terms_title: 'Nutzungsbedingungen',
