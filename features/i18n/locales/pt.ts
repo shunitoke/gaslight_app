@@ -498,6 +498,10 @@ export const ptBundle: LocaleBundle = {
     pricing_badge_text: 'Pagamento único, sem assinatura',
     pricing_description:
       'Faça uma prévia gratuita para ver suas pontuações e visão geral. Desbloqueie o relatório completo e as exportações com um único checkout seguro via Paddle.',
+    pricing_overlay_title: 'Por enquanto grátis',
+    pricing_overlay_description:
+      'Os preços estão temporariamente ocultos e todo o acesso está liberado gratuitamente. Volte mais tarde para novidades.',
+    pricing_overlay_cta: 'Voltar ao início',
     pricing_free_label: 'Prévia',
     pricing_free_price_label: 'Grátis',
     pricing_free_badge: 'Comece aqui',

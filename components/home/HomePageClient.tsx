@@ -14,7 +14,6 @@ import {
   BookOpen,
   Clock3
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import type { Route } from 'next';
 import Link from 'next/link';
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
@@ -34,22 +33,14 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { MediaUpload } from '@/components/ui/MediaUpload';
+import { Donations } from '@/components/home/Donations';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { Progress } from '@/components/ui/progress';
 import type { Conversation, Message, Participant } from '@/features/analysis/types';
 import { useLanguage } from '@/features/i18n';
-import { Donations } from '@/components/home/Donations';
 import { cn } from '@/lib/utils';
-
-const TestimonialsSection = dynamic(
-  () => import('@/components/layout/Testimonials').then((m) => ({ default: m.TestimonialsSection })),
-  {
-    ssr: false,
-    loading: () => <div className="h-32 w-full max-w-4xl animate-pulse rounded-xl bg-muted/60" />
-  }
-);
+import { MediaUpload } from '@/components/ui/MediaUpload';
 
 type ParsedManualConversation = {
   conversation: Conversation;
@@ -184,9 +175,7 @@ export default function HomePageClient() {
   const [showExportHelp, setShowExportHelp] = useState(false);
   const [animationLocked, setAnimationLocked] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
-  const [testimonialsVisible, setTestimonialsVisible] = useState(false);
   const donationsRef = React.useRef<HTMLDivElement | null>(null);
-  const testimonialsRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     router.prefetch('/analysis');
@@ -205,25 +194,6 @@ export default function HomePageClient() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setDonationsVisible(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { rootMargin: '120px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  // Lazy mount testimonials when near viewport
-  useEffect(() => {
-    if (!testimonialsRef.current) return;
-    const el = testimonialsRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setTestimonialsVisible(true);
             observer.disconnect();
           }
         });
@@ -1798,14 +1768,6 @@ export default function HomePageClient() {
           </div>
         </div>
       </section>
-
-      <div ref={testimonialsRef} className="w-full flex justify-center">
-        {testimonialsVisible ? (
-          <TestimonialsSection />
-        ) : (
-          <div className="h-40 w-full max-w-4xl animate-pulse rounded-xl bg-muted/50" />
-        )}
-      </div>
 
       <div ref={donationsRef} className="w-full">
         {donationsVisible ? (

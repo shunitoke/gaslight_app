@@ -522,6 +522,10 @@ export const enBundle: LocaleBundle = {
     pricing_badge_text: 'One-time payment, no subscription',
     pricing_description:
       'Run a free preview to see your scores and overview. Unlock the full report and exports with a single, secure Paddle checkout.',
+    pricing_overlay_title: 'Currently free',
+    pricing_overlay_description:
+      'Pricing is temporarily hidden and all access is open for free. Check back later for updates.',
+    pricing_overlay_cta: 'Back to home',
     pricing_free_label: 'Preview',
     pricing_free_price_label: 'Free',
     pricing_free_badge: 'Start here',

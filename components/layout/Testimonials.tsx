@@ -208,13 +208,14 @@ export const TestimonialsSection: React.FC = () => {
                       key={`${item.id}-${index}`}
                       data-testimonial-card
                       aria-hidden={index >= half}
-                      className="h-[240px] sm:h-[240px] md:h-[240px] w-[min(280px,70vw)] sm:w-[260px] md:w-[260px] flex-shrink-0 rounded-2xl border border-border/60 bg-card/80 shadow-md backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg hover:border-primary/30"
+                      className="h-[260px] sm:h-[250px] md:h-[260px] backdrop-blur-lg shadow-lg w-[calc(100vw-3rem)] sm:w-[260px] md:w-[260px] flex-shrink-0 transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02]"
                       style={{
+                        backgroundColor: 'hsl(var(--card) / 0.78)',
                         willChange: 'transform, opacity',
                         backfaceVisibility: 'hidden'
                       }}
                     >
-                      <div className="p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 h-full">
+                      <div className="p-5 sm:p-5 flex flex-col gap-2.5 sm:gap-3 h-full">
                         <p className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-[0.18em] font-medium flex-shrink-0">
                           {t(item.roleKey)}
                         </p>

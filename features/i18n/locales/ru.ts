@@ -522,6 +522,10 @@ export const ruBundle: LocaleBundle = {
     pricing_badge_text: 'Разовый платёж, без подписки',
     pricing_description:
       'Запустите бесплатный предпросмотр, чтобы увидеть оценки и краткий обзор. Полный отчёт и выгрузки открываются одним безопасным платежом через Paddle.',
+    pricing_overlay_title: 'Пока что бесплатно',
+    pricing_overlay_description:
+      'Тарифы временно скрыты и весь доступ открыт бесплатно. Загляните позже за обновлением.',
+    pricing_overlay_cta: 'На главную',
     pricing_free_label: 'Предпросмотр',
     pricing_free_price_label: 'Бесплатно',
     pricing_free_badge: 'Начните здесь',

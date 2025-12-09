@@ -498,6 +498,10 @@ export const deBundle: LocaleBundle = {
     pricing_badge_text: 'Einmalzahlung, kein Abo',
     pricing_description:
       'Starte eine kostenlose Vorschau, um deine Scores und die Übersicht zu sehen. Schalte den vollständigen Bericht und Exporte mit einem einzigen, sicheren Paddle-Checkout frei.',
+    pricing_overlay_title: 'Aktuell kostenlos',
+    pricing_overlay_description:
+      'Die Preise sind vorübergehend ausgeblendet und der gesamte Zugang ist kostenlos. Schau später noch einmal vorbei.',
+    pricing_overlay_cta: 'Zurück zur Startseite',
     pricing_free_label: 'Vorschau',
     pricing_free_price_label: 'Kostenlos',
     pricing_free_badge: 'Hier starten',

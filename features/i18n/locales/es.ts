@@ -498,6 +498,10 @@ export const esBundle: LocaleBundle = {
     pricing_badge_text: 'Pago único, sin suscripción',
     pricing_description:
       'Ejecuta una vista previa gratuita para ver tus puntuaciones y resumen. Desbloquea el informe completo y las exportaciones con un único pago seguro por Paddle.',
+    pricing_overlay_title: 'Por ahora gratis',
+    pricing_overlay_description:
+      'Los precios están ocultos temporalmente y todo el acceso está abierto de forma gratuita. Vuelve más tarde para novedades.',
+    pricing_overlay_cta: 'Volver al inicio',
     pricing_free_label: 'Vista previa',
     pricing_free_price_label: 'Gratis',
     pricing_free_badge: 'Empieza aquí',

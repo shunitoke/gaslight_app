@@ -498,6 +498,10 @@ export const frBundle: LocaleBundle = {
     pricing_badge_text: 'Paiement unique, pas d’abonnement',
     pricing_description:
       'Lancez un aperçu gratuit pour voir vos scores et le résumé. Débloquez le rapport complet et les exports avec un paiement unique sécurisé via Paddle.',
+    pricing_overlay_title: 'Pour l’instant gratuit',
+    pricing_overlay_description:
+      'Les tarifs sont temporairement masqués et tout l’accès est ouvert gratuitement. Revenez plus tard pour les mises à jour.',
+    pricing_overlay_cta: 'Retour à l’accueil',
     pricing_free_label: 'Aperçu',
     pricing_free_price_label: 'Gratuit',
     pricing_free_badge: 'Commencez ici',
