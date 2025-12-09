@@ -25,13 +25,14 @@ const detectInitialScheme = (): Scheme => 'light';
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // Initialize from localStorage / document to avoid flicker on first paint
   const [colorTheme, setColorThemeState] = useState<PaletteName>(() => {
-    if (typeof window === 'undefined') return 'alternative';
+    if (typeof window === 'undefined') return 'default';
     const stored =
       localStorage.getItem(COLOR_THEME_STORAGE_KEY) ??
       localStorage.getItem('gaslite-color-theme');
     if (stored === 'default' || stored === 'alternative') return stored as PaletteName;
     const current = document.documentElement.getAttribute('data-color-theme');
-    return current === 'default' ? 'default' : 'alternative';
+    // Default to pink palette unless explicitly set to alternative
+    return current === 'alternative' ? 'alternative' : 'default';
   });
   const [colorScheme, setColorSchemeState] = useState<Scheme>(() => {
     if (typeof window === 'undefined') return 'light';
@@ -51,7 +52,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.getItem(COLOR_THEME_STORAGE_KEY) ??
       localStorage.getItem('gaslite-color-theme');
     if (storedTheme === 'visual-concept') {
-      // Migrate old 'visual-concept' to 'alternative' (blue is now default)
+      // Migrate old 'visual-concept' to 'alternative' (legacy blue)
       localStorage.setItem(COLOR_THEME_STORAGE_KEY, 'alternative');
       setColorThemeState('alternative');
     } else if (storedTheme && (storedTheme === 'default' || storedTheme === 'alternative')) {
@@ -59,7 +60,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       // No stored theme - check inline attribute or fall back
       const currentTheme = document.documentElement.getAttribute('data-color-theme');
-      setColorThemeState(currentTheme === 'default' ? 'default' : 'alternative');
+      setColorThemeState(currentTheme === 'alternative' ? 'alternative' : 'default');
     }
     
     // Load color scheme - prioritize localStorage, fallback to system preference

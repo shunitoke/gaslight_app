@@ -121,7 +121,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const initialTheme: PaletteName =
     themeCookie === 'default' || themeCookie === 'alternative'
       ? (themeCookie as PaletteName)
-      : 'alternative';
+      : 'default';
   
   // Determine initial locale:
   // 1. Use cookie if exists (user has chosen before)
