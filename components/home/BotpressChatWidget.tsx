@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -23,7 +23,7 @@ export function BotpressChatWidget() {
   const initializedRef = useRef(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const fallbackRef = useRef<HTMLIFrameElement | null>(null);
-  const [showFallback, setShowFallback] = React.useState(false);
+  const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     if (initializedRef.current) return;
