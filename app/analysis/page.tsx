@@ -358,11 +358,11 @@ export default function AnalysisPage() {
       case 'fr':
         return 'Analyses';
       case 'de':
-        return 'Insights';
+        return 'Erkenntnisse';
       case 'es':
-        return 'Insights';
+        return 'Hallazgos';
       case 'pt':
-        return 'Insights';
+        return 'Conclusões';
       default:
         return 'Insights';
     }
@@ -418,6 +418,47 @@ export default function AnalysisPage() {
         return 'items';
     }
   }, [locale]);
+
+  const genericItemsLabel = useMemo(() => {
+    switch (locale) {
+      case 'ru':
+        return 'пунктов';
+      case 'fr':
+        return 'éléments';
+      case 'de':
+        return 'Punkte';
+      case 'es':
+        return 'elementos';
+      case 'pt':
+        return 'itens';
+      default:
+        return 'items';
+    }
+  }, [locale]);
+
+  const whatYouShouldKnowItemCount = useMemo(() => {
+    const w = analysis?.whatYouShouldKnow;
+    if (!w) return 0;
+
+    let total = 0;
+    const addArray = (arr?: string[]) => {
+      if (Array.isArray(arr)) {
+        total += arr.filter(item => typeof item === 'string' && item.trim().length > 0).length;
+      }
+    };
+
+    addArray(w.couldHaveDoneDifferently);
+    addArray(w.communicationTools);
+    addArray(w.patternsToWatch);
+    addArray(w.resources);
+    addArray(w.redFlagsForNextTime as string[] | undefined);
+
+    if (typeof w.couldHaveBeenSaved === 'boolean') total += 1;
+    if (typeof w.whyNotFault === 'string' && w.whyNotFault.trim().length > 0) total += 1;
+    if (typeof w.whatMadeVulnerable === 'string' && w.whatMadeVulnerable.trim().length > 0) total += 1;
+
+    return total;
+  }, [analysis]);
   const [selectedDateQuotes, setSelectedDateQuotes] = useState<{
     date: ImportantDate;
     quotes: Array<{ excerpt: string; explanation: string; sectionTitle: string }>;
@@ -3911,7 +3952,7 @@ export default function AnalysisPage() {
                     : 'What You Should Know'}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {analysis.whatYouShouldKnow.patternsToWatch?.length ?? 0} {locale === 'ru' ? 'пунктов' : 'items'}
+                  {whatYouShouldKnowItemCount} {genericItemsLabel}
                 </span>
               </div>
             </AccordionTrigger>

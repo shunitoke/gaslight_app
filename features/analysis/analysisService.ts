@@ -117,57 +117,15 @@ function getMessageKey(message: Message | undefined | null): string | null {
  * Normalize section ID to handle variations (e.g., "supportiveness" vs "support")
  */
 function normalizeSectionId(id: string, title: string): string {
-  const normalizedId = id.toLowerCase().trim();
-  const normalizedTitle = title.toLowerCase().trim();
-  
-  // Map common variations to standard IDs
-  const idMappings: Record<string, string> = {
-    'support': 'supportiveness',
-    'supportive': 'supportiveness',
-    'supportive_behavior': 'supportiveness',
-    'supportive_behaviour': 'supportiveness',
-    'conflict': 'conflict',
-    'conflicts': 'conflict',
-    'conflict_intensity': 'conflict',
-    'gaslighting': 'gaslighting',
-    'gaslight': 'gaslighting',
-    'gaslighting_risk': 'gaslighting',
-    'apology': 'apology',
-    'apologies': 'apology',
-    'apology_frequency': 'apology',
-    'communication': 'communication',
-    'communication_patterns': 'communication',
-    'trust': 'trust',
-    'trust_issues': 'trust',
-    'boundaries': 'boundaries',
-    'boundary': 'boundaries',
-    'respect': 'respect',
-    'validation': 'validation',
-    'emotional_support': 'supportiveness',
-    'empathy': 'supportiveness',
-  };
-  
-  // Check if ID matches a known variation
-  if (idMappings[normalizedId]) {
-    return idMappings[normalizedId];
-  }
-  
-  // Check if title contains keywords that suggest a known section type
-  if (normalizedTitle.includes('support') || normalizedTitle.includes('поддержк')) {
-    return 'supportiveness';
-  }
-  if (normalizedTitle.includes('conflict') || normalizedTitle.includes('конфликт')) {
-    return 'conflict';
-  }
-  if (normalizedTitle.includes('gaslight') || normalizedTitle.includes('газлайт')) {
-    return 'gaslighting';
-  }
-  if (normalizedTitle.includes('apolog') || normalizedTitle.includes('извинен')) {
-    return 'apology';
-  }
-  
-  // Return original ID if no mapping found
-  return normalizedId;
+  const cleanedId = (id || '').trim();
+  const cleanedTitle = (title || '').trim();
+
+  // Keep the original IDs to avoid merging loosely related patterns.
+  if (cleanedId.length > 0) return cleanedId;
+  if (cleanedTitle.length > 0) return cleanedTitle;
+
+  // Fallback placeholder so items without identifiers stay distinct.
+  return `section_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function getDefaultMessages(locale: SupportedLocale): {
