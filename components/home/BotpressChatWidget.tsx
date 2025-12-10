@@ -18,12 +18,19 @@ const SCRIPT_SRC = 'https://cdn.botpress.cloud/webchat/v3.5/inject.js';
 
 export function BotpressChatWidget() {
   const initializedRef = useRef(false);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
     const initBotpress = () => {
+      // Ensure widget opens once ready so the bubble appears even if auto-open is disabled in config.
+      const maybeUnsub = window.botpressWebChat?.on?.('webchat:ready', () => {
+        window.botpressWebChat?.open?.();
+      });
+      unsubscribeRef.current = typeof maybeUnsub === 'function' ? maybeUnsub : null;
+
       window.botpressWebChat?.init?.({
         configUrl: CONFIG_URL
       });
@@ -52,6 +59,7 @@ export function BotpressChatWidget() {
 
     return () => {
       window.botpressWebChat?.destroy?.();
+      unsubscribeRef.current?.();
     };
   }, []);
 

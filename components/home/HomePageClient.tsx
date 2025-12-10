@@ -180,7 +180,6 @@ export default function HomePageClient() {
   const [animationLocked, setAnimationLocked] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
   const donationsRef = React.useRef<HTMLDivElement | null>(null);
-  const [lastAnalysisId, setLastAnalysisId] = useState<string | null>(null);
 
   useEffect(() => {
     router.prefetch('/analysis');
@@ -208,36 +207,6 @@ export default function HomePageClient() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const storedId = localStorage.getItem('lastAnalysisId');
-      if (storedId) {
-        setLastAnalysisId(storedId);
-        return;
-      }
-      const sessionAnalysis = sessionStorage.getItem('currentAnalysis');
-      if (sessionAnalysis) {
-        try {
-          const parsed = JSON.parse(sessionAnalysis);
-          if (parsed?.id) {
-            setLastAnalysisId(parsed.id);
-            localStorage.setItem('lastAnalysisId', parsed.id);
-          }
-        } catch {
-          // ignore parse errors
-        }
-      }
-    } catch {
-      // ignore storage issues
-    }
-  }, []);
-
-  const handleContinueLastAnalysis = useCallback(() => {
-    if (!lastAnalysisId) return;
-    router.push(`/analysis?analysisId=${encodeURIComponent(lastAnalysisId)}`);
-  }, [lastAnalysisId, router]);
 
   const handleScrollToUpload = useCallback(() => {
     const uploadCard = document.querySelector('[data-upload-card]');
@@ -1354,16 +1323,6 @@ export default function HomePageClient() {
             <Button size="lg" onClick={handleScrollToUpload} className="w-full sm:w-auto">
               {t('hero_cta')}
             </Button>
-            {lastAnalysisId && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleContinueLastAnalysis}
-                className="w-full sm:w-auto"
-              >
-                {locale === 'ru' ? 'Продолжить анализ' : 'Continue last analysis'}
-              </Button>
-            )}
             <p className="text-xs sm:text-[13px] text-muted-foreground max-w-xs text-center">
               <span className="font-medium text-foreground">{t('howItWorks')}</span> {t('step1_title')},{' '}
               {t('step2_title').toLowerCase?.() ?? t('step2_title')},{' '}
