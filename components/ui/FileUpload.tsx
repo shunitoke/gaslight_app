@@ -248,13 +248,15 @@ export function FileUpload({
           'bg-card/60 hover:bg-card/80',
           disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
-            : 'cursor-pointer hover:border-[color:var(--card-border-strong,hsla(var(--border),0.12))] hover:shadow-lg hover:shadow-primary/5'
+            : 'cursor-pointer hover:border-[color:var(--card-border-strong,hsla(var(--border),0.16))] hover:shadow-lg hover:shadow-primary/8'
         )}
           style={{
+            borderColor: 'var(--card-border-strong, hsla(var(--border),0.14))',
+            borderWidth: '1.25px',
             boxShadow:
               disabled || importSuccessful
                 ? undefined
-                : '0 12px 28px hsla(var(--foreground),0.08), 0 0 0 1px var(--card-border-soft, hsla(var(--border),0.08))'
+                : '0 12px 28px hsla(var(--foreground),0.08), 0 0 0 1px var(--card-border-strong, hsla(var(--border),0.14))'
           }}
       >
           {!importSuccessful && (

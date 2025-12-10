@@ -9,6 +9,7 @@ declare global {
       destroy?: () => void;
       open?: () => void;
       on?: (event: string, handler: () => void) => (() => void) | void;
+      sendEvent?: (event: { type: string; payload?: any }) => void;
     };
   }
 }
@@ -40,8 +41,14 @@ export function BotpressChatWidget() {
       // Ensure widget opens once ready so the bubble appears even if auto-open is disabled in config.
       const maybeUnsub = window.botpressWebChat?.on?.('webchat:ready', () => {
         console.info('[Botpress] webchat:ready');
-        // Delay a tick to let styles mount, then open
-        requestAnimationFrame(() => tryOpen('ready'));
+        // Delay a tick to let styles mount, then open and fire a pageview to wake the client
+        requestAnimationFrame(() => {
+          tryOpen('ready');
+          window.botpressWebChat?.sendEvent?.({
+            type: 'proactive-trigger',
+            payload: { source: 'auto-ready' }
+          });
+        });
       });
       unsubscribeRef.current = typeof maybeUnsub === 'function' ? maybeUnsub : null;
 
@@ -53,6 +60,12 @@ export function BotpressChatWidget() {
       // Fallback open attempts in case ready event doesn’t fire
       setTimeout(() => tryOpen('fallback-2s'), 2000);
       setTimeout(() => tryOpen('fallback-5s'), 5000);
+      setTimeout(() => {
+        window.botpressWebChat?.sendEvent?.({
+          type: 'proactive-trigger',
+          payload: { source: 'auto-5s' }
+        });
+      }, 5000);
     };
 
     const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
