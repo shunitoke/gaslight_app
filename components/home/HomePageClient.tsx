@@ -1440,31 +1440,31 @@ export default function HomePageClient() {
   return (
     <>
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 md:gap-12 px-4 sm:px-6 py-8 sm:py-12">
-        <div className="w-full grid xl:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-5 w-full">
-          <Badge
-            variant="outline"
-            className="border-primary/30 text-primary px-3 sm:px-4 py-1.5 text-label font-medium tracking-wider uppercase -mt-1 sm:-mt-1 lg:-mt-3 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 self-center lg:self-start transform-gpu"
-          >
-            <Sparkles className="mr-2 h-3 w-3" />
-            AI-Powered Gaslight Detection
-          </Badge>
+        <div className="w-full grid grid-cols-1 items-center justify-items-center 2xl:grid-cols-[1.1fr_1fr] 2xl:justify-items-start gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
+          <div className="flex flex-col items-center 2xl:items-start text-center 2xl:text-left gap-4 sm:gap-5 w-full">
+            <Badge
+              variant="outline"
+              className="border-primary/30 text-primary px-3 sm:px-4 py-1.5 text-label font-medium tracking-wider uppercase -mt-1 sm:-mt-1 lg:-mt-3 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 self-center 2xl:self-start transform-gpu"
+            >
+              <Sparkles className="mr-2 h-3 w-3" />
+              AI-Powered Gaslight Detection
+            </Badge>
 
-          <div className="relative w-full h-[9rem] sm:h-[10rem] md:h-[11rem] lg:h-[12rem] -translate-y-3 sm:-translate-y-4 md:-translate-y-5 lg:-translate-y-6">
-            <TextGenerateEffect
-              key={taglineIndex}
-              words={currentTagline || DEFAULT_TAGLINES[0]}
-              duration={0.35}
-              staggerDelay={0.08}
-              filter
-              className="absolute inset-0 text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground flex items-center justify-center lg:justify-start py-2 sm:py-3 pointer-events-none"
-            />
+            <div className="w-full flex justify-center 2xl:justify-start 2xl:pl-2 -translate-y-3 sm:-translate-y-4 md:-translate-y-5 lg:-translate-y-6">
+              <TextGenerateEffect
+                key={taglineIndex}
+                words={currentTagline || DEFAULT_TAGLINES[0]}
+                duration={0.35}
+                staggerDelay={0.08}
+                filter
+                className="text-balance text-3xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-[28ch] text-foreground text-center 2xl:text-left py-2 sm:py-3 pointer-events-none"
+              />
+            </div>
+
+            <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed text-center 2xl:text-left">
+              {t('hero_copy')}
+            </p>
           </div>
-
-          <p className="max-w-xl text-body-sm sm:text-body-md text-muted-foreground leading-relaxed">
-            {t('hero_copy')}
-          </p>
-        </div>
 
         <div className="relative w-full max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:ml-auto">
           <Card className="phone-glass-card relative z-10 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
