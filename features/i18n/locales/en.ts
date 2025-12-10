@@ -236,6 +236,9 @@ export const enBundle: LocaleBundle = {
     privacy_chip_no_sharing: 'No public sharing',
     privacy_chip_local_session: 'Local session only',
     privacy_chip_control: 'You stay in control',
+    demo_metrics_banner: 'Demo metrics from screenshot only. Upload the full chat export for accurate scores.',
+    activity_wave_by_day: 'By day',
+    activity_wave_by_week: 'By week',
 
     // Hero preview sample messages
     // left = abuser, right = victim

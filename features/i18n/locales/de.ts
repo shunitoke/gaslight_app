@@ -237,6 +237,10 @@ export const deBundle: LocaleBundle = {
     privacy_chip_no_sharing: 'Keine Veröffentlichung nach außen',
     privacy_chip_local_session: 'Nur in dieser Sitzung',
     privacy_chip_control: 'Sie behalten die Kontrolle',
+    demo_metrics_banner:
+      'Demo-Metriken nur aus dem Screenshot. Lade den vollständigen Chat-Export hoch, um genaue Werte zu erhalten.',
+    activity_wave_by_day: 'Pro Tag',
+    activity_wave_by_week: 'Pro Woche',
 
     // Beispielnachrichten im Vorschaublock
     // left = Täter, right = Opfer

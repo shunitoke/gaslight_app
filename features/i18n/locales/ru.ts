@@ -236,6 +236,10 @@ export const ruBundle: LocaleBundle = {
     privacy_chip_no_sharing: 'Ничего не публикуется',
     privacy_chip_local_session: 'Только в рамках этой сессии',
     privacy_chip_control: 'Контроль остаётся за вами',
+    demo_metrics_banner:
+      'Демо-метрики по скриншоту. Загрузите экспорт переписки для точных данных.',
+    activity_wave_by_day: 'По дням',
+    activity_wave_by_week: 'По неделям',
 
     // Примерные сообщения в превью-чате
     // left = более обесценивающая/отрицающая сторона в данном фрагменте, right = более уязвимая сторона

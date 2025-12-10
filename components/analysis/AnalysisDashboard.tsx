@@ -307,7 +307,7 @@ export function AnalysisDashboard({
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {locale === 'ru' ? 'По дням' : 'By day'}
+                      {t('activity_wave_by_day')}
                     </button>
                     <button
                       type="button"
@@ -318,7 +318,7 @@ export function AnalysisDashboard({
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {locale === 'ru' ? 'По неделям' : 'By week'}
+                      {t('activity_wave_by_week')}
                     </button>
                   </div>
                 </div>

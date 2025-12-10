@@ -237,6 +237,10 @@ export const frBundle: LocaleBundle = {
     privacy_chip_no_sharing: 'Rien n’est publié en ligne',
     privacy_chip_local_session: 'Uniquement pour cette session',
     privacy_chip_control: 'Vous gardez le contrôle',
+    demo_metrics_banner:
+      'Données démo issues uniquement de la capture. Importez l’export complet du chat pour des scores précis.',
+    activity_wave_by_day: 'Par jour',
+    activity_wave_by_week: 'Par semaine',
 
     // Messages d’exemple dans le chat de prévisualisation
     // left = abuseur, right = victime

@@ -2458,9 +2458,7 @@ export default function AnalysisPage() {
 
               {isScreenshotMode && (
                 <p className="text-xs text-muted-foreground">
-                  {locale === 'ru'
-                    ? 'Демо-метрики по скриншоту. Загрузите экспорт переписки для точных данных.'
-                    : 'Demo metrics from screenshot only. Upload the full chat export for accurate scores.'}
+                  {t('demo_metrics_banner')}
                 </p>
               )}
 
@@ -2576,9 +2574,7 @@ export default function AnalysisPage() {
 
                 {isScreenshotMode && (
                   <p className="text-xs text-muted-foreground">
-                    {locale === 'ru'
-                      ? 'Демо-метрики по скриншоту. Загрузите экспорт переписки для точных данных.'
-                      : 'Demo metrics from screenshot only. Upload the full chat export for accurate scores.'}
+                    {t('demo_metrics_banner')}
                   </p>
                 )}
 

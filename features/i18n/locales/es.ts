@@ -237,6 +237,10 @@ export const esBundle: LocaleBundle = {
     privacy_chip_no_sharing: 'Nada se publica en ningún lado',
     privacy_chip_local_session: 'Solo en esta sesión',
     privacy_chip_control: 'Tú sigues teniendo el control',
+    demo_metrics_banner:
+      'Métricas demo solo del screenshot. Sube la exportación completa del chat para obtener datos precisos.',
+    activity_wave_by_day: 'Por día',
+    activity_wave_by_week: 'Por semana',
 
     // Mensajes de ejemplo en el chat de vista previa
     // left = abusador, right = víctima
