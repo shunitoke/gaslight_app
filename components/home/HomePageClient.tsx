@@ -308,7 +308,6 @@ export default function HomePageClient() {
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [inputMode, setInputMode] = useState<'file' | 'paste' | 'media'>('file');
   const [pastedText, setPastedText] = useState('');
-  const [showExportHelp, setShowExportHelp] = useState(false);
   const [animationLocked, setAnimationLocked] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
   const donationsRef = React.useRef<HTMLDivElement | null>(null);
@@ -429,9 +428,6 @@ export default function HomePageClient() {
     }
   }, []);
 
-  const toggleExportHelp = useCallback(() => {
-    setShowExportHelp((prev) => !prev);
-  }, []);
 
   const startAnalysisWithImport = useCallback(
     async (importData: {
@@ -1590,20 +1586,6 @@ export default function HomePageClient() {
                 <CardTitle className="text-heading-lg sm:text-heading-xl text-foreground group-hover/upload-card:text-primary transition-colors duration-300 text-center">
                   {t('uploadExport')}
                 </CardTitle>
-                <button
-                  type="button"
-                  onClick={toggleExportHelp}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/30 bg-background/60 hover:bg-primary/10 hover:border-primary/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 flex-shrink-0 animate-[pulse-glow-strong_3.6s_ease-in-out_infinite]"
-                  style={{
-                    boxShadow:
-                      '0 0 0 1px hsla(var(--primary),0.35), 0 0 14px hsla(var(--primary),0.28), 0 6px 14px rgba(0,0,0,0.08)',
-                    willChange: 'transform, box-shadow, opacity'
-                  }}
-                  aria-label={t('exportHelpTitle')}
-                  aria-expanded={showExportHelp}
-                >
-                  <HelpCircle className="h-3.5 w-3.5 text-primary transition-transform duration-200 group-hover/upload-card:rotate-12" />
-                </button>
               </div>
               {!analyzing && (
                 <CardDescription className="text-body-sm sm:text-body-md mt-1.5 text-muted-foreground text-center max-w-lg">
@@ -1612,40 +1594,6 @@ export default function HomePageClient() {
               )}
             </div>
           </div>
-          {showExportHelp && (
-            <div className="mt-3 p-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/15 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2 ring-1 ring-primary/10">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <div className="rounded-lg bg-primary/20 p-1.5">
-                    <Upload className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  {t('exportHelpTitle')}
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => setShowExportHelp(false)}
-                  className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-primary/10 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                </button>
-              </div>
-              <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{t('exportHelpTelegram')}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{t('exportHelpWhatsApp')}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{t('exportHelpOther')}</span>
-                </li>
-              </ul>
-            </div>
-          )}
         </CardHeader>
 
         <Separator className="mb-4" />

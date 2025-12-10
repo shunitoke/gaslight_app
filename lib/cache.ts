@@ -13,7 +13,7 @@ import { createHash } from 'crypto';
 import { logInfo, logWarn, logError } from './telemetry';
 import { getRedisClient } from './kv';
 import type { AnalysisResult } from '../features/analysis/types';
-import type { Message } from '../features/analysis/types';
+import type { Message, MediaArtifact } from '../features/analysis/types';
 
 const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const CACHE_KEY_PREFIX = 'analysis_cache:';
@@ -23,18 +23,36 @@ const PROMPT_VERSION_KEY = 'prompt_version';
 const CURRENT_PROMPT_VERSION = '1.1.1'; // Added stronger contradiction requirements and long-context overlap logic
 
 /**
- * Compute hash of chat content for caching
- * Hash is based on message text and timestamps to ensure identical chats get same hash
+ * Compute hash of analysis inputs (messages + media) for caching.
+ * Messages: text, sender, timestamp.
+ * Media: stable metadata only (ids, type, filenames, sizes, URLs), sorted to avoid order sensitivity.
  */
-export function computeChatHash(messages: Message[]): string {
-  // Create a stable representation of the chat
-  // Include: message text, sender, timestamp (but not IDs which change)
+export function computeChatHash(
+  messages: Message[],
+  mediaArtifacts: MediaArtifact[] = []
+): string {
+  // Stable representation of the chat text
   const chatContent = messages
     .map(msg => `${msg.senderId}:${msg.sentAt}:${msg.text || ''}`)
     .join('|');
+
+  // Stable representation of media (exclude analysis-time fields like labels/notes)
+  const mediaContent = mediaArtifacts
+    .map(m =>
+      [
+        m.id,
+        m.type,
+        m.originalFilename || '',
+        m.contentType || '',
+        m.sizeBytes ?? '',
+        m.blobUrl || m.transientPathOrUrl || '',
+      ].join(':')
+    )
+    .sort() // avoid order sensitivity
+    .join('|');
   
   return createHash('sha256')
-    .update(chatContent)
+    .update(`${chatContent}||${mediaContent}`)
     .digest('hex')
     .substring(0, 32); // Use first 32 chars for shorter keys
 }

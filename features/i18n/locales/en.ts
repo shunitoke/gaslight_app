@@ -21,8 +21,8 @@ export const enBundle: LocaleBundle = {
     footer_analyses_loading: 'Counting analyses...',
     footer_report_bug: 'Report a bug',
     language_label: 'Language',
-    uploadExport: 'Upload Chat Export',
-    uploadExportDescription: 'Select your chat export file to begin analysis.',
+    uploadExport: 'Upload Conversation',
+    uploadExportDescription: 'We unpack years-long conversations.',
     confirmImportPrompt:
       'Import "{file}"? Make sure the export only contains the conversation you want analyzed.',
     uploadingFile: 'Uploading file...',

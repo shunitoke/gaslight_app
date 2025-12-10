@@ -20,8 +20,8 @@ export const frBundle: LocaleBundle = {
     footer_analyses_loading: 'Comptage des analyses...',
     footer_report_bug: 'Signaler un bug',
     language_label: 'Langue',
-    uploadExport: "Télécharger l'export de chat",
-    uploadExportDescription: 'Sélectionnez votre fichier d\'export de chat pour commencer l\'analyse',
+    uploadExport: 'Téléverser la conversation',
+    uploadExportDescription: 'On analyse des conversations vieilles de plusieurs années.',
     confirmImportPrompt:
       'Importer « {file} » ? Vérifie que l’export ne contient que la conversation à analyser.',
     uploadingFile: 'Téléchargement du fichier...',

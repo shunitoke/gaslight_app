@@ -125,81 +125,105 @@ export function MediaUpload({
   return (
     <div className="space-y-6 w-full">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className={cn('rounded-xl border border-[color:hsla(var(--border),0.06)] bg-card/60 p-4 space-y-3')}>
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Upload className="h-4 w-4" />
-            {t('upload_media_title')}
-          </div>
-          <p className="text-xs text-muted-foreground">{t('upload_media_hint')}</p>
-          <div className="flex flex-col gap-2">
-            <input
-              ref={inputRef}
-              type="file"
-              accept={ACCEPT}
-              className="hidden"
-              onChange={handleFileChange}
-              aria-label="Select media file"
-            />
-            <Button type="button" variant="outline" disabled={disabled || uploading} onClick={handleFilePick}>
-              {uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('uploadingFile')}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {t('choose_file')}
-                </>
-              )}
-            </Button>
-            {uploading && <Progress value={uploadProgress} className="w-full" />}
+        <div
+          className={cn(
+            'rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-background/70 p-4 shadow-lg backdrop-blur-sm'
+          )}
+          data-upload-card
+        >
+          <div className="flex h-full flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Upload className="h-4 w-4" />
+                {t('upload_media_title')}
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{t('upload_media_hint')}</p>
+            </div>
+            <div className="mt-auto flex flex-col items-center sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-3">
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPT}
+                className="hidden"
+                onChange={handleFileChange}
+                aria-label="Select media file"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={disabled || uploading}
+                onClick={handleFilePick}
+                className="w-full sm:w-auto justify-center"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('uploadingFile')}
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {t('choose_file')}
+                  </>
+                )}
+              </Button>
+              {uploading && <Progress value={uploadProgress} className="w-full sm:max-w-[220px]" />}
+            </div>
           </div>
         </div>
 
-        <div className={cn('rounded-xl border border-[color:hsla(var(--border),0.06)] bg-card/60 p-4 space-y-4')}>
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Mic className="h-4 w-4" />
-            {t('record_voice_title')}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {translate('record_voice_hint', { seconds: Math.round(maxRecordMs / 1000) })}
-          </p>
-          {voiceComingSoon && (
-            <div className="text-xs text-amber-600 dark:text-amber-300 font-medium">
-              {t('voice_coming_soon')}
-            </div>
+        <div
+          className={cn(
+            'rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-background/70 p-4 shadow-lg backdrop-blur-sm'
           )}
-          <div className="flex flex-col items-center gap-3">
-            <button
-              type="button"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={disabled || uploading || voiceComingSoon}
-              className={cn(
-                'relative flex items-center justify-center h-20 w-20 rounded-full border transition-all duration-200',
-                'bg-primary/10 text-primary border-primary/50 shadow-sm',
-                !disabled && !uploading && 'hover:scale-105 hover:shadow-md hover:bg-primary/15',
-                (disabled || uploading) && 'opacity-60 cursor-not-allowed'
-              )}
-              aria-label={
-                isRecording
-                  ? translate('stop_recording', { seconds: recordSeconds })
-                  : t('start_recording')
-              }
-            >
-              {isRecording ? (
-                <MicOff className="h-10 w-10 animate-pulse" />
-              ) : (
-                <Mic className="h-10 w-10" />
-              )}
-              {isRecording && (
-                <span className="absolute -bottom-5 text-xs text-muted-foreground">
-                  {t('recording')}
-                </span>
-              )}
-            </button>
-            {isRecording && (
-              <div className="text-xs text-muted-foreground">{translate('stop_recording', { seconds: recordSeconds })}</div>
+          data-upload-card
+        >
+          <div className="flex h-full flex-col items-center gap-4 text-center">
+            <div className="flex flex-row items-center justify-center gap-2 text-sm font-semibold text-foreground">
+              <Mic className="h-4 w-4" />
+              {t('record_voice_title')}
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {translate('record_voice_hint', { seconds: Math.round(maxRecordMs / 1000) })}
+            </p>
+            {voiceComingSoon && (
+              <div className="text-xs text-amber-600 dark:text-amber-300 font-medium">
+                {t('voice_coming_soon')}
+              </div>
             )}
+            <div className="mt-auto flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={disabled || uploading || voiceComingSoon}
+                className={cn(
+                  'relative flex items-center justify-center h-20 w-20 rounded-full border transition-all duration-200',
+                  'bg-primary/10 text-primary border-primary/50 shadow-sm',
+                  !disabled && !uploading && 'hover:scale-105 hover:shadow-md hover:bg-primary/15',
+                  (disabled || uploading) && 'opacity-60 cursor-not-allowed'
+                )}
+                aria-label={
+                  isRecording
+                    ? translate('stop_recording', { seconds: recordSeconds })
+                    : t('start_recording')
+                }
+              >
+                {isRecording ? (
+                  <MicOff className="h-10 w-10 animate-pulse" />
+                ) : (
+                  <Mic className="h-10 w-10" />
+                )}
+                {isRecording && (
+                  <span className="absolute -bottom-5 text-xs text-muted-foreground">
+                    {t('recording')}
+                  </span>
+                )}
+              </button>
+              {isRecording && (
+                <div className="text-xs text-muted-foreground">
+                  {translate('stop_recording', { seconds: recordSeconds })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

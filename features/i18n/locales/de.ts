@@ -20,8 +20,8 @@ export const deBundle: LocaleBundle = {
     footer_analyses_loading: 'Analysen werden gezählt...',
     footer_report_bug: 'Fehler melden',
     language_label: 'Sprache',
-    uploadExport: 'Chat-Export hochladen',
-    uploadExportDescription: 'Wählen Sie Ihre Chat-Exportdatei aus, um mit der Analyse zu beginnen',
+    uploadExport: 'Konversation hochladen',
+    uploadExportDescription: 'Wir analysieren langjährige Chats.',
     confirmImportPrompt:
       '„{file}“ jetzt importieren? Stelle sicher, dass der Export nur den gewünschten Chat enthält.',
     uploadingFile: 'Datei wird hochgeladen...',

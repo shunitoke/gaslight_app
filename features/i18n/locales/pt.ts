@@ -20,8 +20,8 @@ export const ptBundle: LocaleBundle = {
     footer_analyses_loading: 'Contando análises...',
     footer_report_bug: 'Reportar um bug',
     language_label: 'Idioma',
-    uploadExport: 'Carregar exportação de chat',
-    uploadExportDescription: 'Selecione seu arquivo de exportação de chat para começar a análise',
+    uploadExport: 'Enviar conversa',
+    uploadExportDescription: 'Analisamos conversas de muitos anos.',
     confirmImportPrompt:
       'Importar “{file}”? Confirme que a exportação contém apenas a conversa que deseja analisar.',
     uploadingFile: 'Carregando arquivo...',

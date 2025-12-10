@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     }
 
     // Check cache before starting analysis
-    const chatHash = computeChatHash(messages);
+    const chatHash = computeChatHash(messages, mediaArtifacts);
     logInfo('analyze_start_cache_check', {
       conversationId: conversation.id,
       chatHash,

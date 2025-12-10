@@ -1,7 +1,7 @@
  'use client';
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { Upload, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle2, Loader2, HelpCircle, X } from 'lucide-react';
 
 import { useLanguage } from '@/features/i18n';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,7 @@ export function FileUpload({
   const { t } = useLanguage();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('auto');
   const [fileName, setFileName] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const ZIP_MEDIA_MAX_BYTES = 25 * 1024 * 1024;
   const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -195,10 +196,28 @@ export function FileUpload({
     [confirmBeforeUpload, disabled, onFileSelect, selectedPlatform, uploading, validateBeforeUpload],
   );
 
+  const toggleHelp = useCallback(() => {
+    setShowHelp((prev) => !prev);
+  }, []);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">{t('selectPlatform')}</p>
+        <div className="flex items-center justify-center sm:justify-start gap-2">
+          <p className="text-sm font-medium text-foreground">{t('selectPlatform')}</p>
+          <button
+            type="button"
+            onClick={toggleHelp}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-background/70 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1"
+            style={{
+              boxShadow:
+                '0 0 0 1px hsla(var(--primary),0.25), 0 0 12px hsla(var(--primary),0.18), 0 4px 10px rgba(0,0,0,0.08)'
+            }}
+            aria-label={t('exportHelpTitle')}
+          >
+            <HelpCircle className="h-4 w-4 text-primary" />
+          </button>
+        </div>
         <div className="flex flex-wrap gap-2">
           {platformOptions.map((option) => (
             <button
@@ -238,6 +257,50 @@ export function FileUpload({
           ))}
         </div>
       </div>
+
+      {showHelp && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+            onClick={toggleHelp}
+            aria-hidden
+          />
+          <div className="relative z-[61] w-full max-w-lg rounded-xl border border-primary/30 bg-card/95 shadow-2xl ring-1 ring-primary/15 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <div className="rounded-lg bg-primary/15 p-1.5">
+                  <Upload className="h-4 w-4 text-primary" />
+                </div>
+                {t('exportHelpTitle')}
+              </div>
+              <button
+                type="button"
+                onClick={toggleHelp}
+                className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1"
+                aria-label="Close export help"
+              >
+                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+            <div className="px-4 pb-5 sm:px-5 sm:pb-6">
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>{t('exportHelpTelegram')}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>{t('exportHelpWhatsApp')}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>{t('exportHelpOther')}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         onClick={importSuccessful ? undefined : handleOpenPicker}
