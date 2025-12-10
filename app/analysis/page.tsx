@@ -264,6 +264,7 @@ export default function AnalysisPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isPremiumAnalysis, setIsPremiumAnalysis] = useState<boolean>(false);
   const [showFullOverview, setShowFullOverview] = useState(false);
+  const isScreenshotMode = analysis?.version?.includes('screenshot') ?? false;
 
   const overviewLabel = useMemo(() => {
     switch (locale) {
@@ -706,20 +707,46 @@ export default function AnalysisPage() {
     return Math.max(0, Math.min(1, (1 - negativeImpact) * positiveImpact));
   }, [analysis]);
 
+  // Display-safe metrics (zeroed for screenshot-mode)
+  const displayEmotionalSafety = isScreenshotMode ? 0 : emotionalSafetyIndex;
+  const displayGaslightingPercent = isScreenshotMode ? 0 : (analysis?.gaslightingRiskScore ?? 0) * 100;
+  const displayConflictPercent = isScreenshotMode ? 0 : (analysis?.conflictIntensityScore ?? 0) * 100;
+  const displaySupportPercent = isScreenshotMode ? 0 : (analysis?.supportivenessScore ?? 0) * 100;
+  const displayResolutionPercent = isScreenshotMode ? 0 : (analysis?.communicationStats?.resolutionRate ?? 0);
+
+  const analysisForDisplay = useMemo(() => {
+    if (!analysis) return null;
+    if (!isScreenshotMode) return analysis;
+    return {
+      ...analysis,
+      gaslightingRiskScore: 0,
+      conflictIntensityScore: 0,
+      supportivenessScore: 0,
+      apologyFrequencyScore: 0,
+      otherPatternScores: {},
+      communicationStats: {
+        initiatorBalance: {},
+        apologyCount: {},
+        conflictFrequency: '0',
+        resolutionRate: 0,
+        ...(analysis.communicationStats || {})
+      }
+    };
+  }, [analysis, isScreenshotMode]);
+
   // Determine safety level
   const safetyLevel = useMemo(() => {
-    if (emotionalSafetyIndex < 0.4) return 'low';
-    if (emotionalSafetyIndex < 0.7) return 'medium';
+    if (displayEmotionalSafety < 0.4) return 'low';
+    if (displayEmotionalSafety < 0.7) return 'medium';
     return 'high';
-  }, [emotionalSafetyIndex]);
+  }, [displayEmotionalSafety]);
 
   const safetyBadgeTone = useMemo(
-    () => getBadgeTone(getLevelFromPercent(emotionalSafetyIndex * 100), 'higher-better'),
-    [emotionalSafetyIndex]
+    () => getBadgeTone(getLevelFromPercent(displayEmotionalSafety * 100), 'higher-better'),
+    [displayEmotionalSafety]
   );
 
-  const gaslightingPercent = (analysis?.gaslightingRiskScore ?? 0) * 100;
-  const gaslightingLevel = getLevelFromPercent(gaslightingPercent);
+  const gaslightingLevel = getLevelFromPercent(displayGaslightingPercent);
   const gaslightingTone = getToneFromMeta(
     gaslightingLevel,
     'higher-worse',
@@ -727,8 +754,7 @@ export default function AnalysisPage() {
     analysis?.gaslightingRiskSentiment
   );
 
-  const conflictPercent = (analysis?.conflictIntensityScore ?? 0) * 100;
-  const conflictLevel = getLevelFromPercent(conflictPercent);
+  const conflictLevel = getLevelFromPercent(displayConflictPercent);
   const conflictTone = getToneFromMeta(
     conflictLevel,
     'higher-worse',
@@ -736,8 +762,7 @@ export default function AnalysisPage() {
     analysis?.conflictIntensitySentiment
   );
 
-  const supportPercent = (analysis?.supportivenessScore ?? 0) * 100;
-  const supportLevel = getLevelFromPercent(supportPercent);
+  const supportLevel = getLevelFromPercent(displaySupportPercent);
   const supportTone = getToneFromMeta(
     supportLevel,
     'higher-better',
@@ -745,8 +770,7 @@ export default function AnalysisPage() {
     analysis?.supportivenessSentiment
   );
 
-  const resolutionPercent = analysis?.communicationStats?.resolutionRate ?? 0;
-  const resolutionLevel = getLevelFromPercent(resolutionPercent);
+  const resolutionLevel = getLevelFromPercent(displayResolutionPercent);
   const resolutionTone = getBadgeTone(resolutionLevel, 'higher-better');
 
   const partitionByParticipant = useCallback(
@@ -1154,6 +1178,14 @@ export default function AnalysisPage() {
     const generatedBy = t('exportGeneratedBy');
 
     let report = `${reportTitle} - ${dateStr}\n\n`;
+
+    // Screenshot-only: return minimal report (overview + footer)
+    if (isScreenshotMode) {
+      const overviewText = replaceParticipantIds(getOverviewSummaryText());
+      report += `${t('exportOverview')}: ${overviewText}\n\n`;
+      report += `${generatedBy}`;
+      return report;
+    }
 
     // If analysis fell back to a generic/default section, явно объясняем это и не притворяемся, что есть точные проценты
     if (isGenericFallback) {
@@ -1594,7 +1626,7 @@ export default function AnalysisPage() {
   };
 
   const exportTXT = () => {
-    if (!isPremiumAnalysis) {
+    if (!isPremiumAnalysis && !isScreenshotMode) {
       alert(locale === 'ru' ? 'Полный отчет доступен после оплаты.' : 'Unlock premium to export the full report.');
       return;
     }
@@ -2302,7 +2334,12 @@ export default function AnalysisPage() {
               )}
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
-            <Button onClick={copySummary} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
+            <Button
+              onClick={copySummary}
+              variant="outline"
+              size="sm"
+              disabled={!(isPremiumAnalysis || isScreenshotMode)}
+            >
               {copySuccess
                 ? locale === 'ru'
                   ? 'Скопировано!'
@@ -2327,13 +2364,28 @@ export default function AnalysisPage() {
                 ? 'Copiar resumo'
                 : 'Copy Summary'}
             </Button>
-            <Button onClick={exportTXT} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
+            <Button
+              onClick={exportTXT}
+              variant="outline"
+              size="sm"
+              disabled={!(isPremiumAnalysis || isScreenshotMode)}
+            >
               {t('exportTXT')}
             </Button>
-            <Button onClick={exportJSON} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
+            <Button
+              onClick={exportJSON}
+              variant="outline"
+              size="sm"
+              disabled={!isPremiumAnalysis || isScreenshotMode}
+            >
               {t('exportJSON')}
             </Button>
-            <Button onClick={exportPDF} variant="outline" size="sm" disabled={!isPremiumAnalysis}>
+            <Button
+              onClick={exportPDF}
+              variant="outline"
+              size="sm"
+              disabled={!isPremiumAnalysis || isScreenshotMode}
+            >
               {t('exportPDF')}
             </Button>
             {!isPremiumAnalysis && (
@@ -2394,7 +2446,7 @@ export default function AnalysisPage() {
                   {analysis && (
                     <div className="flex items-center gap-2">
                       <div className={`text-lg font-bold ${getToneTextColor(safetyBadgeTone)}`}>
-                        {(emotionalSafetyIndex * 100).toFixed(0)}%
+                        {(displayEmotionalSafety * 100).toFixed(0)}%
                       </div>
                       <Badge variant="outline" tone={safetyBadgeTone} size="sm">
                         {getSafetyLevelText(safetyLevel)}
@@ -2404,31 +2456,39 @@ export default function AnalysisPage() {
                 </div>
               </CardBase>
 
+              {isScreenshotMode && (
+                <p className="text-xs text-muted-foreground">
+                  {locale === 'ru'
+                    ? 'Демо-метрики по скриншоту. Загрузите экспорт переписки для точных данных.'
+                    : 'Demo metrics from screenshot only. Upload the full chat export for accurate scores.'}
+                </p>
+              )}
+
               <div className="grid grid-cols-1 gap-2">
                 {[
                   {
                     label: t('gaslightingRisk'),
-                    percent: gaslightingPercent,
+                    percent: displayGaslightingPercent,
                     tone: gaslightingTone,
                     level: getLevelLabel(gaslightingLevel, locale),
-                    progress: analysis?.gaslightingRiskScore ? analysis.gaslightingRiskScore * 100 : 0,
-                    indicator: getNegativeProgressColor(analysis?.gaslightingRiskScore ? analysis.gaslightingRiskScore * 100 : 0),
+                    progress: displayGaslightingPercent,
+                    indicator: getNegativeProgressColor(displayGaslightingPercent),
                   },
                   {
                     label: t('conflictIntensity'),
-                    percent: conflictPercent,
+                    percent: displayConflictPercent,
                     tone: conflictTone,
                     level: getLevelLabel(conflictLevel, locale),
-                    progress: analysis?.conflictIntensityScore ? analysis.conflictIntensityScore * 100 : 0,
-                    indicator: getNegativeProgressColor(analysis?.conflictIntensityScore ? analysis.conflictIntensityScore * 100 : 0),
+                    progress: displayConflictPercent,
+                    indicator: getNegativeProgressColor(displayConflictPercent),
                   },
                   {
                     label: t('supportiveness'),
-                    percent: supportPercent,
+                    percent: displaySupportPercent,
                     tone: supportTone,
                     level: getLevelLabel(supportLevel, locale),
-                    progress: analysis?.supportivenessScore ? analysis.supportivenessScore * 100 : 0,
-                    indicator: getPositiveProgressColor(analysis?.supportivenessScore ? analysis.supportivenessScore * 100 : 0),
+                    progress: displaySupportPercent,
+                    indicator: getPositiveProgressColor(displaySupportPercent),
                   },
                   {
                     label:
@@ -2443,11 +2503,11 @@ export default function AnalysisPage() {
                         : locale === 'pt'
                         ? 'Resolução de conflitos'
                         : 'Conflict Resolution',
-                    percent: resolutionPercent,
+                    percent: displayResolutionPercent,
                     tone: resolutionTone,
                     level: getLevelLabel(resolutionLevel, locale),
-                    progress: analysis?.communicationStats?.resolutionRate ?? 0,
-                    indicator: getPositiveProgressColor(analysis?.communicationStats?.resolutionRate ?? 0),
+                    progress: displayResolutionPercent,
+                    indicator: getPositiveProgressColor(displayResolutionPercent),
                   },
                 ].map((item, idx) => (
                   <CardBase
@@ -2478,11 +2538,11 @@ export default function AnalysisPage() {
               <CardBase className="p-3 overflow-hidden">
                 <div className="w-full max-w-[280px] mx-auto">
                   <AnalysisRadarChart
-                    analysis={analysis}
+                    analysis={analysisForDisplay || analysis}
                     variant="compact"
                     primaryMetricColor={(() => {
-                      if (emotionalSafetyIndex >= 0.7) return 'hsl(142 71% 45%)';
-                      if (emotionalSafetyIndex >= 0.4) return 'hsl(45 93% 47%)';
+                      if (displayEmotionalSafety >= 0.7) return 'hsl(142 71% 45%)';
+                      if (displayEmotionalSafety >= 0.4) return 'hsl(45 93% 47%)';
                       return 'hsl(0 72% 51%)';
                     })()}
                     className="max-w-[280px] mx-auto"
@@ -2493,7 +2553,7 @@ export default function AnalysisPage() {
 
             {/* Desktop / tablet layout */}
             <div className="hidden md:block">
-            <CardBase className="p-4 sm:p-5 overflow-hidden mt-1">
+              <CardBase className="p-4 sm:p-5 overflow-hidden mt-1 space-y-2">
           <div className="mb-4 sm:mb-5 flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3 sm:gap-4">
             <h2 className="text-lg sm:text-2xl font-bold text-foreground tracking-tight leading-snug">
               {t('relationship_health_title') || 'Relationship Health Overview'}
@@ -2501,7 +2561,7 @@ export default function AnalysisPage() {
             {analysis && (
               <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
                 <div className={`text-base sm:text-xl font-bold ${getToneTextColor(safetyBadgeTone)}`}>
-                  {(emotionalSafetyIndex * 100).toFixed(0)}%
+                  {(displayEmotionalSafety * 100).toFixed(0)}%
                 </div>
                 <Badge
                   variant="outline"
@@ -2513,6 +2573,14 @@ export default function AnalysisPage() {
               </div>
             )}
           </div>
+
+                {isScreenshotMode && (
+                  <p className="text-xs text-muted-foreground">
+                    {locale === 'ru'
+                      ? 'Демо-метрики по скриншоту. Загрузите экспорт переписки для точных данных.'
+                      : 'Demo metrics from screenshot only. Upload the full chat export for accurate scores.'}
+                  </p>
+                )}
 
           <div className="md:flex md:justify-end md:items-start min-w-0 w-full">
             <div className="grid gap-4 sm:gap-5 md:grid-cols-2 items-stretch w-full max-w-full min-w-0 md:pl-6">
@@ -2531,7 +2599,7 @@ export default function AnalysisPage() {
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(gaslightingTone)}`}
                         >
-                          {gaslightingPercent.toFixed(0)}%
+                          {displayGaslightingPercent.toFixed(0)}%
                         </div>
                       <Badge
                         variant="outline"
@@ -2546,9 +2614,9 @@ export default function AnalysisPage() {
                           {t('gaslightingRisk')}
                         </div>
                         <Progress
-                          value={analysis.gaslightingRiskScore * 100}
+                          value={displayGaslightingPercent}
                           className="h-1.5 sm:h-2"
-                          indicatorClassName={getNegativeProgressColor(analysis.gaslightingRiskScore * 100)}
+                          indicatorClassName={getNegativeProgressColor(displayGaslightingPercent)}
                         />
                       </div>
                     </div>
@@ -2566,7 +2634,7 @@ export default function AnalysisPage() {
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(conflictTone)}`}
                         >
-                          {conflictPercent.toFixed(0)}%
+                          {displayConflictPercent.toFixed(0)}%
                         </div>
                       <Badge
                         variant="outline"
@@ -2581,9 +2649,9 @@ export default function AnalysisPage() {
                           {t('conflictIntensity')}
                         </div>
                         <Progress
-                          value={analysis.conflictIntensityScore * 100}
+                          value={displayConflictPercent}
                           className="h-1.5 sm:h-2"
-                          indicatorClassName={getNegativeProgressColor(analysis.conflictIntensityScore * 100)}
+                          indicatorClassName={getNegativeProgressColor(displayConflictPercent)}
                         />
                       </div>
                     </div>
@@ -2601,7 +2669,7 @@ export default function AnalysisPage() {
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(supportTone)}`}
                         >
-                          {supportPercent.toFixed(0)}%
+                          {displaySupportPercent.toFixed(0)}%
                         </div>
                       <Badge
                         variant="outline"
@@ -2616,9 +2684,9 @@ export default function AnalysisPage() {
                           {t('supportiveness')}
                         </div>
                         <Progress
-                          value={analysis.supportivenessScore * 100}
+                          value={displaySupportPercent}
                           className="h-1.5 sm:h-2"
-                          indicatorClassName={getPositiveProgressColor(analysis.supportivenessScore * 100)}
+                          indicatorClassName={getPositiveProgressColor(displaySupportPercent)}
                         />
                       </div>
                     </div>
@@ -2636,7 +2704,7 @@ export default function AnalysisPage() {
                         <div
                           className={`text-lg sm:text-xl font-bold ${getToneTextColor(resolutionTone)}`}
                         >
-                          {resolutionPercent.toFixed(0)}%
+                          {displayResolutionPercent.toFixed(0)}%
                         </div>
                       <Badge
                         variant="outline"
@@ -2651,9 +2719,9 @@ export default function AnalysisPage() {
                           {locale === 'ru' ? 'Разрешение конфликтов' : 'Conflict Resolution'}
                         </div>
                         <Progress
-                          value={analysis.communicationStats?.resolutionRate ?? 0}
+                          value={displayResolutionPercent}
                           className="h-1.5 sm:h-2"
-                          indicatorClassName={getPositiveProgressColor(analysis.communicationStats?.resolutionRate ?? 0)}
+                          indicatorClassName={getPositiveProgressColor(displayResolutionPercent)}
                         />
                       </div>
                     </div>
@@ -2665,14 +2733,14 @@ export default function AnalysisPage() {
               <div className="flex items-center justify-center md:justify-end md:items-start mt-4 md:mt-0 w-full px-1">
                 <div className="w-full max-w-[360px] sm:max-w-md md:max-w-full h-full mx-auto md:mx-0">
                   <AnalysisRadarChart 
-                    analysis={analysis} 
+                    analysis={analysisForDisplay || analysis} 
                     variant="compact"
                     primaryMetricColor={(() => {
                       // Use emotionalSafetyIndex color to match the top-right indicator
                       // Match safetyLevel logic: < 0.4 = red (low), < 0.7 = yellow (medium), >= 0.7 = green (high)
-                      if (emotionalSafetyIndex >= 0.7) {
+                      if (displayEmotionalSafety >= 0.7) {
                         return 'hsl(142 71% 45%)'; // green-600 (High = green)
-                      } else if (emotionalSafetyIndex >= 0.4) {
+                      } else if (displayEmotionalSafety >= 0.4) {
                         return 'hsl(45 93% 47%)'; // yellow-600 (Medium = yellow)
                       } else {
                         // < 0.4 = red (Low, matches "40% Низкий" indicator)
@@ -2684,7 +2752,7 @@ export default function AnalysisPage() {
               </div>
             </div>
           </div>
-        </CardBase>
+              </CardBase>
             </div>
 
 

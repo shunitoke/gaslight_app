@@ -34,6 +34,27 @@ function getLanguageInstruction(locale: SupportedLocale): string {
 import { updateProgress as updateProgressDirect } from '../../lib/progress';
 
 const ANALYSIS_VERSION = '1.0.0';
+type AnalysisMode = 'default' | 'screenshot';
+
+function buildScreenshotResult(
+  conversation: Conversation,
+  overviewSummary: string
+): AnalysisResult {
+  return {
+    id: `analysis_${conversation.id}_${Date.now()}`,
+    conversationId: conversation.id,
+    createdAt: new Date().toISOString(),
+    version: `${ANALYSIS_VERSION}-screenshot`,
+    gaslightingRiskScore: 0.5,
+    conflictIntensityScore: 0.5,
+    supportivenessScore: 0.5,
+    apologyFrequencyScore: 0.0,
+    otherPatternScores: {},
+    overviewSummary,
+    sections: [],
+    redFlagCounts: { yellow: 0, orange: 0, red: 0 }
+  };
+}
 
 /**
  * Get translated default messages for analysis results
@@ -908,7 +929,8 @@ export async function analyzeConversation(
   enhancedAnalysis: boolean = false,
   conversationId?: string,
   participants: Participant[] = [],
-  locale: SupportedLocale = 'en'
+  locale: SupportedLocale = 'en',
+  analysisMode: AnalysisMode = 'default'
 ): Promise<AnalysisResult> {
   const analysisId = `analysis_${conversation.id}_${Date.now()}`;
   const startTime = Date.now();
@@ -1044,6 +1066,82 @@ export async function analyzeConversation(
           progress: 10 + Math.floor((i + 1) / mediaToAnalyze.length * 10)
         });
       }
+    }
+
+    // Shortcut: screenshot-only mode to save tokens (no full chunking)
+    if (analysisMode === 'screenshot') {
+      await updateProgress(progressId, {
+        status: 'finalizing',
+        progress: 40,
+        message: 'Generating lightweight screenshot report...'
+      });
+
+      const imageMedia = mediaArtifacts.find((m) => ['image', 'sticker', 'gif'].includes(m.type));
+      const ocrText = (imageMedia?.notes || imageMedia?.labels?.join(' ') || '').trim();
+
+      let overviewFromLLM: string | null = null;
+      if (ocrText.length > 0) {
+        try {
+          const systemPrompt = `You are a forensic relationship analyst. Create a VERY SHORT overview summary (3-5 sentences) in ${getLanguageInstruction(
+            locale
+          )} based ONLY on OCR text from a chat screenshot. Mention this is a limited screenshot-only report and invite the user to upload a full export for detailed analysis. Use light psychological framing (NVC/CBT/attachment/transactional) but keep it concise. Return ONLY JSON with shape {"overviewSummary": "<text>","mode":"screenshot"}. No markdown, no extra fields.`;
+          const userPrompt = `OCR text from screenshot (raw, may be noisy):\n${ocrText.slice(0, 4000)}`;
+
+          const response = await callLLM({
+            model: getConfig().textModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 220,
+            temperature: 0.6
+          });
+
+          const content = response?.choices?.[0]?.message?.content || '';
+          let parsed: any = null;
+          try {
+            const jsonMatch =
+              content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
+            parsed = JSON.parse(jsonMatch ? jsonMatch[1] : content);
+            if (parsed && typeof parsed.overviewSummary === 'string') {
+              overviewFromLLM = parsed.overviewSummary.trim();
+            }
+          } catch {
+            overviewFromLLM = content.trim();
+          }
+        } catch (llmError) {
+          logWarn('screenshot_llm_failed', { error: (llmError as Error).message });
+        }
+      }
+
+      const fallbackOverview =
+        locale === 'ru'
+          ? 'Спец-отчёт по скриншоту. Текст распознан частично. Загрузите экспорт переписки, чтобы получить полный разбор с примерами-доказательствами.'
+          : 'Screenshot-only report. Text was partially recognized. Upload a full chat export to get the detailed analysis with evidence.';
+
+      const overviewSummary = overviewFromLLM?.length ? overviewFromLLM : fallbackOverview;
+      const screenshotResult = buildScreenshotResult(conversation, overviewSummary);
+
+      await updateProgress(progressId, {
+        status: 'completed',
+        progress: 100
+      });
+
+      try {
+        const { recordAnalysisComplete } = await import('../../lib/metrics');
+        await recordAnalysisComplete(conversation.id, 0, false, undefined);
+      } catch (metricsError) {
+        logWarn('metrics_complete_error_screenshot', {
+          error: (metricsError as Error).message
+        });
+      }
+
+      logInfo('analysis_completed_screenshot_mode', {
+        conversationId: conversation.id,
+        mediaCount: mediaArtifacts.length
+      });
+
+      return screenshotResult;
     }
 
     // Chunk messages if needed (for very large conversations).

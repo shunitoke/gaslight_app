@@ -228,6 +228,7 @@ export default function HomePageClient() {
       participants?: Participant[];
       features?: { canAnalyzeMedia?: boolean; canUseEnhancedAnalysis?: boolean };
       isVoiceRecording?: boolean;
+      analysisMode?: 'default' | 'screenshot';
     }) => {
       const premiumToken = getPremiumToken();
       const hasPremium = FORCE_PREMIUM || Boolean(premiumToken);
@@ -416,7 +417,8 @@ export default function HomePageClient() {
             mediaArtifacts: importData.media || [],
             enhancedAnalysis: importData.features?.canUseEnhancedAnalysis,
             participants: importData.participants || [],
-            locale: locale
+            locale: locale,
+            analysisMode: importData.analysisMode || 'default'
           })
         });
 
@@ -587,6 +589,7 @@ export default function HomePageClient() {
         file.type.startsWith('audio') ||
         file.type === 'video/webm' || // some browsers label mic capture as video/webm
         Boolean(file.name.match(/\.(mp3|wav|ogg|opus|m4a|webm)$/i));
+      const isScreenshot = !isAudio;
 
       let transcript: string | undefined;
 
@@ -639,14 +642,15 @@ export default function HomePageClient() {
       setAnalysisProgress({
         progress: 0,
         status: 'starting',
-        message: 'Starting AI analysis...',
+        message: isScreenshot ? 'Generating screenshot report...' : 'Starting AI analysis...',
         isVoiceRecording: isAudio
       });
       setUploading(false);
 
       await startAnalysisWithImport({
         ...importData,
-        isVoiceRecording: isAudio
+        isVoiceRecording: isAudio,
+        analysisMode: isScreenshot ? 'screenshot' : 'default'
       });
     } catch (err) {
       const message = (err as Error).message || t('errorOccurred');

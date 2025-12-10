@@ -34,6 +34,7 @@ type AnalyzeStartBody = {
   enhancedAnalysis?: boolean;
   participants?: Participant[];
   locale?: SupportedLocale;
+  analysisMode?: 'default' | 'screenshot';
 };
 
 export async function POST(request: Request) {
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
       enhancedAnalysis = false,
       participants = [],
       locale = 'en',
+      analysisMode = 'default',
     } = body;
 
     if (!conversation || !messages || !Array.isArray(messages)) {
@@ -220,6 +222,7 @@ export async function POST(request: Request) {
           conversation.id,
           participants,
           locale,
+          analysisMode,
         );
 
         // Aggregate simple daily activity for lightweight timeline/heatmap visuals
