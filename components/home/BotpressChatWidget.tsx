@@ -22,6 +22,8 @@ const SCRIPT_SRC = 'https://cdn.botpress.cloud/webchat/v3.5/inject.js';
 export function BotpressChatWidget() {
   const initializedRef = useRef(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const fallbackRef = useRef<HTMLIFrameElement | null>(null);
+  const [showFallback, setShowFallback] = React.useState(false);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -66,6 +68,18 @@ export function BotpressChatWidget() {
           payload: { source: 'auto-5s' }
         });
       }, 5000);
+
+      // If nothing appears after a few seconds, render iframe fallback
+      setTimeout(() => {
+        const hasWidget =
+          document.querySelector('.bpFab') ||
+          document.querySelector('.bpWebchat') ||
+          document.querySelector('iframe[src*="botpress.cloud"]');
+        if (!hasWidget) {
+          console.info('[Botpress] enabling iframe fallback');
+          setShowFallback(true);
+        }
+      }, 6000);
     };
 
     const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
@@ -104,6 +118,30 @@ export function BotpressChatWidget() {
   }, []);
 
   return null;
+  return showFallback ? (
+    <iframe
+      ref={fallbackRef}
+      title="Botpress Chat"
+      src={`https://cdn.botpress.cloud/webchat/v3.5/shareable.html?configUrl=${encodeURIComponent(
+        CONFIG_URL
+      )}`}
+      style={{
+        position: 'fixed',
+        bottom: '16px',
+        right: '16px',
+        width: '360px',
+        maxWidth: '90vw',
+        height: '520px',
+        maxHeight: '80vh',
+        border: 'none',
+        borderRadius: '12px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+        zIndex: 2147483646,
+        background: 'transparent'
+      }}
+      allow="clipboard-read; clipboard-write; microphone; camera"
+    />
+  ) : null;
 }
 
 
