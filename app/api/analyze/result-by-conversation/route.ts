@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getJobByConversationId, deleteJob } from '../jobStore';
 import { getProgressStore, deleteProgressStore } from '../progress/route';
 import { logWarn, logInfo } from '../../../../lib/telemetry';
+import { setAnalysisResult } from '../../../../lib/analysisResultStore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -35,6 +36,10 @@ export async function GET(request: Request) {
         sectionsCount: progress.result.analysis?.sections?.length || 0
       });
       const response = NextResponse.json(progress.result, { status: 200 });
+      const analysisId = progress.result?.analysis?.id;
+      if (analysisId) {
+        setAnalysisResult(analysisId, progress.result).catch(() => {});
+      }
       try {
         const jobForCleanup = await getJobByConversationId(conversationId);
         await Promise.allSettled([
@@ -59,6 +64,10 @@ export async function GET(request: Request) {
         sectionsCount: job.result.analysis?.sections?.length || 0
       });
       const response = NextResponse.json(job.result, { status: 200 });
+      const analysisId = job.result?.analysis?.id;
+      if (analysisId) {
+        setAnalysisResult(analysisId, job.result).catch(() => {});
+      }
       try {
         await Promise.allSettled([
           deleteProgressStore(conversationId),

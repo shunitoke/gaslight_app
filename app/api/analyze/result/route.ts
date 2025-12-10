@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getJob, deleteJob } from '../jobStore';
 import { deleteProgressStore } from '../progress/route';
 import { logWarn } from '../../../../lib/telemetry';
+import { setAnalysisResult } from '../../../../lib/analysisResultStore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -49,6 +50,14 @@ export async function GET(request: Request) {
     analysis: job.result.analysis,
     activityByDay: job.result.activityByDay,
   };
+
+  // Persist for reopen by analysisId (best effort)
+  const analysisId = job.result?.analysis?.id;
+  if (analysisId) {
+    setAnalysisResult(analysisId, job.result).catch(() => {
+      // best-effort, ignore
+    });
+  }
 
   // Best-effort cleanup after delivery (progress + job)
   try {

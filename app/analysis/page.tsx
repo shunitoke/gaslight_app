@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
@@ -258,6 +258,7 @@ function SectionCard({
 export default function AnalysisPage() {
   const { t, locale } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [activityByDay, setActivityByDay] = useState<DailyActivity[]>([]);
@@ -957,7 +958,7 @@ export default function AnalysisPage() {
     return (['en', 'ru', 'fr', 'de', 'es', 'pt'] as const).includes(shortLang as any)
       ? (shortLang as SupportedLocale)
       : 'unknown';
-  }, []);
+  }, [searchParams]);
 
   const applyLoadedData = useCallback(
     (
@@ -975,6 +976,14 @@ export default function AnalysisPage() {
         isPremium,
         timestamp: now
       });
+
+      try {
+        if (typeof window !== 'undefined' && analysisData?.id) {
+          localStorage.setItem('lastAnalysisId', analysisData.id);
+        }
+      } catch {
+        // ignore storage errors
+      }
 
       setAnalysis(analysisData);
       setParticipants(participantsData);
@@ -1061,6 +1070,7 @@ export default function AnalysisPage() {
           }
         }
 
+        const analysisIdFromQuery = searchParams?.get('analysisId');
         const tier = storedTier || 'free';
         const forcePremium =
           typeof process !== 'undefined' &&
@@ -1074,6 +1084,48 @@ export default function AnalysisPage() {
           }
         }
         const isPremium = forcePremium || tier === 'premium' || Boolean(premiumToken);
+
+        const fetchByAnalysisId = async (analysisId: string): Promise<boolean> => {
+          const res = await fetch(`/api/analysis/${encodeURIComponent(analysisId)}`);
+          if (!res.ok) {
+            return false;
+          }
+          const data = await res.json();
+          if (!data?.analysis) {
+            return false;
+          }
+          const analysisData = data.analysis as AnalysisResult;
+          const activityFromServer: DailyActivity[] = Array.isArray(data.activityByDay)
+            ? data.activityByDay
+            : [];
+          const conversationFromServer = data.conversation as Conversation | undefined;
+          const language = derivePrimaryLanguage(conversationFromServer ?? parsedConversation);
+
+          sessionStorage.setItem('currentAnalysis', JSON.stringify(analysisData));
+          if (conversationFromServer?.id) {
+            sessionStorage.setItem('currentConversationId', conversationFromServer.id);
+            sessionStorage.setItem('currentConversation', JSON.stringify(conversationFromServer));
+          }
+          if (activityFromServer.length > 0) {
+            sessionStorage.setItem('currentActivityByDay', JSON.stringify(activityFromServer));
+          }
+          if (participantsData.length > 0) {
+            sessionStorage.setItem('currentParticipants', JSON.stringify(participantsData));
+          }
+          sessionStorage.setItem('currentSubscriptionTier', tier);
+          if (storedFeatures) {
+            sessionStorage.setItem('currentFeatures', storedFeatures);
+          }
+
+          applyLoadedData(
+            analysisData,
+            participantsData,
+            activityFromServer,
+            language,
+            isPremium
+          );
+          return true;
+        };
 
         const refetchFromServer = async (): Promise<boolean> => {
           if (!currentConversationId) {
@@ -1129,6 +1181,10 @@ export default function AnalysisPage() {
         };
 
         if (!stored) {
+          if (analysisIdFromQuery) {
+            const ok = await fetchByAnalysisId(analysisIdFromQuery);
+            if (ok) return;
+          }
           try {
             const ok = await refetchFromServer();
             if (ok) return;
