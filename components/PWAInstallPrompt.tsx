@@ -1,7 +1,7 @@
 'use client';
 
 import { Download } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useLanguage } from '../features/i18n';
 import { Button } from './ui/Button';
@@ -10,24 +10,29 @@ export function PWAInstallPrompt() {
   const { t } = useLanguage();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
-  const hasAutoPrompted = useRef(false);
 
   useEffect(() => {
     // Listen for the beforeinstallprompt event
-    const handler = (e: Event) => {
+    const handler = async (e: any) => {
+      // Keep control to optionally re-use prompt; call prompt immediately to satisfy Chrome.
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
 
-       // Automatically call prompt once to avoid "banner not shown" warning.
-       if (!hasAutoPrompted.current && (e as any)?.prompt) {
-         hasAutoPrompted.current = true;
-         (e as any)
-           .prompt()
-           .catch(() => {
-             // ignore prompt rejection; user can still click the custom button
-           });
-       }
+      if (typeof e.prompt === 'function') {
+        try {
+          e.prompt();
+          const result = await e.userChoice?.catch?.(() => null);
+          if (result?.outcome === 'accepted') {
+            setShowInstallButton(false);
+            return;
+          }
+        } catch {
+          // Ignore and fall back to manual button
+        }
+      }
+
+      // Show custom button so user can try again.
+      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
