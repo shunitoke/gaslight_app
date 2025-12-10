@@ -26,12 +26,22 @@ export function BotpressChatWidget() {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
+    const tryOpen = (reason: string) => {
+      const opened = window.botpressWebChat?.open?.();
+      if (!opened) {
+        // Fallback: click default FAB if present
+        const fab = document.querySelector('.bpFab') as HTMLElement | null;
+        fab?.click();
+      }
+      console.info('[Botpress] open attempted:', reason);
+    };
+
     const initBotpress = () => {
       // Ensure widget opens once ready so the bubble appears even if auto-open is disabled in config.
       const maybeUnsub = window.botpressWebChat?.on?.('webchat:ready', () => {
         console.info('[Botpress] webchat:ready');
-        // Delay a tick to let styles mount
-        requestAnimationFrame(() => window.botpressWebChat?.open?.());
+        // Delay a tick to let styles mount, then open
+        requestAnimationFrame(() => tryOpen('ready'));
       });
       unsubscribeRef.current = typeof maybeUnsub === 'function' ? maybeUnsub : null;
 
@@ -39,6 +49,10 @@ export function BotpressChatWidget() {
       window.botpressWebChat?.init?.({
         configUrl: CONFIG_URL
       });
+
+      // Fallback open attempts in case ready event doesn’t fire
+      setTimeout(() => tryOpen('fallback-2s'), 2000);
+      setTimeout(() => tryOpen('fallback-5s'), 5000);
     };
 
     const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
