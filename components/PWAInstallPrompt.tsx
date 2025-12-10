@@ -12,10 +12,11 @@ export function PWAInstallPrompt() {
   const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
-    // Let the browser handle its own install UI; avoid preventDefault to stop warnings.
+    // Capture the event so we can trigger prompt from user gesture.
     const handler = (e: any) => {
-      setDeferredPrompt(null);
-      setShowInstallButton(false);
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);

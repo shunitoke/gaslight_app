@@ -24,6 +24,7 @@ export function BotpressChatWidget() {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const fallbackRef = useRef<HTMLIFrameElement | null>(null);
   const [showFallback, setShowFallback] = useState(false);
+  const [fallbackOpen, setFallbackOpen] = useState(false);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -117,30 +118,57 @@ export function BotpressChatWidget() {
     };
   }, []);
 
-  return null;
   return showFallback ? (
-    <iframe
-      ref={fallbackRef}
-      title="Botpress Chat"
-      src={`https://cdn.botpress.cloud/webchat/v3.5/shareable.html?configUrl=${encodeURIComponent(
-        CONFIG_URL
-      )}`}
-      style={{
-        position: 'fixed',
-        bottom: '16px',
-        right: '16px',
-        width: '360px',
-        maxWidth: '90vw',
-        height: '520px',
-        maxHeight: '80vh',
-        border: 'none',
-        borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-        zIndex: 2147483646,
-        background: 'transparent'
-      }}
-      allow="clipboard-read; clipboard-write; microphone; camera"
-    />
+    <>
+      {fallbackOpen && (
+        <iframe
+          ref={fallbackRef}
+          title="Botpress Chat"
+          src={`https://cdn.botpress.cloud/webchat/v3.5/shareable.html?configUrl=${encodeURIComponent(
+            CONFIG_URL
+          )}`}
+          style={{
+            position: 'fixed',
+            bottom: '80px',
+            right: '16px',
+            width: '360px',
+            maxWidth: '90vw',
+            height: '520px',
+            maxHeight: '80vh',
+            border: 'none',
+            borderRadius: '12px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            zIndex: 2147483646,
+            background: 'transparent'
+          }}
+          allow="clipboard-read; clipboard-write; microphone; camera"
+        />
+      )}
+      <button
+        type="button"
+        aria-label="Open chat"
+        onClick={() => setFallbackOpen((v) => !v)}
+        style={{
+          position: 'fixed',
+          bottom: '16px',
+          right: '16px',
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          border: 'none',
+          background: '#ef3b53',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.25)',
+          color: '#fff',
+          cursor: 'pointer',
+          zIndex: 2147483647,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        {fallbackOpen ? '×' : '💬'}
+      </button>
+    </>
   ) : null;
 }
 

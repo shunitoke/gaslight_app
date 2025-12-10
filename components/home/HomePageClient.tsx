@@ -42,7 +42,6 @@ import { useLanguage } from '@/features/i18n';
 import { cn } from '@/lib/utils';
 import { MediaUpload } from '@/components/ui/MediaUpload';
 import { TextGenerateEffect } from '@/components/ui/shadcn-io/text-generate-effect';
-import { BotpressChatWidget } from '@/components/home/BotpressChatWidget';
 
 type ParsedManualConversation = {
   conversation: Conversation;
@@ -1440,7 +1439,6 @@ export default function HomePageClient() {
 
   return (
     <>
-      <BotpressChatWidget />
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 md:gap-12 px-4 sm:px-6 py-8 sm:py-12">
         <div className="w-full grid xl:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-10 py-6 sm:py-8 md:py-10">
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-5 w-full">
