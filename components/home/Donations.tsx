@@ -32,7 +32,6 @@ export function Donations() {
   const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const tributeLink = 'https://t.me/tribute/app?startapp=dBph';
   const channelLink = 'https://t.me/textswithmyex';
-  const chatLink = 'https://t.me/gaslight_community';
 
   const donateViaTelegramLabel =
     locale === 'ru'
@@ -62,29 +61,16 @@ export function Donations() {
 
   const joinChannelLabel =
     locale === 'ru'
-      ? 'Вступить в канал'
+      ? 'Присоединиться к сообществу'
       : locale === 'fr'
-      ? 'Rejoindre le canal'
+      ? 'Rejoindre la communauté'
       : locale === 'de'
-      ? 'Kanal beitreten'
+      ? 'Der Community beitreten'
       : locale === 'es'
-      ? 'Unirse al canal'
+      ? 'Unirse a la comunidad'
       : locale === 'pt'
-      ? 'Entrar no canal'
-      : 'Join the channel';
-
-  const joinChatLabel =
-    locale === 'ru'
-      ? 'Присоединиться к чату'
-      : locale === 'fr'
-      ? 'Rejoindre le chat'
-      : locale === 'de'
-      ? 'Chat beitreten'
-      : locale === 'es'
-      ? 'Unirse al chat'
-      : locale === 'pt'
-      ? 'Entrar no chat'
-      : 'Join the chat';
+      ? 'Entrar na comunidade'
+      : 'Join the community';
 
   return (
     <>
@@ -118,15 +104,6 @@ export function Donations() {
           >
             <TelegramIcon />
             {joinChannelLabel}
-          </a>
-          <a
-            href={chatLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary text-primary px-3 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
-          >
-            <TelegramIcon />
-            {joinChatLabel}
           </a>
           <details className="group mt-2">
             <summary className="cursor-pointer text-xs font-semibold text-destructive flex items-center gap-1.5 select-none">
@@ -181,15 +158,6 @@ export function Donations() {
             >
               <TelegramIcon />
               {joinChannelLabel}
-            </a>
-            <a
-              href={chatLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-primary text-primary px-4 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
-            >
-              <TelegramIcon />
-              {joinChatLabel}
             </a>
           </div>
           <details className="mt-3 group">
