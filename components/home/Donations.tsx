@@ -20,7 +20,7 @@ const DonationsQRImage = dynamic(
       <img
         src={props.src}
         alt={props.alt}
-        className="h-64 w-64 object-contain"
+        className="h-48 w-48 sm:h-64 sm:w-64 object-contain"
         loading="lazy"
       />
     ) })),
@@ -195,8 +195,11 @@ export function Donations() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
           onClick={() => setSelectedWallet(null)}
         >
-          <Card className="w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between p-4 pb-2">
+          <Card
+            className="w-full max-w-sm mx-4 p-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between p-3 sm:p-4 pb-2">
               <div>
                 <p className="text-xs text-muted-foreground">{t('donation_qr_for_wallet')}</p>
                 <p className="text-base font-semibold text-foreground">{selectedWallet.label}</p>
@@ -210,7 +213,7 @@ export function Donations() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-4 pt-2 flex flex-col items-center gap-3">
+            <div className="p-3 sm:p-4 pt-2 flex flex-col items-center gap-3">
               <div className="rounded-lg border border-border bg-background p-3">
                 <DonationsQRImage
                   src={getQrImageUrl(selectedWallet.address)}
