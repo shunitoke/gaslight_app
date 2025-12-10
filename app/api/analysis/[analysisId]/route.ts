@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { getAnalysisResult } from '../../../../lib/analysisResultStore';
 
@@ -6,10 +6,10 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { analysisId: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ analysisId: string }> }
 ) {
-  const analysisId = params.analysisId;
+  const { analysisId } = await params;
   if (!analysisId) {
     return NextResponse.json({ error: 'analysisId required' }, { status: 400 });
   }

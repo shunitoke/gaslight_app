@@ -91,7 +91,7 @@ export function Donations() {
             href={tributeLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-destructive text-destructive-foreground px-3 py-2 text-sm font-semibold shadow-sm hover:bg-destructive/90 transition"
           >
             <TelegramIcon />
             {donateViaTelegramLabel}
@@ -100,7 +100,7 @@ export function Donations() {
             href={channelLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary text-primary px-3 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-destructive text-destructive px-3 py-2 text-sm font-semibold shadow-sm hover:bg-destructive/10 transition"
           >
             <TelegramIcon />
             {joinChannelLabel}
@@ -145,7 +145,7 @@ export function Donations() {
               href={tributeLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition"
+              className="inline-flex items-center gap-2 rounded-lg bg-destructive text-destructive-foreground px-4 py-2 text-sm font-semibold shadow-sm hover:bg-destructive/90 transition"
             >
               <TelegramIcon />
               {donateViaTelegramLabel}
@@ -154,7 +154,7 @@ export function Donations() {
               href={channelLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-primary text-primary px-4 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-destructive text-destructive px-4 py-2 text-sm font-semibold shadow-sm hover:bg-destructive/10 transition"
             >
               <TelegramIcon />
               {joinChannelLabel}
