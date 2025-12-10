@@ -81,47 +81,83 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3 text-sm text-muted-foreground max-w-prose">
             <span className="leading-relaxed">{t('footer_disclaimer')}</span>
-            <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
-              <ScrollText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
-                {t('terms_title')}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
-                {t('privacy_title')}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <Undo2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <Link href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">
-                {t('refund_title')}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <Link href="/pricing" className="hover:text-foreground underline-offset-4 hover:underline">
-                {t('pricing_title')}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <Link
-                href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
-                aria-label={t('footer_report_bug')}
-                className="hover:text-foreground underline-offset-4 hover:underline"
-              >
-                {t('footer_report_bug')}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <Link
-                href="https://github.com/shunitoke/gaslight_app"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub repository"
-                className="inline-flex items-center gap-1 hover:text-foreground underline-offset-4 hover:underline"
-              >
-                <GitHubIcon />
-                <span>GitHub</span>
-              </Link>
-              <span className="text-muted-foreground">&copy; {currentYear} Texts with My Ex®</span>
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+              {[
+                {
+                  key: 'terms',
+                  icon: <ScrollText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
+                  content: (
+                    <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
+                      {t('terms_title')}
+                    </Link>
+                  )
+                },
+                {
+                  key: 'privacy',
+                  icon: <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
+                  content: (
+                    <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
+                      {t('privacy_title')}
+                    </Link>
+                  )
+                },
+                {
+                  key: 'refund',
+                  icon: <Undo2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
+                  content: (
+                    <Link href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">
+                      {t('refund_title')}
+                    </Link>
+                  )
+                },
+                {
+                  key: 'pricing',
+                  icon: <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
+                  content: (
+                    <Link href="/pricing" className="hover:text-foreground underline-offset-4 hover:underline">
+                      {t('pricing_title')}
+                    </Link>
+                  )
+                },
+                {
+                  key: 'bug',
+                  icon: <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
+                  content: (
+                    <Link
+                      href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
+                      aria-label={t('footer_report_bug')}
+                      className="hover:text-foreground underline-offset-4 hover:underline"
+                    >
+                      {t('footer_report_bug')}
+                    </Link>
+                  )
+                },
+                {
+                  key: 'github',
+                  icon: <GitHubIcon />,
+                  content: (
+                    <Link
+                      href="https://github.com/shunitoke/gaslight_app"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="GitHub repository"
+                      className="hover:text-foreground underline-offset-4 hover:underline"
+                    >
+                      GitHub
+                    </Link>
+                  )
+                }
+              ].map((item, idx) => (
+                <span
+                  key={item.key}
+                  className="inline-flex items-center gap-1 whitespace-nowrap"
+                >
+                  {idx > 0 && <span aria-hidden="true" className="px-0.5">•</span>}
+                  {item.icon}
+                  {item.content}
+                </span>
+              ))}
+              <span className="text-muted-foreground whitespace-nowrap">&copy; {currentYear} Texts with My Ex®</span>
             </div>
           </div>
 

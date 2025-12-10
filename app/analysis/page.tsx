@@ -3051,7 +3051,7 @@ export default function AnalysisPage() {
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center justify-between w-full pr-4">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-lg sm:text-xl font-bold text-foreground text-left tracking-tight">
+                            <h3 className="text-sm sm:text-base font-semibold text-foreground text-left">
                               {getSectionTitle(section.id, section.title)}
                             </h3>
                             {section.score !== undefined && (
@@ -3314,7 +3314,7 @@ export default function AnalysisPage() {
             <AccordionTrigger className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold">
               <div className="flex items-center justify-between w-full gap-3">
                 <span>{patternAnalysisLabel}</span>
-                <span className="text-xs text-muted-foreground truncate">
+                <span className="text-xs text-muted-foreground text-right leading-snug whitespace-normal break-words">
                   {analysis.timePatterns?.conflictTimes || analysis.emotionalCycle || ''}
                 </span>
               </div>
