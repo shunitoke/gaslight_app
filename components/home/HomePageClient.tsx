@@ -1558,66 +1558,6 @@ export default function HomePageClient() {
               {t('step2_title').toLowerCase?.() ?? t('step2_title')},{' '}
               {t('step3_title').toLowerCase?.() ?? t('step3_title')}.
             </p>
-            <div className="w-full max-w-2xl">
-              <div className="space-y-3 rounded-2xl border border-[color:hsla(var(--border),0.06)] bg-background/70 p-4 shadow-lg backdrop-blur-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 text-primary" />
-                    <p className="text-sm font-semibold text-foreground">{t('recentAnalysesTitle')}</p>
-                  </div>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="h-8 px-3 text-xs"
-                    onClick={handleClearHistory}
-                    disabled={!recentAnalyses.length}
-                  >
-                    {t('recentAnalysesClear')}
-                  </Button>
-                </div>
-
-                {recentAnalyses.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">{t('recentAnalysesEmpty')}</p>
-                ) : (
-                  <div className="max-h-64 overflow-y-auto rounded-xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-card/40">
-                    <div className="divide-y divide-[color:var(--card-border-soft,hsla(var(--border),0.08))]">
-                      {recentAnalyses.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={`/analysis?analysisId=${encodeURIComponent(item.id)}`}
-                          className="group block px-3 py-2 hover:bg-muted/60 transition-colors"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0 space-y-1">
-                              {item.conversationTitle ? (
-                                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                                  {localizeConversationTitle(item.conversationTitle, item.sourcePlatform, t) ||
-                                    item.conversationTitle}
-                                </p>
-                              ) : null}
-                              <p className="text-sm font-medium text-foreground line-clamp-2">
-                                {item.overview || t('recentAnalysesOverviewMissing')}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground">
-                                {formatHistoryDate(item.createdAt)}
-                              </p>
-                            </div>
-                            <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform duration-150 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-[11px] text-muted-foreground">
-                  {t('recentAnalysesRetention').replace(
-                    '{days}',
-                    ANALYSIS_HISTORY_TTL_DAYS.toString()
-                  )}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1917,6 +1857,64 @@ export default function HomePageClient() {
                   </div>
                 </div>
               )}
+
+              <div className="mt-10 w-full max-w-2xl animate-in fade-in zoom-in-95 duration-500">
+                <div className="space-y-3 rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-background/70 p-4 shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Clock3 className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-semibold text-foreground">{t('recentAnalysesTitle')}</p>
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={handleClearHistory}
+                      disabled={!recentAnalyses.length}
+                    >
+                      {t('recentAnalysesClear')}
+                    </Button>
+                  </div>
+
+                  {recentAnalyses.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">{t('recentAnalysesEmpty')}</p>
+                  ) : (
+                    <div className="max-h-64 overflow-y-auto rounded-xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-card/40">
+                      <div className="divide-y divide-[color:var(--card-border-soft,hsla(var(--border),0.08))]">
+                        {recentAnalyses.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/analysis?analysisId=${encodeURIComponent(item.id)}`}
+                            className="group block px-3 py-2 hover:bg-muted/60 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0 space-y-1">
+                                {item.conversationTitle ? (
+                                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    {localizeConversationTitle(item.conversationTitle, item.sourcePlatform, t) ||
+                                      item.conversationTitle}
+                                  </p>
+                                ) : null}
+                                <p className="text-sm font-medium text-foreground line-clamp-2">
+                                  {item.overview || t('recentAnalysesOverviewMissing')}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground">
+                                  {formatHistoryDate(item.createdAt)}
+                                </p>
+                              </div>
+                              <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform duration-150 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('recentAnalysesRetention').replace('{days}', ANALYSIS_HISTORY_TTL_DAYS.toString())}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
