@@ -49,9 +49,12 @@ html, body {
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 50% / 0.3;
-    --input: 215 20% 50% / 0.3;
+    /* Softer border for light theme (no embedded alpha) */
+    --border: 220 14% 70%;
+    --input: 220 14% 70%;
     --ring: 195 55% 30%;
+    --card-border-soft: color-mix(in srgb, hsl(var(--card)) 90%, hsl(var(--foreground)) 10%);
+    --card-border-strong: color-mix(in srgb, hsl(var(--card)) 84%, hsl(var(--foreground)) 16%);
     --radius: 0.5rem;
     --color-primary: #6b7c93;
     --color-accent: #2c5f6f;
@@ -63,10 +66,14 @@ html, body {
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  .dark {
+    /* Softer border for dark theme (no embedded alpha) */
+    --border: 220 12% 30%;
+    --input: 220 12% 30%;
   }
-  
+}
+
+@layer base { 
   body {
     @apply bg-background text-foreground;
     margin: 0;
@@ -1135,6 +1142,7 @@ html, body {
   div[class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card),
   .rounded-2xl.border:not(.phone-glass-card):not([class*="max-w-[85%]"]) {
     background-color: hsl(var(--card) / 0.85) !important;
+    border-color: var(--card-border-soft, hsla(var(--border), 0.08)) !important;
     will-change: background-color, opacity, backdrop-filter !important;
     backface-visibility: hidden !important;
     /* GPU-accelerated backdrop blur for all cards - reduced on mobile */

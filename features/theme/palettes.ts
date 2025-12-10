@@ -56,8 +56,8 @@ export const palettes: PaletteConfig = {
       accentForeground: '0 0% 100%',
       destructive: '0 84% 60%',
       destructiveForeground: '0 0% 100%',
-      border: '350 65% 82% / 0.4',
-      input: '350 65% 82% / 0.4',
+      border: '220 14% 70%',
+      input: '220 14% 70%',
       ring: '350 70% 50%',
       legacy: {
         colorPrimary: '#f7b2c8',
@@ -86,8 +86,8 @@ export const palettes: PaletteConfig = {
       accentForeground: '0 0% 100%',
       destructive: '0 70% 56%',
       destructiveForeground: '0 0% 98%',
-      border: '350 65% 82% / 0.35',
-      input: '350 65% 82% / 0.35',
+      border: '220 12% 30%',
+      input: '220 12% 30%',
       ring: '350 70% 52%',
       legacy: {
         colorPrimary: '#f7b2c8',
@@ -117,8 +117,8 @@ export const palettes: PaletteConfig = {
       accentForeground: '0 0% 100%',
       destructive: '0 84% 60%',
       destructiveForeground: '0 0% 100%',
-      border: '215 24% 52% / 0.35',
-      input: '215 24% 52% / 0.35',
+      border: '215 18% 68%',
+      input: '215 18% 68%',
       ring: '195 60% 36%',
       legacy: {
         colorPrimary: '#7294c0',
@@ -147,8 +147,8 @@ export const palettes: PaletteConfig = {
       accentForeground: '0 0% 100%',
       destructive: '0 70% 56%',
       destructiveForeground: '0 0% 98%',
-      border: '215 24% 55% / 0.4',
-      input: '215 24% 55% / 0.4',
+      border: '215 16% 30%',
+      input: '215 16% 30%',
       ring: '195 60% 40%',
       legacy: {
         colorPrimary: '#7aa5d4',

@@ -50,6 +50,139 @@ type ParsedManualConversation = {
   messages: Message[];
 };
 
+type AnalysisHistoryItem = {
+  id: string;
+  overview: string;
+  createdAt: string;
+  conversationTitle?: string | null;
+  sourcePlatform?: string | null;
+};
+
+const ANALYSIS_HISTORY_KEY = 'analysis_history_v1';
+const ANALYSIS_HISTORY_TTL_DAYS = 1;
+const ANALYSIS_HISTORY_TTL_MS = ANALYSIS_HISTORY_TTL_DAYS * 24 * 60 * 60 * 1000;
+
+const sanitizeHistoryItems = (items: AnalysisHistoryItem[]): AnalysisHistoryItem[] => {
+  const cutoff = Date.now() - ANALYSIS_HISTORY_TTL_MS;
+  return items
+    .filter((item) => item && typeof item.id === 'string')
+    .map((item) => {
+      const createdAtTs = new Date(item.createdAt || Date.now()).getTime();
+      const safeTs = Number.isNaN(createdAtTs) ? Date.now() : createdAtTs;
+      return {
+        ...item,
+        createdAt: new Date(safeTs).toISOString(),
+        sourcePlatform: item.sourcePlatform ?? null
+      };
+    })
+    .filter((item) => new Date(item.createdAt).getTime() >= cutoff)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
+
+const loadHistoryFromStorage = (): AnalysisHistoryItem[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(ANALYSIS_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    const sanitized = sanitizeHistoryItems(Array.isArray(parsed) ? parsed : []);
+    if (sanitized.length !== (Array.isArray(parsed) ? parsed.length : 0)) {
+      localStorage.setItem(ANALYSIS_HISTORY_KEY, JSON.stringify(sanitized));
+    }
+    return sanitized;
+  } catch {
+    return [];
+  }
+};
+
+const saveHistoryToStorage = (items: AnalysisHistoryItem[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(ANALYSIS_HISTORY_KEY, JSON.stringify(items));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const upsertHistoryEntry = (entry: AnalysisHistoryItem): AnalysisHistoryItem[] => {
+  if (typeof window === 'undefined') return [];
+  const existing = loadHistoryFromStorage().filter((item) => item.id !== entry.id);
+  const next = sanitizeHistoryItems([entry, ...existing]);
+  saveHistoryToStorage(next);
+  return next;
+};
+
+const clearHistoryStorage = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(ANALYSIS_HISTORY_KEY);
+    document.cookie = `${ANALYSIS_HISTORY_KEY}=; path=/; max-age=0; samesite=lax`;
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const extractOverviewSummary = (analysis: any): string => {
+  if (!analysis) return '';
+  const summary = analysis.overviewSummary ?? analysis.overview ?? analysis.summary;
+  if (typeof summary === 'string') return summary;
+  if (summary && typeof summary === 'object') {
+    if (typeof summary.overviewSummary === 'string') return summary.overviewSummary;
+    if (typeof summary.text === 'string') return summary.text;
+  }
+  return '';
+};
+
+const localizeConversationTitle = (
+  title: string | null | undefined,
+  sourcePlatform: string | null | undefined,
+  t: (k: string) => string
+) => {
+  const normalizedTitle = (title || '').toLowerCase();
+  if (normalizedTitle === 'media upload') return t('recentAnalyses_media');
+  if (normalizedTitle === 'voice note') return t('recentAnalyses_voice');
+  if (normalizedTitle === 'pasted conversation') return t('recentAnalyses_paste');
+
+  const normalizedPlatform = (sourcePlatform || '').toLowerCase();
+  const platformMap: Record<string, string> = {
+    telegram: t('platform_telegram'),
+    whatsapp: t('platform_whatsapp'),
+    signal: t('platform_signal'),
+    viber: t('platform_viber'),
+    discord: t('platform_discord'),
+    imessage: t('platform_imessage'),
+    messenger: t('platform_messenger'),
+    generic: t('platform_generic')
+  };
+  if (normalizedPlatform && platformMap[normalizedPlatform]) {
+    return platformMap[normalizedPlatform];
+  }
+
+  if (title) return title;
+  return t('platform_generic');
+};
+
+const readSessionAnalysis = (): { analysis: any; conversation?: Conversation | null } | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const storedAnalysis = sessionStorage.getItem('currentAnalysis');
+    if (!storedAnalysis) return null;
+    const analysis = JSON.parse(storedAnalysis);
+    let conversation: Conversation | null = null;
+    const storedConversation = sessionStorage.getItem('currentConversation');
+    if (storedConversation) {
+      try {
+        conversation = JSON.parse(storedConversation) as Conversation;
+      } catch {
+        conversation = null;
+      }
+    }
+    return { analysis, conversation };
+  } catch {
+    return null;
+  }
+};
+
 const DEFAULT_TAGLINES = ['Честный взгляд ИИ на то, что произошло.'];
 
 function detectLanguagesFromText(text: string): string[] {
@@ -180,6 +313,7 @@ export default function HomePageClient() {
   const [animationLocked, setAnimationLocked] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
   const donationsRef = React.useRef<HTMLDivElement | null>(null);
+  const [recentAnalyses, setRecentAnalyses] = useState<AnalysisHistoryItem[]>([]);
 
   useEffect(() => {
     router.prefetch('/analysis');
@@ -188,6 +322,29 @@ export default function HomePageClient() {
   useEffect(() => {
     setProcessing(uploading || analyzing || animationLocked);
   }, [uploading, analyzing, animationLocked, setProcessing]);
+
+  useEffect(() => {
+    const stored = loadHistoryFromStorage();
+    setRecentAnalyses(stored);
+
+    const session = readSessionAnalysis();
+    if (session?.analysis) {
+      const already = stored.some((item) => item.id === session.analysis.id);
+      if (!already) {
+        const next = upsertHistoryEntry({
+          id: session.analysis.id,
+          overview: extractOverviewSummary(session.analysis) || '',
+          createdAt:
+            session.analysis.completedAt && !Number.isNaN(new Date(session.analysis.completedAt).getTime())
+              ? session.analysis.completedAt
+              : new Date().toISOString(),
+          conversationTitle: session.conversation?.title || null,
+          sourcePlatform: session.conversation?.sourcePlatform || null
+        });
+        setRecentAnalyses(next);
+      }
+    }
+  }, []);
 
   // Defer donations render until in viewport to avoid early pop-in and keep layout stable
   useEffect(() => {
@@ -207,6 +364,62 @@ export default function HomePageClient() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  const recordAnalysisHistory = useCallback(
+    (analysis: any, conversation?: Conversation | null) => {
+      if (!analysis?.id) return;
+      const overview = extractOverviewSummary(analysis) || t('analysisDefaultOverview');
+      const createdAt =
+        analysis.completedAt && !Number.isNaN(new Date(analysis.completedAt).getTime())
+          ? analysis.completedAt
+          : new Date().toISOString();
+      const entry: AnalysisHistoryItem = {
+        id: analysis.id,
+        overview,
+        createdAt,
+        conversationTitle: conversation?.title || null,
+        sourcePlatform: conversation?.sourcePlatform || null
+      };
+      const nextHistory = upsertHistoryEntry(entry);
+      setRecentAnalyses(nextHistory);
+    },
+    [t]
+  );
+
+  const handleClearHistory = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(t('recentAnalysesClear_confirm'));
+      if (!confirmed) return;
+    }
+    clearHistoryStorage();
+    setRecentAnalyses([]);
+  }, []);
+
+  const formatHistoryDate = useCallback(
+    (iso?: string | null) => {
+      if (!iso) return '';
+      const ts = new Date(iso);
+      if (Number.isNaN(ts.getTime())) return '';
+      try {
+        const dateLocale =
+          {
+            en: 'en-US',
+            ru: 'ru-RU',
+            fr: 'fr-FR',
+            de: 'de-DE',
+            es: 'es-ES',
+            pt: 'pt-PT'
+          }[locale] || 'en-US';
+        return new Intl.DateTimeFormat(dateLocale, {
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        }).format(ts);
+      } catch {
+        return ts.toLocaleString();
+      }
+    },
+    [locale]
+  );
 
   const handleScrollToUpload = useCallback(() => {
     const uploadCard = document.querySelector('[data-upload-card]');
@@ -335,6 +548,14 @@ export default function HomePageClient() {
                   clearInterval(progressPollInterval);
                   progressPollInterval = null;
                 }
+                try {
+                  const parsedAnalysis = JSON.parse(storedAnalysis);
+                  const storedConversation = sessionStorage.getItem('currentConversation');
+                  const parsedConversation = storedConversation ? JSON.parse(storedConversation) : null;
+                  recordAnalysisHistory(parsedAnalysis, parsedConversation);
+                } catch {
+                  // ignore parse errors
+                }
                 setAnalysisProgress({
                   progress: 100,
                   status: 'completed',
@@ -371,6 +592,7 @@ export default function HomePageClient() {
                   'currentFeatures',
                   JSON.stringify(featuresToStore)
                 );
+                recordAnalysisHistory(resultData.analysis, resultData.conversation);
 
                 setAnalysisProgress({
                   progress: 100,
@@ -809,6 +1031,14 @@ export default function HomePageClient() {
                   message: 'Analysis complete!',
                   isPremium: true
                 });
+                try {
+                  const parsedAnalysis = JSON.parse(storedAnalysis);
+                  const storedConversation = sessionStorage.getItem('currentConversation');
+                  const parsedConversation = storedConversation ? JSON.parse(storedConversation) : null;
+                  recordAnalysisHistory(parsedAnalysis, parsedConversation);
+                } catch {
+                  // ignore parse errors
+                }
                 router.prefetch('/analysis');
                 requestAnimationFrame(() => {
                   router.push('/analysis');
@@ -839,6 +1069,7 @@ export default function HomePageClient() {
                     canUseEnhancedAnalysis: true
                   })
                 );
+                recordAnalysisHistory(resultData.analysis, resultData.conversation);
 
                 setAnalysisProgress({
                   progress: 100,
@@ -917,6 +1148,7 @@ export default function HomePageClient() {
                           canUseEnhancedAnalysis: true
                         })
                       );
+                      recordAnalysisHistory(resultData.analysis, resultData.conversation);
 
                       setAnalysisProgress({
                         progress: 100,
@@ -1237,7 +1469,7 @@ export default function HomePageClient() {
         </div>
 
         <div className="relative w-full max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:ml-auto">
-          <Card className="phone-glass-card relative z-10 border-border/40 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
+          <Card className="phone-glass-card relative z-10 overflow-hidden transition-all duration-300 hover:shadow-primary/25">
             <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 phone-glass-content">
               <div className="space-y-1">
                 <h2 className="text-sm font-semibold flex items-center gap-2 text-white/95">
@@ -1252,7 +1484,7 @@ export default function HomePageClient() {
                 <div className="absolute top-2 right-2 z-10">
                   <Badge
                     variant="outline"
-                    className="border-white/20 bg-white/10 text-[10px] uppercase tracking-wide text-black dark:text-white/90 backdrop-blur-sm shadow-sm"
+                    className="border-[color:hsla(var(--border),0.06)] bg-white/10 text-[10px] uppercase tracking-wide text-black dark:text-white/90 backdrop-blur-sm shadow-sm"
                   >
                     <Sparkles className="mr-1 h-3 w-3" />
                     {t('hero_preview_live')}
@@ -1328,13 +1560,73 @@ export default function HomePageClient() {
               {t('step2_title').toLowerCase?.() ?? t('step2_title')},{' '}
               {t('step3_title').toLowerCase?.() ?? t('step3_title')}.
             </p>
+            <div className="w-full max-w-2xl">
+              <div className="space-y-3 rounded-2xl border border-[color:hsla(var(--border),0.06)] bg-background/70 p-4 shadow-lg backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Clock3 className="h-4 w-4 text-primary" />
+                    <p className="text-sm font-semibold text-foreground">{t('recentAnalysesTitle')}</p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={handleClearHistory}
+                    disabled={!recentAnalyses.length}
+                  >
+                    {t('recentAnalysesClear')}
+                  </Button>
+                </div>
+
+                {recentAnalyses.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t('recentAnalysesEmpty')}</p>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto rounded-xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] bg-card/40">
+                    <div className="divide-y divide-[color:var(--card-border-soft,hsla(var(--border),0.08))]">
+                      {recentAnalyses.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/analysis?analysisId=${encodeURIComponent(item.id)}`}
+                          className="group block px-3 py-2 hover:bg-muted/60 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0 space-y-1">
+                              {item.conversationTitle ? (
+                                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                  {localizeConversationTitle(item.conversationTitle, item.sourcePlatform, t) ||
+                                    item.conversationTitle}
+                                </p>
+                              ) : null}
+                              <p className="text-sm font-medium text-foreground line-clamp-2">
+                                {item.overview || t('recentAnalysesOverviewMissing')}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {formatHistoryDate(item.createdAt)}
+                              </p>
+                            </div>
+                            <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform duration-150 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-muted-foreground">
+                  {t('recentAnalysesRetention').replace(
+                    '{days}',
+                    ANALYSIS_HISTORY_TTL_DAYS.toString()
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <Card
         className={cn(
-          'w-full max-w-2xl shadow-xl border-border/30 backdrop-blur-md animate-fade-in group/upload-card',
+          'w-full max-w-2xl shadow-xl backdrop-blur-md animate-fade-in group/upload-card',
           analyzing && 'analyzing'
         )}
         style={{
@@ -1478,7 +1770,7 @@ export default function HomePageClient() {
             <div className="w-full flex flex-col items-center justify-center">
               {!uploading && !analyzing && !error && !conversation && (
                 <div className="flex justify-center w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="inline-flex items-center rounded-full border border-border/60 bg-card/70 p-0.5 text-xs shadow-sm backdrop-blur-sm">
+                  <div className="inline-flex items-center rounded-full border border-[color:hsla(var(--border),0.06)] bg-card/70 p-0.5 text-xs shadow-sm backdrop-blur-sm">
                     <button
                       type="button"
                       onClick={() => setInputMode('file')}
@@ -1642,7 +1934,7 @@ export default function HomePageClient() {
         <div className="relative grid md:grid-cols-3 gap-4 sm:gap-5">
           <div className="pointer-events-none absolute inset-x-6 top-7 hidden h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent md:block" />
 
-          <Card className="group border-border/50 backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
+          <Card className="group backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
             <CardHeader className="pb-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
                 <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -1653,7 +1945,7 @@ export default function HomePageClient() {
               <p className="text-body-xs sm:text-body-sm text-muted-foreground leading-relaxed">{t('step1_description')}</p>
             </CardContent>
           </Card>
-          <Card className="group border-border/50 backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
+          <Card className="group backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
             <CardHeader className="pb-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
                 <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -1664,7 +1956,7 @@ export default function HomePageClient() {
               <p className="text-body-xs sm:text-body-sm text-muted-foreground leading-relaxed">{t('step2_description')}</p>
             </CardContent>
           </Card>
-          <Card className="group border-border/50 backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
+          <Card className="group backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, transform', backfaceVisibility: 'hidden' }}>
             <CardHeader className="pb-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
                 <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -1703,7 +1995,7 @@ export default function HomePageClient() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-border"
+              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-[color:hsla(var(--border),0.06)]"
               onClick={() => scrollArticles('left')}
               aria-label="Previous articles"
             >
@@ -1714,7 +2006,7 @@ export default function HomePageClient() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-border"
+              className="h-9 w-9 rounded-full shadow-md bg-background/90 backdrop-blur border-[color:hsla(var(--border),0.06)]"
               onClick={() => scrollArticles('right')}
               aria-label="Next articles"
             >
@@ -1730,7 +2022,7 @@ export default function HomePageClient() {
             {articles.map((article) => (
               <Card
                 key={article.id}
-                className="group border-border/50 backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20 snap-start flex-shrink-0 w-[260px] sm:w-[300px]"
+                className="group backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/20 snap-start flex-shrink-0 w-[260px] sm:w-[300px]"
                 style={{
                   backgroundColor: 'hsl(var(--card) / 0.85)',
                   willChange: 'background-color, transform',
@@ -1777,7 +2069,7 @@ export default function HomePageClient() {
         {donationsVisible ? (
           <Donations />
         ) : (
-          <div className="w-full max-w-4xl mx-auto h-[320px] sm:h-[360px] rounded-2xl border border-border/50 bg-muted/30 animate-pulse" />
+          <div className="w-full max-w-4xl mx-auto h-[320px] sm:h-[360px] rounded-2xl border border-[color:hsla(var(--border),0.06)] bg-muted/30 animate-pulse" />
         )}
       </div>
 

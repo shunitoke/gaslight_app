@@ -166,6 +166,17 @@ export const frBundle: LocaleBundle = {
     step3_title: 'Obtenez des insights',
     step3_description: "Recevez un rapport complet avec des scores, des preuves et des explications pour vous aider à comprendre ce qui s'est vraiment passé.",
     howItWorks_subtitle: '3 étapes rapides, puis l\'IA fait le gros du travail pour vous.',
+    recentAnalysesTitle: 'Analyses récentes',
+    recentAnalysesEmpty: 'Votre historique apparaîtra ici après le premier rapport.',
+    recentAnalysesClear: 'Effacer la liste',
+    recentAnalysesRetention:
+      'Conservé localement ~24 heures sur cet appareil. Effacez via le bouton ou en supprimant cookies/localStorage.',
+    recentAnalysesOverviewMissing: 'Analyse terminée mais l’aperçu est vide.',
+    recentAnalysesClear_confirm:
+      'Effacer les analyses récentes sur cet appareil ? Toutes les données locales (localStorage/cookies) seront supprimées et ne pourront pas être restaurées.',
+    recentAnalyses_media: 'Import média',
+    recentAnalyses_voice: 'Note vocale',
+    recentAnalyses_paste: 'Conversation collée',
 
     // Articles
     articles_label: 'Articles & guides',
@@ -442,7 +453,7 @@ export const frBundle: LocaleBundle = {
       'Vous ne pouvez utiliser le Service que si vous avez au moins 18 ans et êtes légalement en mesure de conclure ces Conditions. Vous êtes responsable de vous assurer que vous avez le droit de télécharger et de traiter les chats que vous soumettez au Service.',
     terms_section3_title: '3. Traitement des données et confidentialité',
     terms_section3_content:
-      'Les conversations téléchargées sont transmises en clair à nos serveurs et à des fournisseurs tiers de modèles d\'IA pour générer votre rapport. Le transport est protégé par HTTPS, mais nous ne fournissons pas de chiffrement de bout en bout ; le contenu pourrait être techniquement accessible au personnel autorisé ou aux fournisseurs, même si l\'accès est restreint. La conservation est courte : progression/tâches jusqu\'à ~2 heures après la livraison et analyses mises en cache jusqu\'à 24 heures ; les grands résultats en blob sont supprimés lors du nettoyage. Les données ne sont pas utilisées pour entraîner des modèles tiers. Pour plus de détails, veuillez consulter notre Politique de confidentialité (lorsqu\'elle sera disponible).',
+      'Les conversations transitent en HTTPS et sont déchiffrées côté serveur pour que l’IA génère le rapport ; pas de chiffrement de bout en bout. L’accès est limité aux processus du service et aux fournisseurs de modèles. Stockage court : progression/tâches jusqu’à ~2 h, analyses en cache jusqu’à ~24 h, fichiers temporaires supprimés lors du nettoyage. La liste locale des « analyses récentes » (id + bref aperçu) reste sur votre appareil ~24 h dans le localStorage/les cookies et se vide via le bouton ou en supprimant cookies/localStorage. Les données ne servent pas à entraîner des modèles tiers. Voir la Politique de confidentialité pour les détails.',
     terms_section4_title: '4. Paiements et abonnements',
     terms_section4_content:
       'Certaines fonctionnalités peuvent être proposées sur une base payante (par exemple, analyse premium ou analyse des médias). Les paiements sont traités via notre système de traitement des paiements. Les prix, les intervalles de facturation et les règles de remboursement sont indiqués à la caisse et peuvent être mis à jour de temps à autre.',

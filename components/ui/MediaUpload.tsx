@@ -125,7 +125,7 @@ export function MediaUpload({
   return (
     <div className="space-y-6 w-full">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className={cn('rounded-xl border border-border/60 bg-card/60 p-4 space-y-3')}>
+        <div className={cn('rounded-xl border border-[color:hsla(var(--border),0.06)] bg-card/60 p-4 space-y-3')}>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Upload className="h-4 w-4" />
             {t('upload_media_title')}
@@ -156,7 +156,7 @@ export function MediaUpload({
           </div>
         </div>
 
-        <div className={cn('rounded-xl border border-border/60 bg-card/60 p-4 space-y-4')}>
+        <div className={cn('rounded-xl border border-[color:hsla(var(--border),0.06)] bg-card/60 p-4 space-y-4')}>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Mic className="h-4 w-4" />
             {t('record_voice_title')}

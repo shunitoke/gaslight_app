@@ -166,6 +166,17 @@ export const deBundle: LocaleBundle = {
     step3_title: 'Einblicke erhalten',
     step3_description: 'Erhalten Sie einen umfassenden Bericht mit Bewertungen, Beweisen und Erklärungen, um zu verstehen, was wirklich passiert ist.',
     howItWorks_subtitle: '3 schnelle Schritte, dann übernimmt die KI die schwere Arbeit für Sie.',
+    recentAnalysesTitle: 'Neueste Analysen',
+    recentAnalysesEmpty: 'Dein Verlauf erscheint hier nach dem ersten Bericht.',
+    recentAnalysesClear: 'Liste löschen',
+    recentAnalysesRetention:
+      'Lokal ~24 Stunden auf diesem Gerät gespeichert. Über den Button oder durch Löschen von Cookies/localStorage entfernen.',
+    recentAnalysesOverviewMissing: 'Analyse abgeschlossen, aber die Übersicht ist leer.',
+    recentAnalysesClear_confirm:
+      'Analysenverlauf auf diesem Gerät löschen? Alle lokalen Daten (localStorage/Cookies) werden entfernt und lassen sich nicht wiederherstellen.',
+    recentAnalyses_media: 'Medien-Upload',
+    recentAnalyses_voice: 'Sprachnotiz',
+    recentAnalyses_paste: 'Eingefügte Unterhaltung',
 
     // Articles
     articles_label: 'Artikel & Guides',
@@ -442,7 +453,7 @@ export const deBundle: LocaleBundle = {
       'Sie dürfen den Service nur nutzen, wenn Sie mindestens 18 Jahre alt sind und rechtlich in der Lage sind, diese Bedingungen einzugehen. Sie sind dafür verantwortlich sicherzustellen, dass Sie das Recht haben, die Chats, die Sie an den Service übermitteln, hochzuladen und zu verarbeiten.',
     terms_section3_title: '3. Datenverarbeitung und Datenschutz',
     terms_section3_content:
-      'Hochgeladene Chats werden im Klartext an unsere Server und an Drittanbieter von KI-Modellen übertragen, um Ihren Bericht zu erstellen. Die Übertragung ist per HTTPS gesichert, aber es gibt keine Ende-zu-Ende-Verschlüsselung; autorisierte Mitarbeitende oder Anbieter könnten technisch Zugriff auf Inhalte haben, auch wenn der Zugriff eingeschränkt wird. Speicherung ist kurz: Progress/Jobs bleiben bis ca. 2 Stunden nach Auslieferung, gecachte Analysen bis zu 24 Stunden; große Ergebnisse im Blob werden bei der Bereinigung gelöscht. Daten werden nicht zum Training von Drittmodellen verwendet. Weitere Details finden Sie in unserer Datenschutzerklärung (wenn verfügbar).',
+      'Chats laufen über HTTPS und werden serverseitig entschlüsselt, damit die KI den Bericht erzeugen kann; Ende-zu-Ende-Verschlüsselung gibt es nicht. Der Zugriff ist auf Serviceprozesse und Modellanbieter beschränkt. Aufbewahrung ist kurz: Progress/Jobs bis ~2 Stunden, gecachte Analysen bis ~24 Stunden, temporäre Dateien werden beim Aufräumen entfernt. Die lokale Liste „Letzte Analysen“ (id + kurze Zusammenfassung) liegt ~24 Stunden auf deinem Gerät in localStorage/Cookies und lässt sich über den Button oder durch Löschen von Cookies/localStorage entfernen. Daten werden nicht zum Training von Drittmodellen genutzt. Details stehen in der Datenschutzerklärung.',
     terms_section4_title: '4. Zahlungen und Abonnements',
     terms_section4_content:
       'Bestimmte Funktionen können gegen Gebühr angeboten werden (z. B. Premium-Analyse oder Medienanalyse). Zahlungen werden über unser Zahlungssystem verarbeitet. Preise, Abrechnungsintervalle und Rückerstattungsregeln werden an der Kasse angezeigt und können von Zeit zu Zeit aktualisiert werden.',

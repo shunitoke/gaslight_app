@@ -166,6 +166,17 @@ export const ptBundle: LocaleBundle = {
     step3_title: 'Obtenha insights',
     step3_description: 'Receba um relatório completo com pontuações, evidências e explicações para ajudá-lo a entender o que realmente aconteceu.',
     howItWorks_subtitle: '3 passos rápidos, então a IA faz o trabalho pesado para você.',
+    recentAnalysesTitle: 'Análises recentes',
+    recentAnalysesEmpty: 'Seu histórico aparece aqui após o primeiro relatório.',
+    recentAnalysesClear: 'Limpar lista',
+    recentAnalysesRetention:
+      'Armazenado localmente por ~24 horas neste dispositivo. Limpe pelo botão ou apagando cookies/localStorage.',
+    recentAnalysesOverviewMissing: 'Análise concluída, mas o resumo está vazio.',
+    recentAnalysesClear_confirm:
+      'Limpar análises recentes neste dispositivo? Todos os dados locais (localStorage/cookies) serão apagados e não poderão ser recuperados.',
+    recentAnalyses_media: 'Envio de mídia',
+    recentAnalyses_voice: 'Nota de voz',
+    recentAnalyses_paste: 'Conversa colada',
 
     // Articles
     articles_label: 'Artigos e guias',
@@ -442,7 +453,7 @@ export const ptBundle: LocaleBundle = {
       'Você só pode usar o Serviço se tiver pelo menos 18 anos e for legalmente capaz de celebrar estes Termos. Você é responsável por garantir que tem o direito de carregar e processar os chats que envia ao Serviço.',
     terms_section3_title: '3. Tratamento de dados e privacidade',
     terms_section3_content:
-      'Os chats carregados são transmitidos em texto simples para nossos servidores e para provedores externos de modelos de IA a fim de gerar seu relatório. O transporte é protegido por HTTPS, mas não há criptografia de ponta a ponta; o conteúdo pode ser tecnicamente acessível por pessoal autorizado ou provedores, embora o acesso seja restrito. O armazenamento é de curta duração: progresso/tarefas ficam até ~2 horas após a entrega e análises em cache até 24 horas; resultados grandes em blob são apagados durante a limpeza. Os dados não são usados para treinar modelos de terceiros. Para mais detalhes, consulte nossa Política de Privacidade (quando disponível).',
+      'Os chats passam por HTTPS e são descriptografados no servidor para que a IA gere o relatório; não há criptografia ponta a ponta. O acesso é restrito a processos do serviço e fornecedores de modelos. O armazenamento é curto: progresso/tarefas até ~2 horas, análises em cache até ~24 horas, arquivos temporários são removidos na limpeza. A lista local de “análises recentes” (id + breve resumo) fica no seu dispositivo ~24 horas em localStorage/cookies e pode ser apagada pelo botão ou limpando cookies/localStorage. Os dados não são usados para treinar modelos de terceiros. Veja a Política de Privacidade para detalhes.',
     terms_section4_title: '4. Pagamentos e assinaturas',
     terms_section4_content:
       'Certas funcionalidades podem ser oferecidas mediante pagamento (por exemplo, análise premium ou análise de mídia). Os pagamentos são processados através do nosso sistema de processamento de pagamentos. Preços, intervalos de faturamento e regras de reembolso são mostrados no checkout e podem ser atualizados de tempos em tempos.',

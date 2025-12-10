@@ -164,6 +164,17 @@ export const enBundle: LocaleBundle = {
     step3_title: 'Get Insights',
     step3_description: 'Receive a comprehensive report with scores, evidence, and explanations to help you understand what really happened.',
     howItWorks_subtitle: '3 quick steps, then the AI does the heavy lifting for you.',
+    recentAnalysesTitle: 'Recent analyses',
+    recentAnalysesEmpty: 'Your history will appear here after the first report is ready.',
+    recentAnalysesClear: 'Clear list',
+    recentAnalysesRetention:
+      'Stored locally for ~24 hours on this device. Use "Clear list" or wipe cookies/localStorage.',
+    recentAnalysesOverviewMissing: 'Analysis completed but overview is empty.',
+    recentAnalysesClear_confirm:
+      'Clear recent analyses on this device? All local data (localStorage/cookies) will be deleted and cannot be restored.',
+    recentAnalyses_media: 'Media upload',
+    recentAnalyses_voice: 'Voice note',
+    recentAnalyses_paste: 'Pasted conversation',
 
     // Articles
     articles_label: 'Articles & guides',
@@ -465,7 +476,7 @@ export const enBundle: LocaleBundle = {
       'You may use the Service only if you are at least 18 years old and legally able to enter into these Terms. You are responsible for ensuring that you have the right to upload and process the chats you submit to the Service.',
     terms_section3_title: '3. Data Handling & Privacy',
     terms_section3_content:
-      'Uploaded chats are transmitted in plaintext to our servers and to third-party AI model providers to generate your report. Transport is secured via HTTPS, but we do not provide end-to-end encryption; authorized personnel or providers could technically access content even though we restrict access. Storage is short-lived: progress/jobs live up to ~2 hours after delivery and cached analyses up to 24 hours; large results stored in blob storage are deleted during cleanup. Data is not used for training third-party models. For more details, please refer to our Privacy Policy (when available).',
+      'Chats travel over HTTPS and are decrypted server-side so the AI can generate a report; end-to-end encryption is not provided. Access is restricted to service processes and model providers. Storage is short-lived: progress/jobs stay up to ~2 hours, cached analyses up to ~24 hours, and temporary files are removed during cleanup. Your local “recent analyses” list (id + short overview) lives on your device for ~24 hours in localStorage/cookies and can be cleared via the button or by deleting cookies/localStorage. Data is not used to train third-party models. See the Privacy Policy for details.',
     terms_section4_title: '4. Payments & Subscriptions',
     terms_section4_content:
       'Certain features may be offered on a paid basis (for example, premium analysis or media analysis). Payments are processed through our payment processing system. Prices, billing intervals, and refund rules are shown at checkout and may be updated from time to time.',

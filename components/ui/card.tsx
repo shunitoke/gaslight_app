@@ -56,7 +56,7 @@ const CardBase = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
         ref={ref}
         data-card="true"
         className={cn(
-          "rounded-2xl border border-primary/10 dark:border-primary/20 shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl hover:border-primary/20",
+          "rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl hover:border-[color:var(--card-border-strong,hsla(var(--border),0.16))]",
           className
         )}
         style={mergedStyle}

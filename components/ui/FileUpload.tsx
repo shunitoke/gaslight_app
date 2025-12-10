@@ -244,17 +244,17 @@ export function FileUpload({
         onDrop={importSuccessful ? undefined : handleDrop}
         onDragOver={importSuccessful ? undefined : ((e) => e.preventDefault())}
         className={cn(
-            'group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all overflow-hidden',
+          'group relative flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-8 text-center transition-all overflow-hidden',
           'bg-card/60 hover:bg-card/80',
           disabled || importSuccessful
             ? 'cursor-not-allowed opacity-60'
-            : 'cursor-pointer hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5'
+            : 'cursor-pointer hover:border-[color:var(--card-border-strong,hsla(var(--border),0.12))] hover:shadow-lg hover:shadow-primary/5'
         )}
           style={{
             boxShadow:
               disabled || importSuccessful
                 ? undefined
-                : '0 0 0 1px hsla(var(--border),0.4), 0 12px 36px hsla(var(--primary),0.25)'
+                : '0 12px 28px hsla(var(--foreground),0.08), 0 0 0 1px var(--card-border-soft, hsla(var(--border),0.08))'
           }}
       >
           {!importSuccessful && (

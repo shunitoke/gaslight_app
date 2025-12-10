@@ -7,6 +7,8 @@ declare global {
     botpressWebChat?: {
       init?: (config: Record<string, unknown>) => void;
       destroy?: () => void;
+      open?: () => void;
+      on?: (event: string, handler: () => void) => (() => void) | void;
     };
   }
 }
