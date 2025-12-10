@@ -81,11 +81,12 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval in dev
-              "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.botpress.cloud",
+              "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://openrouter.ai https://vercel.com https://*.vercel.com https://*.vercel.app https://blob.vercel-storage.com",
+              "connect-src 'self' https://openrouter.ai https://vercel.com https://*.vercel.com https://*.vercel.app https://blob.vercel-storage.com https://cdn.botpress.cloud https://*.botpress.cloud https://*.bpcontent.cloud",
+              "frame-src 'self' https://cdn.botpress.cloud https://*.botpress.cloud https://*.bpcontent.cloud",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'"
