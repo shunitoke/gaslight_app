@@ -13,25 +13,10 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     // Listen for the beforeinstallprompt event
-    const handler = async (e: any) => {
-      // Keep control to optionally re-use prompt; call prompt immediately to satisfy Chrome.
+    const handler = (e: any) => {
+      // Keep control so we can call prompt() from a user gesture (button click).
       e.preventDefault();
       setDeferredPrompt(e);
-
-      if (typeof e.prompt === 'function') {
-        try {
-          e.prompt();
-          const result = await e.userChoice?.catch?.(() => null);
-          if (result?.outcome === 'accepted') {
-            setShowInstallButton(false);
-            return;
-          }
-        } catch {
-          // Ignore and fall back to manual button
-        }
-      }
-
-      // Show custom button so user can try again.
       setShowInstallButton(true);
     };
 
