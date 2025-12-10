@@ -29,10 +29,13 @@ export function BotpressChatWidget() {
     const initBotpress = () => {
       // Ensure widget opens once ready so the bubble appears even if auto-open is disabled in config.
       const maybeUnsub = window.botpressWebChat?.on?.('webchat:ready', () => {
-        window.botpressWebChat?.open?.();
+        console.info('[Botpress] webchat:ready');
+        // Delay a tick to let styles mount
+        requestAnimationFrame(() => window.botpressWebChat?.open?.());
       });
       unsubscribeRef.current = typeof maybeUnsub === 'function' ? maybeUnsub : null;
 
+      console.info('[Botpress] init with configUrl', CONFIG_URL);
       window.botpressWebChat?.init?.({
         configUrl: CONFIG_URL
       });
@@ -44,6 +47,11 @@ export function BotpressChatWidget() {
         initBotpress();
       } else {
         existingScript.addEventListener('load', initBotpress, { once: true });
+        existingScript.addEventListener(
+          'error',
+          () => console.error('[Botpress] failed to load inject script'),
+          { once: true }
+        );
       }
       return;
     }
@@ -56,6 +64,9 @@ export function BotpressChatWidget() {
     script.onload = () => {
       script.dataset.loaded = 'true';
       initBotpress();
+    };
+    script.onerror = () => {
+      console.error('[Botpress] failed to load inject script');
     };
     document.body.appendChild(script);
 
