@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 const CardBase = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, style, ...props }, ref) => {
-    // Check if this is upload card - needs less blur for ripple visibility
+    // Check if this is upload card - use slightly softer blur for readability
     const isUploadCard = (props as any)['data-upload-card'] !== undefined;
     const defaultOpacity = 0.85;
     

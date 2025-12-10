@@ -4,25 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ripple animation for background effect - GPU accelerated */
-@keyframes ripple {
-  0%, 100% {
-    transform: translate3d(-50%, -50%, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) scale(0.9);
-  }
-}
-
-.animate-ripple {
-  animation: ripple var(--duration, 8s) ease calc(var(--i, 0) * 0.2s) infinite;
-  left: 50%;
-  top: 50%;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
 /* Prevent horizontal scrolling */
 html, body {
   overflow-x: hidden;
@@ -347,80 +328,6 @@ html, body {
   }
 }
 
-/* GPU-accelerated blob animation - reduced on mobile */
-@keyframes blob {
-  0% {
-    transform: translate3d(0px, 0px, 0) scale(1);
-  }
-  33% {
-    transform: translate3d(30px, -50px, 0) scale(1.1);
-  }
-  66% {
-    transform: translate3d(-20px, 20px, 0) scale(0.9);
-  }
-  100% {
-    transform: translate3d(0px, 0px, 0) scale(1);
-  }
-}
-
-@keyframes gaslight-wobble {
-  0% {
-    transform: translate3d(-10px, -4px, 0) scale(1.02) rotate(0deg);
-    opacity: 0.6;
-  }
-  28% {
-    transform: translate3d(26px, -24px, 0) scale(1.08) rotate(1deg);
-    opacity: 0.7;
-  }
-  60% {
-    transform: translate3d(-18px, 22px, 0) scale(0.96) rotate(-1.5deg);
-    opacity: 0.55;
-  }
-  100% {
-    transform: translate3d(-10px, -4px, 0) scale(1.02) rotate(0deg);
-    opacity: 0.6;
-  }
-}
-
-@keyframes gaslight-noise {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate3d(12px, -10px, 0) scale(1.03);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translate3d(-8px, 6px, 0) scale(0.99);
-    opacity: 0.32;
-  }
-}
-
-@keyframes gaslight-flicker {
-  0% {
-    opacity: 1;
-  }
-  18% {
-    opacity: 0.94;
-  }
-  22% {
-    opacity: 1;
-  }
-  46% {
-    opacity: 0.9;
-  }
-  50% {
-    opacity: 1;
-  }
-  78% {
-    opacity: 0.92;
-  }
-  82% {
-    opacity: 1;
-  }
-}
-
 /* Enhanced upload card hover effects */
 [data-upload-card].group\/upload-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -438,21 +345,6 @@ html, body {
 
 /* Disable animations only when user explicitly prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-blob,
-  .animate-blob-gaslight,
-  .animate-ripple,
-  .matrix-stream::before,
-  .matrix-stream::after {
-    animation: none !important;
-    opacity: 0 !important;
-  }
-}
-
-/* Disable background animations on mobile for performance */
-@media (max-width: 768px) {
-  .animate-blob,
-  .animate-blob-gaslight,
-  .animate-ripple,
   .matrix-stream::before,
   .matrix-stream::after {
     animation: none !important;
@@ -468,85 +360,6 @@ html, body {
 [data-color-scheme='dark'] [class*="rounded-md"][class*="border"][class*="bg-secondary/20"],
 [data-color-scheme='dark'] [class*="rounded-md"][class*="border"][class*="bg-emerald-500/15"] {
   color: white !important;
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-  will-change: transform;
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-.animate-blob-gaslight {
-  animation:
-    blob 16s ease-in-out infinite alternate,
-    gaslight-flicker 18s ease-in-out infinite;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-.gaslight-blob {
-  filter: blur(32px) saturate(1.08) contrast(1.02);
-  mix-blend-mode: screen;
-  opacity: 0.4;
-}
-
-.dark .gaslight-blob,
-[data-color-scheme='dark'] .gaslight-blob {
-  mix-blend-mode: screen;
-}
-
-:root:not(.dark) .gaslight-blob,
-[data-color-scheme='light'] .gaslight-blob {
-  mix-blend-mode: multiply;
-  opacity: 0.38;
-  filter: blur(28px) saturate(1.02) contrast(1.0);
-}
-
-.gaslight-noise {
-  background-image:
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.08) 0%, transparent 34%),
-    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.05) 0%, transparent 32%),
-    radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.06) 0%, transparent 34%),
-    radial-gradient(circle at 18% 74%, rgba(255, 255, 255, 0.04) 0%, transparent 32%);
-  mix-blend-mode: soft-light;
-  opacity: 0.24;
-  animation: gaslight-noise 22s ease-in-out infinite;
-  filter: blur(14px) saturate(1.02);
-}
-
-:root:not(.dark) .gaslight-noise,
-[data-color-scheme='light'] .gaslight-noise {
-  mix-blend-mode: multiply;
-  opacity: 0.18;
-  filter: blur(12px) saturate(1.0);
-}
-
-.will-change-transform {
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-/* Mid-size fallback: soften blob/noise to cut GPU overdraw */
-@media (max-width: 1200px) {
-  .animate-blob-gaslight {
-    animation: blob 18s ease-in-out infinite alternate;
-  }
-  .gaslight-blob,
-  .gaslight-noise {
-    filter: none;
-    opacity: 0.22;
-  }
 }
 
 /* Matrix-style running text background with soft, shifting highlights */
@@ -1193,7 +1006,6 @@ html, body {
   }
   
   /* Ultra-specific selector for upload card - maximum specificity */
-  /* Same opacity as other cards, but less blur and saturation for ripple visibility */
   [data-upload-card],
   [data-upload-card][data-card="true"],
   [data-upload-card][data-card],

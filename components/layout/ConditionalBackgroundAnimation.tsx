@@ -1,41 +1,36 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-
-import { useAnimation } from '@/contexts/AnimationContext';
+import React from 'react';
 
 import { LoveBackgroundText } from './LoveBackgroundText';
 
-// Public/marketing routes where the background is allowed.
-const MARKETING_PREFIXES = ['/articles', '/pricing', '/privacy', '/terms', '/refund'];
-const BLOCKED_PREFIXES = ['/admin', '/analysis'];
-
-function isMarketingPath(pathname: string) {
-  if (pathname === '/') return true;
-  return MARKETING_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
-}
-
-function isBlocked(pathname: string) {
-  return BLOCKED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
-}
-
 /**
- * Conditionally renders the background only on lightweight, public pages
- * and skips when animations are paused (e.g., uploads/analysis running
- * or user prefers reduced motion).
+ * Always renders the soft text background across the app unless the user
+ * prefers reduced motion.
  */
 export function ConditionalBackgroundAnimation() {
-  const pathname = usePathname() || '/';
-  const { isPageVisible, prefersReducedMotion, isProcessing } = useAnimation();
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
 
-  const allowed = isMarketingPath(pathname) && !isBlocked(pathname);
-  const animationsPaused = !isPageVisible || prefersReducedMotion || isProcessing;
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handle = (event: MediaQueryListEvent) => setPrefersReducedMotion(event.matches);
+    setPrefersReducedMotion(mq.matches);
+    mq.addEventListener('change', handle);
+    return () => mq.removeEventListener('change', handle);
+  }, []);
 
-  if (!allowed || animationsPaused) return null;
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handle = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', handle);
+    return () => mq.removeEventListener('change', handle);
+  }, []);
+
+  if (prefersReducedMotion || isMobile) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 hidden sm:block">

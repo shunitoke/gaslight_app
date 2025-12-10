@@ -485,8 +485,9 @@ export function LoveBackgroundText() {
 
   const { locale } = useLanguage();
   const phrases = React.useMemo(() => PHRASES_BY_LOCALE[locale] ?? PHRASES_BY_LOCALE.en, [locale]);
-  const { isPageVisible, prefersReducedMotion: ctxPrefersReducedMotion, isProcessing } = useAnimation();
-  const effectiveReduceMotion = reduceMotion || ctxPrefersReducedMotion || isProcessing || !isPageVisible;
+  const { isPageVisible, prefersReducedMotion: ctxPrefersReducedMotion } = useAnimation();
+  // Keep background active even during processing/import; only pause for user preference or tab visibility.
+  const effectiveReduceMotion = reduceMotion || ctxPrefersReducedMotion || !isPageVisible;
 
   const randomPhrase = React.useCallback(() => {
     const idx = Math.floor(Math.random() * phrases.length);
