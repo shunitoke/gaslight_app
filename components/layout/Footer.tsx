@@ -87,64 +87,64 @@ export const Footer = () => {
                   key: 'terms',
                   icon: <ScrollText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
                   content: (
-                    <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
-                      {t('terms_title')}
-                    </Link>
+              <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('terms_title')}
+              </Link>
                   )
                 },
                 {
                   key: 'privacy',
                   icon: <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
                   content: (
-                    <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
-                      {t('privacy_title')}
-                    </Link>
+              <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('privacy_title')}
+              </Link>
                   )
                 },
                 {
                   key: 'refund',
                   icon: <Undo2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
                   content: (
-                    <Link href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">
-                      {t('refund_title')}
-                    </Link>
+              <Link href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('refund_title')}
+              </Link>
                   )
                 },
                 {
                   key: 'pricing',
                   icon: <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
                   content: (
-                    <Link href="/pricing" className="hover:text-foreground underline-offset-4 hover:underline">
-                      {t('pricing_title')}
-                    </Link>
+              <Link href="/pricing" className="hover:text-foreground underline-offset-4 hover:underline">
+                {t('pricing_title')}
+              </Link>
                   )
                 },
                 {
                   key: 'bug',
                   icon: <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />,
                   content: (
-                    <Link
-                      href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
-                      aria-label={t('footer_report_bug')}
-                      className="hover:text-foreground underline-offset-4 hover:underline"
-                    >
-                      {t('footer_report_bug')}
-                    </Link>
+              <Link
+                href="mailto:spinnermining@gmail.com?subject=Bug%20report%20-%20Texts%20with%20My%20Ex"
+                aria-label={t('footer_report_bug')}
+                className="hover:text-foreground underline-offset-4 hover:underline"
+              >
+                {t('footer_report_bug')}
+              </Link>
                   )
                 },
                 {
                   key: 'github',
                   icon: <GitHubIcon />,
                   content: (
-                    <Link
-                      href="https://github.com/shunitoke/gaslight_app"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="GitHub repository"
+              <Link
+                href="https://github.com/shunitoke/gaslight_app"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub repository"
                       className="hover:text-foreground underline-offset-4 hover:underline"
-                    >
+              >
                       GitHub
-                    </Link>
+              </Link>
                   )
                 }
               ].map((item, idx) => (

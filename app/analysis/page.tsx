@@ -27,6 +27,10 @@ import { AnalysisDashboard } from '../../components/analysis/AnalysisDashboard';
 import type { SupportedLocale } from '../../features/i18n/types';
 import { getQrImageUrl, WALLET_ADDRESSES, WalletInfo } from '../../lib/donations';
 
+const TelegramIcon = () => (
+  <img src="/telegram.svg" alt="Telegram" className="h-4 w-4" loading="lazy" />
+);
+
 type AnalysisPageProps = {
   analysisId?: string;
 };
@@ -465,6 +469,61 @@ export default function AnalysisPage() {
   } | null>(null);
   const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const dataLoadedRef = useRef(false);
+
+  const tributeLink = 'https://t.me/tribute/app?startapp=dBph';
+  const donateViaTelegramLabel =
+    locale === 'ru'
+      ? 'Задонатить через Telegram'
+      : locale === 'fr'
+      ? 'Donner via Telegram'
+      : locale === 'de'
+      ? 'Per Telegram spenden'
+      : locale === 'es'
+      ? 'Donar vía Telegram'
+      : locale === 'pt'
+      ? 'Doar via Telegram'
+      : 'Donate via Telegram';
+
+  const donateViaCryptoLabel =
+    locale === 'ru'
+      ? 'Задонатить криптой'
+      : locale === 'fr'
+      ? 'Donner en crypto'
+      : locale === 'de'
+      ? 'Mit Krypto spenden'
+      : locale === 'es'
+      ? 'Donar con cripto'
+      : locale === 'pt'
+      ? 'Doar com cripto'
+      : 'Donate via Crypto';
+
+  const channelLink = 'https://t.me/textswithmyex';
+  const joinChannelLabel =
+    locale === 'ru'
+      ? 'Вступить в канал'
+      : locale === 'fr'
+      ? 'Rejoindre le canal'
+      : locale === 'de'
+      ? 'Kanal beitreten'
+      : locale === 'es'
+      ? 'Unirse al canal'
+      : locale === 'pt'
+      ? 'Entrar no canal'
+      : 'Join the channel';
+
+  const chatLink = 'https://t.me/gaslight_community';
+  const joinChatLabel =
+    locale === 'ru'
+      ? 'Присоединиться к чату'
+      : locale === 'fr'
+      ? 'Rejoindre le chat'
+      : locale === 'de'
+      ? 'Chat beitreten'
+      : locale === 'es'
+      ? 'Unirse al chat'
+      : locale === 'pt'
+      ? 'Entrar no chat'
+      : 'Join the chat';
 
   const intlLocale = useMemo(() => {
     const map: Record<SupportedLocale, string> = {
@@ -4274,24 +4333,50 @@ export default function AnalysisPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Donations (copied 1:1 from HomePageClient) */}
+        {/* Donations (synced with HomePageClient) */}
         <CardBase className="mx-auto w-full max-w-4xl bg-gradient-to-r from-destructive/10 via-destructive/15 to-destructive/10 border border-destructive/30 shadow-md p-0">
           <div className="sm:hidden px-4 py-3 space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs">
-              <span>β ❤️</span>
-              <span>{t('donation_beta_label')}</span>
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-semibold text-foreground">{t('donation_title')}</h3>
-              <p className="text-xs text-muted-foreground">{t('donation_text')}</p>
-              <div className="inline-flex px-2 py-1 rounded bg-destructive/20 text-destructive text-[11px] font-semibold">
-                {t('donation_crypto_only')}
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold text-foreground">{t('donation_title')}</h3>
+                <p className="text-xs text-muted-foreground">{t('donation_text')}</p>
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/15 text-destructive font-semibold text-xs whitespace-nowrap">
+                <span>β ❤️</span>
+                <span>{t('donation_beta_label')}</span>
               </div>
             </div>
+            <a
+              href={tributeLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition"
+            >
+              <TelegramIcon />
+              {donateViaTelegramLabel}
+            </a>
+            <a
+              href={channelLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary text-primary px-3 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+            >
+              <TelegramIcon />
+              {joinChannelLabel}
+            </a>
+            <a
+              href={chatLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary text-primary px-3 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+            >
+              <TelegramIcon />
+              {joinChatLabel}
+            </a>
             <details className="group mt-2">
               <summary className="cursor-pointer text-xs font-semibold text-destructive flex items-center gap-1.5 select-none">
                 <span className="group-open:rotate-90 transition-transform">›</span>
-                {t('donation_show_qr')}
+                {donateViaCryptoLabel}
               </summary>
               <div className="grid grid-cols-3 gap-2 text-xs mt-2">
                 {WALLET_ADDRESSES.map((wallet) => (
@@ -4308,23 +4393,49 @@ export default function AnalysisPage() {
           </div>
 
           <div className="hidden sm:block px-5 py-4 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/20 text-destructive font-semibold text-xs">
-              <span>β ❤️</span>
-              <span>{t('donation_beta_label')}</span>
-            </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
               <div className="space-y-1">
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('donation_title')}</h3>
                 <p className="text-sm text-muted-foreground">{t('donation_text')}</p>
               </div>
-              <div className="self-start sm:self-center px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-semibold">
-                {t('donation_crypto_only')}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/20 text-destructive font-semibold text-xs whitespace-nowrap">
+                <span>β ❤️</span>
+                <span>{t('donation_beta_label')}</span>
               </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={tributeLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition"
+              >
+                <TelegramIcon />
+                {donateViaTelegramLabel}
+              </a>
+              <a
+                href={channelLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-primary text-primary px-4 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+              >
+                <TelegramIcon />
+                {joinChannelLabel}
+              </a>
+              <a
+                href={chatLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-primary text-primary px-4 py-2 text-sm font-semibold shadow-sm hover:bg-primary/5 transition"
+              >
+                <TelegramIcon />
+                {joinChatLabel}
+              </a>
             </div>
             <details className="mt-3 group">
               <summary className="cursor-pointer text-sm font-semibold text-destructive flex items-center gap-2 select-none">
                 <span className="group-open:rotate-90 transition-transform">›</span>
-                {t('donation_show_qr')}
+                {donateViaCryptoLabel}
               </summary>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs mt-3">
                 {WALLET_ADDRESSES.map((wallet) => (
@@ -4340,7 +4451,7 @@ export default function AnalysisPage() {
                         className="whitespace-nowrap"
                         onClick={() => setSelectedWallet(wallet)}
                       >
-                        {t('donation_show_qr')}
+                        {donateViaCryptoLabel}
                       </Button>
                     </div>
                     <div className="text-xs font-mono text-foreground/80 break-all">{wallet.address}</div>

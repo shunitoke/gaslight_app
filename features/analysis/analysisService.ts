@@ -119,7 +119,7 @@ function getMessageKey(message: Message | undefined | null): string | null {
 function normalizeSectionId(id: string, title: string): string {
   const cleanedId = (id || '').trim();
   const cleanedTitle = (title || '').trim();
-
+  
   // Keep the original IDs to avoid merging loosely related patterns.
   if (cleanedId.length > 0) return cleanedId;
   if (cleanedTitle.length > 0) return cleanedTitle;
