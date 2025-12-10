@@ -1,7 +1,8 @@
 // Simple service worker for PWA installability
 // Bumped cache name to drop stale assets/chunks
-const CACHE_NAME = 'gaslight-app-v3';
-const PRECACHE_URLS = ['/', '/manifest.json', '/icon.svg'];
+const CACHE_NAME = 'gaslight-app-v4';
+// Only cache assets that actually exist; app uses PNG icons (no svg).
+const PRECACHE_URLS = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {

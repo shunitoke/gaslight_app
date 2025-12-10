@@ -471,6 +471,19 @@ export default function AnalysisPage() {
   const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const dataLoadedRef = useRef(false);
 
+  // If user opened via ?analysisId=..., remember it immediately for home button
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const analysisIdFromQuery = searchParams?.get('analysisId');
+    if (analysisIdFromQuery) {
+      try {
+        localStorage.setItem('lastAnalysisId', analysisIdFromQuery);
+      } catch {
+        // ignore storage issues
+      }
+    }
+  }, [searchParams]);
+
   const tributeLink = 'https://t.me/tribute/app?startapp=dBph';
   const donateViaTelegramLabel =
     locale === 'ru'

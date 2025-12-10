@@ -227,7 +227,7 @@ export function paletteToStyleObject(palette: ColorTokens, scheme: Scheme) {
     '--color-neutral': palette.legacy.colorNeutral,
     '--color-text': palette.legacy.colorText,
     '--color-highlight': palette.legacy.colorHighlight,
-    'color-scheme': scheme === 'dark' ? 'dark' : 'light'
+    colorScheme: scheme === 'dark' ? 'dark' : 'light'
   } as React.CSSProperties;
 }
 
