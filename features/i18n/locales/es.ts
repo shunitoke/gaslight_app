@@ -43,7 +43,7 @@ export const esBundle: LocaleBundle = {
     progress_analyzing_hint: 'La IA está analizando patrones, estilos de comunicación y dinámicas relacionales...',
     progress_media_hint: 'Analizando imágenes, stickers y contenido multimedia con modelos de visión IA...',
     progress_finalizing_hint:
-      'Estamos uniendo secciones, gráficos y respuestas recomendadas. Este último paso puede tardar hasta un minuto — gracias por esperar.',
+      'Estamos uniendo secciones y gráficos. Este último paso puede tardar hasta un minuto — gracias por esperar.',
     progress_chunk_label: 'Segmento {current} de {total}',
     progress_disclaimer: 'Por favor, no cierre esta ventana mientras el análisis está en progreso.',
     backToHome: 'Volver al inicio',
@@ -78,11 +78,11 @@ export const esBundle: LocaleBundle = {
     free_hint:
       'Vista previa gratuita: solo resumen. Desbloquea el informe completo, evidencia y exportaciones.',
     premium_progress_hint:
-      'Ejecutando análisis premium: prompts más profundos, procesamiento de medios, generación de perfiles de participantes y respuestas recomendadas.',
+      'Análisis detallado en curso: procesamos texto y los medios disponibles.',
     free_progress_hint:
-      'Ejecutando análisis gratuito: visión general solo de texto. Pasa a premium para medios, perfiles de participantes, respuestas recomendadas y gráficos de actividad.',
-    progress_premium_features_profiles: 'Generación de perfiles psicológicos de participantes',
-    progress_premium_features_replies: 'Creación de ejemplos de respuestas saludables',
+      'Análisis básico: solo texto por ahora; medios llegarán más adelante.',
+    progress_premium_features_profiles: 'Ideas sobre los participantes a partir de los mensajes',
+    progress_premium_features_replies: '',
     progress_premium_features_activity: 'Construcción del gráfico de actividad diaria',
     selectPlatform: 'Seleccionar plataforma',
     platform_auto: 'Detección automática',

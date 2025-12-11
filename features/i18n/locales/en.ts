@@ -44,7 +44,7 @@ export const enBundle: LocaleBundle = {
     progress_analyzing_hint: 'AI is analyzing patterns, communication styles, and relationship dynamics...',
     progress_media_hint: 'Analyzing images, stickers, and media content with AI vision models...',
     progress_finalizing_hint:
-      'Combining all sections, dashboards, and recommended replies. This last step can take up to a minute — thanks for waiting.',
+      'Combining all sections and charts. This last step can take up to a minute — thanks for waiting.',
     progress_chunk_label: 'Chunk {current} of {total}',
     progress_disclaimer: 'Please do not close this window while analysis is in progress.',
     backToHome: 'Back to Home',
@@ -79,11 +79,11 @@ export const enBundle: LocaleBundle = {
     free_hint:
       'Free preview: overview only. Unlock full report, evidence, and exports.',
     premium_progress_hint:
-      'Running premium analysis: using deeper prompts, media processing, generating participant profiles and recommended replies.',
+      'Running detailed analysis: processing text and available media.',
     free_progress_hint:
-      'Running free analysis: text-only overview. Upgrade to premium for media, participant profiles, recommended replies, and activity charts.',
-    progress_premium_features_profiles: 'Generating participant psychological profiles',
-    progress_premium_features_replies: 'Creating example healthy replies',
+      'Running basic analysis: text only for now; media coming soon.',
+    progress_premium_features_profiles: 'Participant insights from messages',
+    progress_premium_features_replies: '',
     progress_premium_features_activity: 'Building daily activity chart',
     selectPlatform: 'Select Platform',
     platform_auto: 'Auto-detect',
@@ -291,27 +291,18 @@ export const enBundle: LocaleBundle = {
     activity_chart_color_hint:
       'Red ≈ days linked to intense conflict or manipulation.',
 
-    // Recommended replies
-    recommended_replies_toggle_show: 'Show example healthy replies',
-    recommended_replies_toggle_hide: 'Hide example replies',
-    recommended_replies_gaslighting_1:
-      "When you say I'm exaggerating or 'making things up', I feel dismissed. It's important for me that my feelings are acknowledged, even if you see the situation differently.",
-    recommended_replies_gaslighting_2:
-      "It's hard for me when my words or memories are completely denied. Can we try to talk about what each of us remembers without labels like 'you're crazy / you invented this'?",
-    recommended_replies_gaslighting_3:
-      "If you disagree, it would help me to hear something like 'I remember it differently, let's figure it out' instead of 'you always twist everything'.",
-    recommended_replies_conflict_1:
-      'Right now this is turning into a win/lose argument, and I feel exhausted. Can we pause and come back when we can talk more calmly?',
-    recommended_replies_conflict_2:
-      "I don't want to win this fight, I want to understand what's happening between us. Can we try to speak one at a time and not interrupt?",
-    recommended_replies_conflict_3:
-      'When voices get raised, I stop hearing the meaning. Can we try to discuss this more calmly or move the conversation to another time?',
-    recommended_replies_support_1:
-      'When you support me in difficult moments, I feel safer with you. I want to be able to do the same for you.',
-    recommended_replies_support_2:
-      "It matters to me to know how I can be there for you when you're struggling. Can you tell me what helps you most?",
-    recommended_replies_support_3:
-      'I see that this was hard for you, and I appreciate that you still stayed in contact. That feels like care to me.',
+    // Recommended replies (disabled)
+    recommended_replies_toggle_show: '',
+    recommended_replies_toggle_hide: '',
+    recommended_replies_gaslighting_1: '',
+    recommended_replies_gaslighting_2: '',
+    recommended_replies_gaslighting_3: '',
+    recommended_replies_conflict_1: '',
+    recommended_replies_conflict_2: '',
+    recommended_replies_conflict_3: '',
+    recommended_replies_support_1: '',
+    recommended_replies_support_2: '',
+    recommended_replies_support_3: '',
 
     // Dashboard
     dashboard_title: 'Timeline',

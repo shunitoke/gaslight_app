@@ -43,7 +43,7 @@ export const deBundle: LocaleBundle = {
     progress_analyzing_hint: 'KI analysiert Muster, Kommunikationsstile und Beziehungsdynamiken...',
     progress_media_hint: 'Analyse von Bildern, Stickern und Medieninhalten mit KI-Visionsmodellen...',
     progress_finalizing_hint:
-      'Wir führen alle Abschnitte, Diagramme und Antwortempfehlungen zusammen. Dieser letzte Schritt kann bis zu einer Minute dauern – bitte etwas Geduld.',
+      'Wir führen alle Abschnitte und Diagramme zusammen. Dieser letzte Schritt kann bis zu einer Minute dauern – bitte etwas Geduld.',
     progress_chunk_label: 'Abschnitt {current} von {total}',
     progress_disclaimer: 'Bitte schließen Sie dieses Fenster während der Analyse nicht.',
     backToHome: 'Zurück zur Startseite',
@@ -78,11 +78,11 @@ export const deBundle: LocaleBundle = {
     free_hint:
       'Kostenlose Vorschau: nur Überblick. Schalte vollständigen Bericht, Belege und Exporte frei.',
     premium_progress_hint:
-      'Premium-Analyse läuft: tiefere Prompts, Medienverarbeitung, Generierung von Teilnehmerprofilen und empfohlenen Antworten.',
+      'Detaillierte Analyse läuft: Wir verarbeiten Text und verfügbare Medien.',
     free_progress_hint:
-      'Kostenlose Analyse läuft: reine Textübersicht. Für Medien, Teilnehmerprofile, empfohlene Antworten und Aktivitätsdiagramme auf Premium upgraden.',
-    progress_premium_features_profiles: 'Generierung psychologischer Teilnehmerprofile',
-    progress_premium_features_replies: 'Erstellung von Beispielen gesunder Antworten',
+      'Basisanalyse: derzeit nur Text; Medien folgen später.',
+    progress_premium_features_profiles: 'Teilnehmer-Insights aus den Nachrichten',
+    progress_premium_features_replies: '',
     progress_premium_features_activity: 'Aufbau des täglichen Aktivitätsdiagramms',
     selectPlatform: 'Plattform auswählen',
     platform_auto: 'Automatische Erkennung',

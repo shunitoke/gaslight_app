@@ -43,7 +43,7 @@ export const frBundle: LocaleBundle = {
     progress_analyzing_hint: "L'IA analyse les modèles, les styles de communication et la dynamique relationnelle...",
     progress_media_hint: "Analyse des images, autocollants et contenus multimédias avec les modèles de vision IA...",
     progress_finalizing_hint:
-      'Assemblage des sections, graphiques et réponses recommandées. Cette dernière étape peut prendre jusqu’à une minute — merci de patienter.',
+      'Assemblage des sections et des graphiques. Cette dernière étape peut prendre jusqu’à une minute — merci de patienter.',
     progress_chunk_label: 'Segment {current} sur {total}',
     progress_disclaimer: "Veuillez ne pas fermer cette fenêtre pendant l'analyse.",
     backToHome: "Retour à l'accueil",
@@ -78,11 +78,11 @@ export const frBundle: LocaleBundle = {
     free_hint:
       "Aperçu gratuit : aperçu uniquement. Débloquez le rapport complet, les preuves et les exports.",
     premium_progress_hint:
-      "Analyse premium en cours : prompts plus profonds, traitement des médias, génération de profils participants et réponses recommandées.",
+      'Analyse détaillée en cours : nous traitons le texte et les médias disponibles.',
     free_progress_hint:
-      "Analyse gratuite en cours : vue d'ensemble textuelle. Passez en premium pour les médias, profils participants, réponses recommandées et graphiques d'activité.",
-    progress_premium_features_profiles: 'Génération de profils psychologiques des participants',
-    progress_premium_features_replies: 'Création d\'exemples de réponses saines',
+      'Analyse basique : pour l’instant, seulement le texte; les médias viendront ensuite.',
+    progress_premium_features_profiles: 'Analyse des participants à partir des messages',
+    progress_premium_features_replies: '',
     progress_premium_features_activity: 'Construction du graphique d\'activité quotidienne',
     selectPlatform: 'Sélectionner la plateforme',
     platform_auto: 'Détection automatique',
