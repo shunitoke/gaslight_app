@@ -3286,125 +3286,125 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {aggregatedInitiatorBalance.length > 0 && (
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-                    {locale === 'ru' ? 'Кто инициирует разговоры' : 'Who initiates conversations'}
-                  </p>
-                  <div className="space-y-1">
-                    {aggregatedInitiatorBalance.map(({ participant, value }, idx) => (
-                      <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
-                        <span className={`font-medium ${getParticipantColor(participant)}`}>
-                          {participant || 'Participant'}
-                        </span>
-                        <span className="font-bold text-foreground">{formatPercent(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {aggregatedApologyCounts.length > 0 && (
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-                    {locale === 'ru' ? 'Кто извиняется' : 'Who apologizes'}
-                  </p>
-                  <div className="space-y-1">
-                    {aggregatedApologyCounts.map(({ participant, value }, idx) => (
-                      <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
-                        <span className={`font-medium ${getParticipantColor(participant)}`}>
-                          {participant || 'Participant'}
-                        </span>
-                        <span className="font-bold text-foreground">
-                          {value} {locale === 'ru' ? 'раз' : 'times'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {analysis.communicationStats.conflictFrequency && (
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                    {locale === 'ru' ? 'Частота конфликтов' : 'Conflict frequency'}
-                  </p>
-                  <p className="text-sm sm:text-base leading-relaxed">{analysis.communicationStats.conflictFrequency}</p>
-                </div>
-              )}
-              {analysis.communicationStats.resolutionRate !== undefined && (
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                    {locale === 'ru' ? 'Процент разрешенных конфликтов' : 'Resolution rate'}
-                  </p>
-                  <p className="text-lg sm:text-xl font-bold">
-                    {formatPercent(analysis.communicationStats.resolutionRate)}
-                  </p>
-                </div>
-              )}
-            </div>
-            {aggregatedPromiseTracking.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-border/60">
-                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 tracking-tight">
-                  {locale === 'ru' ? 'Отслеживание обещаний' : 'Promise Tracking'}
-                </h3>
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 sm:space-y-5 border-t border-border/60 pt-3 sm:pt-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {aggregatedPromiseTracking.map(({ participant, made, kept, percentage }, idx) => (
-                    <div key={`${participant}-${idx}`}>
-                      <p className={`text-sm sm:text-base font-semibold mb-3 ${getParticipantColor(participant)}`}>
-                        {participant || 'Participant'}
+                  {aggregatedInitiatorBalance.length > 0 && (
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                        {locale === 'ru' ? 'Кто инициирует разговоры' : 'Who initiates conversations'}
                       </p>
-                      <div className="space-y-1.5 text-sm sm:text-base">
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-muted-foreground">{locale === 'ru' ? 'Дано' : 'Made'}</span>
-                          <span className="font-semibold">{made}</span>
+                      <div className="space-y-1">
+                        {aggregatedInitiatorBalance.map(({ participant, value }, idx) => (
+                          <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
+                            <span className={`font-medium ${getParticipantColor(participant)}`}>
+                              {participant || 'Participant'}
+                            </span>
+                            <span className="font-bold text-foreground">{formatPercent(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {aggregatedApologyCounts.length > 0 && (
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                        {locale === 'ru' ? 'Кто извиняется' : 'Who apologizes'}
+                      </p>
+                      <div className="space-y-1">
+                        {aggregatedApologyCounts.map(({ participant, value }, idx) => (
+                          <div key={`${participant}-${idx}`} className="flex justify-between items-center text-sm sm:text-base py-1">
+                            <span className={`font-medium ${getParticipantColor(participant)}`}>
+                              {participant || 'Participant'}
+                            </span>
+                            <span className="font-bold text-foreground">
+                              {value} {locale === 'ru' ? 'раз' : 'times'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {analysis.communicationStats.conflictFrequency && (
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                        {locale === 'ru' ? 'Частота конфликтов' : 'Conflict frequency'}
+                      </p>
+                      <p className="text-sm sm:text-base leading-relaxed">{analysis.communicationStats.conflictFrequency}</p>
+                    </div>
+                  )}
+                  {analysis.communicationStats.resolutionRate !== undefined && (
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                        {locale === 'ru' ? 'Процент разрешенных конфликтов' : 'Resolution rate'}
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold">
+                        {formatPercent(analysis.communicationStats.resolutionRate)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {aggregatedPromiseTracking.length > 0 && (
+                  <div className="pt-4 border-t border-border/60">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 tracking-tight">
+                      {locale === 'ru' ? 'Отслеживание обещаний' : 'Promise Tracking'}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {aggregatedPromiseTracking.map(({ participant, made, kept, percentage }, idx) => (
+                        <div key={`${participant}-${idx}`}>
+                          <p className={`text-sm sm:text-base font-semibold mb-3 ${getParticipantColor(participant)}`}>
+                            {participant || 'Participant'}
+                          </p>
+                          <div className="space-y-1.5 text-sm sm:text-base">
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-muted-foreground">{locale === 'ru' ? 'Дано' : 'Made'}</span>
+                              <span className="font-semibold">{made}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-muted-foreground">{locale === 'ru' ? 'Выполнено' : 'Kept'}</span>
+                              <span className="font-semibold">{kept}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5 font-bold border-t border-border/40 pt-1.5 mt-1.5">
+                              <span>{locale === 'ru' ? 'Процент' : 'Percentage'}</span>
+                              <span className="text-foreground">{formatPercent(percentage)}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-muted-foreground">{locale === 'ru' ? 'Выполнено' : 'Kept'}</span>
-                          <span className="font-semibold">{kept}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {analysis.redFlagCounts && (
+                  <div className="pt-4 border-t border-border/60">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">
+                      {locale === 'ru' ? 'Красные флаги' : 'Red Flags'}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                      <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 shadow-sm">
+                        <span className="text-xl sm:text-2xl">🟡</span>
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
+                          <p className="text-sm font-semibold">{analysis.redFlagCounts.yellow}</p>
                         </div>
-                        <div className="flex justify-between items-center py-0.5 font-bold border-t border-border/40 pt-1.5 mt-1.5">
-                          <span>{locale === 'ru' ? 'Процент' : 'Percentage'}</span>
-                          <span className="text-foreground">{formatPercent(percentage)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 shadow-sm">
+                        <span className="text-xl sm:text-2xl">🟠</span>
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
+                          <p className="text-sm font-semibold">{analysis.redFlagCounts.orange}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 shadow-sm">
+                        <span className="text-xl sm:text-2xl">🔴</span>
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
+                          <p className="text-sm font-semibold">{analysis.redFlagCounts.red}</p>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
-            )}
-            {analysis.redFlagCounts && (
-              <div className="mt-4 pt-4 border-t border-border/60">
-                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">
-                  {locale === 'ru' ? 'Красные флаги' : 'Red Flags'}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 shadow-sm">
-                    <span className="text-xl sm:text-2xl">🟡</span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Тревожные' : 'Concerning'}</p>
-                      <p className="text-sm font-semibold">{analysis.redFlagCounts.yellow}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 shadow-sm">
-                    <span className="text-xl sm:text-2xl">🟠</span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Проблемные' : 'Problematic'}</p>
-                      <p className="text-sm font-semibold">{analysis.redFlagCounts.orange}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 shadow-sm">
-                    <span className="text-xl sm:text-2xl">🔴</span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground truncate">{locale === 'ru' ? 'Опасные' : 'Dangerous'}</p>
-                      <p className="text-sm font-semibold">{analysis.redFlagCounts.red}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardBase>
             </AccordionContent>
           </AccordionItem>
         )}
@@ -3420,63 +3420,66 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4">
-            {analysis.emotionalCycle && (
-              <div className="mb-4">
-                <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                  {locale === 'ru' ? 'Эмоциональный цикл' : 'Emotional Cycle'}
-                </p>
-                <p className="text-sm sm:text-base leading-relaxed">{analysis.emotionalCycle}</p>
-              </div>
-            )}
-            {analysis.timePatterns && (
-              <div>
-                {analysis.timePatterns.conflictTimes && (
-                  <div className="mb-2">
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 border-t border-border/60 pt-3 sm:pt-4">
+                {analysis.emotionalCycle && (
+                  <div className="mb-4">
                     <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      {locale === 'ru'
-                        ? 'Когда происходят конфликты'
-                        : locale === 'fr'
-                        ? 'Quand les conflits surviennent'
-                        : locale === 'de'
-                        ? 'Wann Konflikte auftreten'
-                        : locale === 'es'
-                        ? 'Cuándo ocurren los conflictos'
-                        : locale === 'pt'
-                        ? 'Quando os conflitos acontecem'
-                        : 'When conflicts happen'}
+                      {locale === 'ru' ? 'Эмоциональный цикл' : 'Emotional Cycle'}
                     </p>
-                    <p className="text-sm sm:text-base leading-relaxed">{analysis.timePatterns.conflictTimes}</p>
+                    <p className="text-sm sm:text-base leading-relaxed">{analysis.emotionalCycle}</p>
                   </div>
                 )}
-                {analysis.timePatterns.triggers && analysis.timePatterns.triggers.length > 0 && (
+                {analysis.timePatterns && (
                   <div>
-                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      {locale === 'ru'
-                        ? 'Обычно провоцируется'
-                        : locale === 'fr'
-                        ? 'Généralement déclenché par'
-                        : locale === 'de'
-                        ? 'Ausgelöst durch'
-                        : locale === 'es'
-                        ? 'Generalmente desencadenado por'
-                        : locale === 'pt'
-                        ? 'Geralmente provocado por'
-                        : 'Usually triggered by'}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {analysis.timePatterns.triggers.map((trigger, idx) => (
-                        <span key={idx} className="text-xs px-2 py-1 rounded-full bg-muted text-foreground">
-                          {trigger}
-                        </span>
-                      ))}
-                    </div>
+                    {analysis.timePatterns.conflictTimes && (
+                      <div className="mb-2">
+                        <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                          {locale === 'ru'
+                            ? 'Когда происходят конфликты'
+                            : locale === 'fr'
+                            ? 'Quand les conflits surviennent'
+                            : locale === 'de'
+                            ? 'Wann Konflikte auftreten'
+                            : locale === 'es'
+                            ? 'Cuándo ocurren los conflictos'
+                            : locale === 'pt'
+                            ? 'Quando os conflitos acontecem'
+                            : 'When conflicts happen'}
+                        </p>
+                        <p className="text-sm sm:text-base leading-relaxed">{analysis.timePatterns.conflictTimes}</p>
+                      </div>
+                    )}
+                    {analysis.timePatterns.triggers && analysis.timePatterns.triggers.length > 0 && (
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                          {locale === 'ru'
+                            ? 'Обычно провоцируется'
+                            : locale === 'fr'
+                            ? 'Généralement déclenché par'
+                            : locale === 'de'
+                            ? 'Ausgelöst durch'
+                            : locale === 'es'
+                            ? 'Generalmente desencadenado por'
+                            : locale === 'pt'
+                            ? 'Geralmente provocado por'
+                            : 'Usually triggered by'}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.timePatterns.triggers.map((trigger, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs px-2.5 py-1 rounded-full bg-foreground/10 border border-border/70 text-foreground font-semibold"
+                            >
+                              {trigger}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-            </CardBase>
             </AccordionContent>
           </AccordionItem>
             )}
@@ -3492,37 +3495,37 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4">
-            <div className="space-y-4">
-              {analysis.contradictions.map((contradiction, idx) => (
-                <div key={idx} className="border-l-4 border-amber-500/50 pl-4 py-3 bg-amber-50/30 dark:bg-amber-950/20 rounded-r-md">
-                  <div className="flex items-start gap-2 mb-2">
-                    <span className="text-base">📅</span>
-                    <div className="flex-1">
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 font-medium">
-                        {formatDate(contradiction.date)}
-                      </p>
-                      <p className="text-sm sm:text-base mb-2 leading-relaxed">
-                        <span className="font-semibold">{locale === 'ru' ? 'Сказано:' : 'Said:'}</span> <span className="italic">"{contradiction.originalStatement}"</span>
-                      </p>
-                      <p className="text-sm sm:text-base mb-3 leading-relaxed">
-                        <span className="font-semibold">{locale === 'ru' ? 'Позже отрицалось:' : 'Later denied:'}</span> <span className="italic">"{contradiction.denialStatement}"</span>
-                      </p>
-                      <div className="flex items-center gap-3 text-xs sm:text-sm">
-                        <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/50">
-                          ⚠️ {locale === 'ru' ? 'Тип:' : 'Type:'} {contradiction.type === 'promise_denial' ? (locale === 'ru' ? 'Отрицание обещания' : 'Promise denial') : contradiction.type === 'reality_denial' ? (locale === 'ru' ? 'Отрицание реальности' : 'Reality denial') : (locale === 'ru' ? 'Отрицание утверждения' : 'Claim denial')}
-                        </Badge>
-                        <Badge variant="outline" className="text-muted-foreground">
-                          🎯 {locale === 'ru' ? 'Серьезность:' : 'Severity:'} {(contradiction.severity * 10).toFixed(1)}/10
-                        </Badge>
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 border-t border-border/60 pt-3 sm:pt-4">
+                <div className="space-y-4">
+                  {analysis.contradictions.map((contradiction, idx) => (
+                    <div key={idx} className="border-l-4 border-amber-500/50 pl-4 py-3 bg-amber-50/30 dark:bg-amber-950/20 rounded-r-md">
+                      <div className="flex items-start gap-2 mb-2">
+                        <span className="text-base">📅</span>
+                        <div className="flex-1">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 font-medium">
+                            {formatDate(contradiction.date)}
+                          </p>
+                          <p className="text-sm sm:text-base mb-2 leading-relaxed">
+                            <span className="font-semibold">{locale === 'ru' ? 'Сказано:' : 'Said:'}</span> <span className="italic">"{contradiction.originalStatement}"</span>
+                          </p>
+                          <p className="text-sm sm:text-base mb-3 leading-relaxed">
+                            <span className="font-semibold">{locale === 'ru' ? 'Позже отрицалось:' : 'Later denied:'}</span> <span className="italic">"{contradiction.denialStatement}"</span>
+                          </p>
+                          <div className="flex items-center gap-3 text-xs sm:text-sm">
+                            <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/50">
+                              ⚠️ {locale === 'ru' ? 'Тип:' : 'Type:'} {contradiction.type === 'promise_denial' ? (locale === 'ru' ? 'Отрицание обещания' : 'Promise denial') : contradiction.type === 'reality_denial' ? (locale === 'ru' ? 'Отрицание реальности' : 'Reality denial') : (locale === 'ru' ? 'Отрицание утверждения' : 'Claim denial')}
+                            </Badge>
+                            <Badge variant="outline" className="text-muted-foreground">
+                              🎯 {locale === 'ru' ? 'Серьезность:' : 'Severity:'} {(contradiction.severity * 10).toFixed(1)}/10
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            </CardBase>
+              </div>
             </AccordionContent>
           </AccordionItem>
             )}
@@ -3662,9 +3665,8 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4">
-            <div className="space-y-4">
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 border-t border-border/60 pt-3 sm:pt-4">
               {analysis.frameworkDiagnosis.nvc && (
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 tracking-tight">
@@ -3964,8 +3966,7 @@ export default function AnalysisPage() {
                   </div>
                 </div>
               )}
-            </div>
-            </CardBase>
+              </div>
             </AccordionContent>
           </AccordionItem>
             )}
@@ -3993,9 +3994,8 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4 border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
-            <div className="space-y-3">
+            <AccordionContent className="pb-4">
+              <div className="p-3 sm:p-4 border-2 border-primary/30 bg-primary/5 dark:bg-primary/10 space-y-4 border-t border-border/60 pt-3 sm:pt-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${
                   analysis.hardTruth.verdict === 'abusive' ? 'bg-red-500/20 text-red-700 dark:text-red-400' :
@@ -4029,7 +4029,6 @@ export default function AnalysisPage() {
                 </div>
               )}
             </div>
-            </CardBase>
             </AccordionContent>
           </AccordionItem>
             )}
@@ -4057,9 +4056,8 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4">
-            <div className="space-y-4">
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 border-t border-border/60 pt-3 sm:pt-4">
               {analysis.whatYouShouldKnow.couldHaveDoneDifferently && analysis.whatYouShouldKnow.couldHaveDoneDifferently.length > 0 && (
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
@@ -4144,8 +4142,7 @@ export default function AnalysisPage() {
                   </ul>
                 </div>
               )}
-            </div>
-            </CardBase>
+              </div>
             </AccordionContent>
           </AccordionItem>
             )}
@@ -4161,8 +4158,8 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-3 sm:px-4 pb-4">
-          <CardBase className="p-3 sm:p-4 border border-primary/40 bg-primary/5 dark:bg-primary/10">
+            <AccordionContent className="pb-4">
+              <div className="border border-primary/40 bg-primary/5 dark:bg-primary/10 space-y-4 border-t border-border/60 pt-3 sm:pt-4 pb-3 sm:pb-4 px-3 sm:px-4">
             <div className="flex flex-col gap-1 mb-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary/80">
                 {t('whats_next_kicker') ?? (locale === 'ru' ? 'План действий' : 'Action plan')}
@@ -4249,7 +4246,7 @@ export default function AnalysisPage() {
               })}
             </div>
 
-            </CardBase>
+              </div>
             </AccordionContent>
           </AccordionItem>
             )}

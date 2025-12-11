@@ -25,11 +25,11 @@ type AnalysisRouteContext =
 
 export async function GET(
   request: Request,
-  { params }: AnalysisRouteContext
+  context: AnalysisRouteContext
 ) {
   let conversationId: string | undefined;
   try {
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await Promise.resolve(context.params);
     conversationId = resolvedParams.conversationId;
 
     if (!isAdminEnabled()) {

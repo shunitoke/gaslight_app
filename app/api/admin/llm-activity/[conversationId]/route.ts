@@ -24,11 +24,11 @@ type LlmActivityContext =
 
 export async function GET(
   request: Request,
-  { params }: LlmActivityContext
+  context: LlmActivityContext
 ) {
   let conversationId: string | undefined;
   try {
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await Promise.resolve(context.params);
     conversationId = resolvedParams.conversationId;
     if (!conversationId) {
       throw new Error('Missing conversationId');

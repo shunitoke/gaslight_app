@@ -14,7 +14,9 @@ import {
 export const runtime = 'nodejs';
 export const maxDuration = 15;
 
-type RouteContext = { params: { transactionId: string } } | { params: Promise<{ transactionId: string }> };
+type RouteContext =
+  | { params: { transactionId: string } }
+  | { params: Promise<{ transactionId: string }> };
 
 export async function GET(request: Request, context: RouteContext) {
   if (!isAdminEnabled()) {

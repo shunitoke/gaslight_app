@@ -5,11 +5,12 @@ import { getAnalysisResult } from '../../../../lib/analysisResultStore';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ analysisId: string }> }
-) {
-  const { analysisId } = await params;
+type AnalysisRouteContext =
+  | { params: { analysisId: string } }
+  | { params: Promise<{ analysisId: string }> };
+
+export async function GET(_request: NextRequest, context: AnalysisRouteContext) {
+  const { analysisId } = await Promise.resolve(context.params);
   if (!analysisId) {
     return NextResponse.json({ error: 'analysisId required' }, { status: 400 });
   }
