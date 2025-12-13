@@ -62,20 +62,19 @@ export async function POST(request: Request) {
     const premiumPayload: PremiumTokenPayload | null = getPremiumTokenPayload(request);
 
     // Free tier daily limit check
-    if (subscriptionTier === 'free') {
-      const isWithinDailyLimit = await checkRateLimit(
-        `analyze_start_daily:${ip}`,
-        DAILY_LIMIT_FREE,
-        ONE_DAY_MS
+    // Applied to everyone since premium is currently disabled
+    const isWithinDailyLimit = await checkRateLimit(
+      `analyze_start_daily:${ip}`,
+      DAILY_LIMIT_FREE,
+      ONE_DAY_MS
+    );
+    
+    if (!isWithinDailyLimit) {
+      logError('daily_limit_exceeded', { ip, endpoint: 'analyze_start_daily' });
+      return NextResponse.json(
+        { error: 'Daily analysis limit reached. Please try again tomorrow.' },
+        { status: 429 }
       );
-      
-      if (!isWithinDailyLimit) {
-        logError('daily_limit_exceeded', { ip, endpoint: 'analyze_start_daily' });
-        return NextResponse.json(
-          { error: 'Free tier daily analysis limit reached. Please upgrade to premium or try again tomorrow.' },
-          { status: 429 }
-        );
-      }
     }
 
     // Silent allowance: up to 3 completed analyses per payment
