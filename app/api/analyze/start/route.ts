@@ -8,24 +8,27 @@ import type {
   Participant,
 } from '../../../../features/analysis/types';
 import type { SupportedLocale } from '../../../../features/i18n/types';
-import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
 import { getPremiumTokenPayload, type PremiumTokenPayload } from '../../../../features/subscription/premiumToken';
 import {
   recordReportDelivery,
   getDeliveryStatsForPurchases
 } from '../../../../features/subscription/purchases';
-import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
-import { checkRateLimit } from '../../../../lib/rateLimit';
-import { createJob, updateJob, setJobResult, getJob } from '../jobStore';
-import { updateProgressStore } from '../progress/route';
+import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
+import { trackAnalysisEnd, trackAnalysisStart } from '../../../../lib/activity';
 import { computeChatHash, getCachedAnalysis, setCachedAnalysis } from '../../../../lib/cache';
 import { getConfig } from '../../../../lib/config';
-import { trackAnalysisEnd, trackAnalysisStart } from '../../../../lib/activity';
+import { checkRateLimit } from '../../../../lib/rateLimit';
+import { logError, logInfo, logWarn } from '../../../../lib/telemetry';
+import { analyzeMediaArtifact } from '../../../../lib/vision';
+import { createJob, updateJob, setJobResult } from '../jobStore';
+import { updateProgressStore } from '../progress/route';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // allow blocking analysis for diagnostics
 
 const RATE_LIMIT_MAX_REQUESTS = 3; // 3 analysis start requests per minute per IP
+const DAILY_LIMIT_FREE = 10; // 10 analyses per day for free users
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 type AnalyzeStartBody = {
   conversation: Conversation;
@@ -57,6 +60,22 @@ export async function POST(request: Request) {
     const subscriptionTier = await getSubscriptionTier(request);
     const features = getSubscriptionFeatures(subscriptionTier);
     const premiumPayload: PremiumTokenPayload | null = getPremiumTokenPayload(request);
+
+    // Free tier daily limit check
+    // Applied to everyone since premium is currently disabled
+    const isWithinDailyLimit = await checkRateLimit(
+      `analyze_start_daily:${ip}`,
+      DAILY_LIMIT_FREE,
+      ONE_DAY_MS
+    );
+    
+    if (!isWithinDailyLimit) {
+      logError('daily_limit_exceeded', { ip, endpoint: 'analyze_start_daily' });
+      return NextResponse.json(
+        { error: 'Daily analysis limit reached. Please try again tomorrow.' },
+        { status: 429 }
+      );
+    }
 
     // Silent allowance: up to 3 completed analyses per payment
     if (premiumPayload) {
@@ -136,7 +155,7 @@ export async function POST(request: Request) {
           enhancedAnalysis || false
         );
         await recordAnalysisComplete(conversation.id, 0, true); // cacheHit = true
-      } catch (metricsError) {
+      } catch {
         // Ignore metrics errors
       }
 
@@ -213,6 +232,54 @@ export async function POST(request: Request) {
           forwardedMedia: mediaArtifacts.length,
           tier: subscriptionTier,
         });
+
+        // Run vision analysis on media items (images) if they haven't been analyzed yet
+        // We do this here (after cache check) to ensure we don't waste tokens on cached results,
+        // but before analyzeConversation so the text model gets the image descriptions.
+        if (features.canAnalyzeMedia && mediaForAnalysis.length > 0) {
+          const imagesToAnalyze = mediaForAnalysis.filter(
+            m => (m.type === 'image' || m.type === 'sticker' || m.type === 'gif') && 
+                 (!m.labels || m.labels.length === 0)
+          );
+
+          if (imagesToAnalyze.length > 0) {
+            logInfo('vision_analysis_start', {
+              count: imagesToAnalyze.length,
+              conversationId: conversation.id
+            });
+
+            // Process in small batches to respect concurrency limits
+            const BATCH_SIZE = 3;
+            for (let i = 0; i < imagesToAnalyze.length; i += BATCH_SIZE) {
+              const batch = imagesToAnalyze.slice(i, i + BATCH_SIZE);
+              await Promise.all(batch.map(async (media) => {
+                try {
+                  const result = await analyzeMediaArtifact(media);
+                  // Update media object in place
+                  media.labels = result.labels;
+                  media.sentimentHint = result.sentiment;
+                  // Use description as notes/content for the LLM
+                  media.notes = result.description; 
+                  
+                  // Also log success for debugging
+                  if (result.description && result.description.length > 0) {
+                     // We don't log full description to avoid log bloat
+                  }
+                } catch (err) {
+                  logWarn('vision_analysis_failed_for_item', {
+                    mediaId: media.id,
+                    error: (err as Error).message
+                  });
+                }
+              }));
+            }
+            
+            logInfo('vision_analysis_completed', {
+              count: imagesToAnalyze.length,
+              conversationId: conversation.id
+            });
+          }
+        }
 
         const analysisResult = await analyzeConversation(
           conversation,
@@ -312,5 +379,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-
