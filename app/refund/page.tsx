@@ -3,11 +3,11 @@
 import { Card } from '../../components/ui/card';
 import { useLanguage } from '../../features/i18n';
 
-const email = 'spinnermining@gmail.com';
-
 export default function RefundPolicyPage() {
   const { t } = useLanguage();
   const lastUpdated = new Date().toISOString().slice(0, 10);
+
+  const paddleRefundUrl = 'https://paddle.net/';
 
   return (
     <div className="min-h-screen bg-background py-12 px-6">
@@ -27,29 +27,11 @@ export default function RefundPolicyPage() {
           <p>{t('refund_intro')}</p>
 
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold">{t('refund_no_refunds_title')}</h2>
-            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>{t('refund_no_refunds_item1')}</li>
-              <li>{t('refund_no_refunds_item2')}</li>
-              <li>{t('refund_no_refunds_item3')}</li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">{t('refund_issue_title')}</h2>
-            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>{t('refund_issue_item1')}</li>
-              <li>{t('refund_issue_item2')}</li>
-              <li>{t('refund_issue_item3')}</li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
             <h2 className="text-xl font-semibold">{t('refund_contact_title')}</h2>
             <p className="text-muted-foreground">
               {t('refund_contact_text_prefix')}{' '}
-              <a href={`mailto:${email}`} className="underline hover:text-primary">
-                {email}
+              <a href={paddleRefundUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                paddle.net
               </a>{' '}
               {t('refund_contact_text_suffix')}
             </p>

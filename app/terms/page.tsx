@@ -15,6 +15,9 @@ export default function TermsPage() {
         <Card className="p-6 space-y-4 text-sm text-foreground shadow-xl border-border/30 backdrop-blur-lg" style={{ backgroundColor: 'hsl(var(--card) / 0.85)', willChange: 'background-color, opacity', backfaceVisibility: 'hidden' }}>
           <p>{t('terms_intro')}</p>
 
+          <h2 className="text-xl font-semibold mt-4">{t('terms_operator_title')}</h2>
+          <p>{t('terms_operator_content')}</p>
+
           <h2 className="text-xl font-semibold mt-4">{t('terms_section1_title')}</h2>
           <p>{t('terms_section1_content')}</p>
 
@@ -46,10 +49,4 @@ export default function TermsPage() {
     </div>
   );
 }
-
-
-
-
-
-
 
