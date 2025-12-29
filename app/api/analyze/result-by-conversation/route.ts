@@ -3,6 +3,7 @@ import { getJobByConversationId, deleteJob } from '../jobStore';
 import { getProgressStore, deleteProgressStore } from '../progress/route';
 import { logWarn, logInfo } from '../../../../lib/telemetry';
 import { setAnalysisResult } from '../../../../lib/analysisResultStore';
+import { getSubscriptionTier } from '../../../../features/subscription/types';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -21,6 +22,35 @@ export async function GET(request: Request) {
 
   // Try multiple times with delays to handle worker isolation
   // In serverless, GET requests might hit different workers than where the result was saved
+  const tier = await getSubscriptionTier(request);
+  const redactAnalysis = (analysis: any) => {
+    if (!analysis || typeof analysis !== 'object') return analysis;
+    return {
+      ...analysis,
+      sections: Array.isArray(analysis.sections)
+        ? analysis.sections.map((s: any) => ({
+            ...s,
+            evidenceSnippets: [],
+            recommendedReplies: undefined
+          }))
+        : [],
+      participantProfiles: undefined,
+      importantDates: undefined,
+      communicationStats: undefined,
+      promiseTracking: undefined,
+      redFlagCounts: undefined,
+      emotionalCycle: undefined,
+      timePatterns: undefined,
+      contradictions: undefined,
+      realityCheck: undefined,
+      frameworkDiagnosis: undefined,
+      hardTruth: undefined,
+      whatYouShouldKnow: undefined,
+      whatsNext: undefined,
+      closure: undefined
+    };
+  };
+
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
       // Small delay between attempts to allow result to propagate
@@ -35,7 +65,15 @@ export async function GET(request: Request) {
         attempt: attempt + 1,
         sectionsCount: progress.result.analysis?.sections?.length || 0
       });
-      const response = NextResponse.json(progress.result, { status: 200 });
+      const response = NextResponse.json(
+        tier === 'premium'
+          ? progress.result
+          : {
+              ...progress.result,
+              analysis: redactAnalysis((progress.result as any).analysis)
+            },
+        { status: 200 }
+      );
       const analysisId = progress.result?.analysis?.id;
       if (analysisId) {
         setAnalysisResult(analysisId, progress.result).catch(() => {});
@@ -63,7 +101,15 @@ export async function GET(request: Request) {
         attempt: attempt + 1,
         sectionsCount: job.result.analysis?.sections?.length || 0
       });
-      const response = NextResponse.json(job.result, { status: 200 });
+      const response = NextResponse.json(
+        tier === 'premium'
+          ? job.result
+          : {
+              ...job.result,
+              analysis: redactAnalysis((job.result as any).analysis)
+            },
+        { status: 200 }
+      );
       const analysisId = job.result?.analysis?.id;
       if (analysisId) {
         setAnalysisResult(analysisId, job.result).catch(() => {});

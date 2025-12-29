@@ -11,7 +11,8 @@ import type { SupportedLocale } from '../../../../features/i18n/types';
 import { getPremiumTokenPayload, type PremiumTokenPayload } from '../../../../features/subscription/premiumToken';
 import {
   recordReportDelivery,
-  getDeliveryStatsForPurchases
+  getDeliveryStatsForPurchases,
+  getPurchaseRecord
 } from '../../../../features/subscription/purchases';
 import { getSubscriptionFeatures, getSubscriptionTier } from '../../../../features/subscription/types';
 import { trackAnalysisEnd, trackAnalysisStart } from '../../../../lib/activity';
@@ -29,6 +30,9 @@ export const maxDuration = 300; // allow blocking analysis for diagnostics
 const RATE_LIMIT_MAX_REQUESTS = 3; // 3 analysis start requests per minute per IP
 const DAILY_LIMIT_FREE = 10; // 10 analyses per day for free users
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const CHAT_HASH_BURST_LIMIT_FREE = 1; // allow 1 expensive analysis per chat hash per minute
+const CHAT_HASH_DAILY_LIMIT_FREE = 2; // allow small retries per day for the same chat hash
+const ONE_MINUTE_MS = 60 * 1000;
 
 type AnalyzeStartBody = {
   conversation: Conversation;
@@ -46,6 +50,22 @@ export async function POST(request: Request) {
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||
       'unknown';
+    const rawClientId = request.headers.get('x-client-id') || null;
+    const clientId = (() => {
+      if (!rawClientId) return null;
+      const trimmed = rawClientId.trim();
+      // Keep it strict to prevent key-abuse in KV (very long strings, weird chars)
+      if (trimmed.length < 8 || trimmed.length > 80) return null;
+      if (!/^cid_[a-zA-Z0-9_-]+$/.test(trimmed)) return null;
+      return trimmed;
+    })();
+
+    if (rawClientId && !clientId) {
+      logWarn('invalid_client_id_header', {
+        ip,
+        clientIdLength: rawClientId.length
+      });
+    }
 
     // Rate limiting
     if (!(await checkRateLimit(`analyze_start:${ip}`, RATE_LIMIT_MAX_REQUESTS))) {
@@ -54,6 +74,16 @@ export async function POST(request: Request) {
         { error: 'Too many analysis requests. Please try again later.' },
         { status: 429 }
       );
+    }
+
+    if (clientId) {
+      if (!(await checkRateLimit(`analyze_start_client:${clientId}`, RATE_LIMIT_MAX_REQUESTS))) {
+        logError('rate_limit_exceeded', { clientId, endpoint: 'analyze_start_client' });
+        return NextResponse.json(
+          { error: 'Too many analysis requests. Please try again later.' },
+          { status: 429 }
+        );
+      }
     }
 
     // Basic tier check (reuse subscription logic)
@@ -77,15 +107,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Silent allowance: up to 3 completed analyses per payment
-    if (premiumPayload) {
-      const stats = await getDeliveryStatsForPurchases([premiumPayload.paymentId]);
-      const deliveredCount = stats[premiumPayload.paymentId]?.deliveredCount ?? 0;
-      const MAX_PER_PAYMENT = 3;
-      if (deliveredCount >= MAX_PER_PAYMENT) {
+    if (clientId) {
+      const isWithinDailyLimitClient = await checkRateLimit(
+        `analyze_start_daily_client:${clientId}`,
+        DAILY_LIMIT_FREE,
+        ONE_DAY_MS
+      );
+      if (!isWithinDailyLimitClient) {
+        logError('daily_limit_exceeded', { clientId, endpoint: 'analyze_start_daily_client' });
         return NextResponse.json(
-          { error: 'Usage limit reached for this token. Please contact support if needed.' },
-          { status: 402 }
+          { error: 'Daily analysis limit reached. Please try again tomorrow.' },
+          { status: 429 }
         );
       }
     }
@@ -180,8 +212,6 @@ export async function POST(request: Request) {
         result
       });
 
-      await recordDeliveryIfPremium(conversation.id);
-
       return NextResponse.json({ jobId: job.id });
     }
 
@@ -189,6 +219,65 @@ export async function POST(request: Request) {
       conversationId: conversation.id,
       chatHash
     });
+
+    // Extra anti-abuse: if someone keeps resubmitting the same conversation to force expensive LLM calls,
+    // throttle by chatHash (only matters on cache misses).
+    const enableChatHashThrottle =
+      process.env.NODE_ENV === 'production' &&
+      process.env.DISABLE_CHAT_HASH_THROTTLE !== 'true';
+
+    if (enableChatHashThrottle && !premiumPayload && chatHash) {
+      const burstOk = await checkRateLimit(
+        `analyze_start_chat_burst:${chatHash}`,
+        CHAT_HASH_BURST_LIMIT_FREE,
+        ONE_MINUTE_MS
+      );
+      if (!burstOk) {
+        logWarn('chat_hash_burst_limit_exceeded', {
+          ip,
+          clientId: clientId ?? undefined,
+          chatHash
+        });
+        return NextResponse.json(
+          { error: 'Too many repeated requests for the same conversation. Please wait a moment.' },
+          { status: 429 }
+        );
+      }
+
+      const dailyOk = await checkRateLimit(
+        `analyze_start_chat_daily:${chatHash}`,
+        CHAT_HASH_DAILY_LIMIT_FREE,
+        ONE_DAY_MS
+      );
+      if (!dailyOk) {
+        logWarn('chat_hash_daily_limit_exceeded', {
+          ip,
+          clientId: clientId ?? undefined,
+          chatHash
+        });
+        return NextResponse.json(
+          { error: 'Daily limit reached for repeated analysis of the same conversation.' },
+          { status: 429 }
+        );
+      }
+    }
+
+    // Silent allowance: up to 3 completed analyses per payment (cache hits do not consume credits)
+    if (premiumPayload) {
+      const stats = await getDeliveryStatsForPurchases([premiumPayload.paymentId]);
+      const deliveredCount = stats[premiumPayload.paymentId]?.deliveredCount ?? 0;
+      const purchase = await getPurchaseRecord(premiumPayload.paymentId);
+      const mediaPriceId = process.env.PADDLE_PRICE_ID_REPORT_MEDIA;
+
+      const MAX_PER_PAYMENT =
+        purchase?.priceId && mediaPriceId && purchase.priceId === mediaPriceId ? 10 : 5;
+      if (deliveredCount >= MAX_PER_PAYMENT) {
+        return NextResponse.json(
+          { error: 'Usage limit reached for this token. Please contact support if needed.' },
+          { status: 402 }
+        );
+      }
+    }
 
     const job = await createJob(conversation.id);
     logInfo('analyze_start_job_created', {

@@ -1086,7 +1086,13 @@ export default function AnalysisPage() {
         const isPremium = forcePremium || tier === 'premium' || Boolean(premiumToken);
 
         const fetchByAnalysisId = async (analysisId: string): Promise<boolean> => {
-          const res = await fetch(`/api/analysis/${encodeURIComponent(analysisId)}`);
+          const res = await fetch(`/api/analysis/${encodeURIComponent(analysisId)}`,
+            {
+              headers: {
+                ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+              }
+            }
+          );
           if (!res.ok) {
             return false;
           }
@@ -1134,7 +1140,12 @@ export default function AnalysisPage() {
             return false;
           }
           const res = await fetch(
-            `/api/analyze/result-by-conversation?conversationId=${currentConversationId}`
+            `/api/analyze/result-by-conversation?conversationId=${currentConversationId}`,
+            {
+              headers: {
+                ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+              }
+            }
           );
           if (!res.ok) {
             setError('Result not found');
@@ -2411,7 +2422,7 @@ export default function AnalysisPage() {
               {(() => {
                 const full = replaceParticipantIds(getOverviewSummaryText());
                 const limit = 260;
-                if (showFullOverview || full.length <= limit) return full;
+                if ((isPremiumAnalysis && showFullOverview) || full.length <= limit) return full;
                 const cutoff = full.lastIndexOf('.', limit) > 80
                   ? full.lastIndexOf('.', limit) + 1
                   : full.lastIndexOf(' ', limit);
@@ -2423,7 +2434,7 @@ export default function AnalysisPage() {
               const full = replaceParticipantIds(getOverviewSummaryText());
               const limit = 260;
               const needsMore = full.length > limit;
-              if (!needsMore || showFullOverview) return null;
+              if (!needsMore || !isPremiumAnalysis || showFullOverview) return null;
               return (
                 <button
                   type="button"
@@ -2933,8 +2944,8 @@ export default function AnalysisPage() {
           </CardBase>
             )}
 
-            {/* Dashboard with all charts, heatmap and calendar (premium feature) */}
-         {isPremiumAnalysis && (activityByDay.length > 0 || (analysis.importantDates?.length ?? 0) > 0) ? (
+            {/* Dashboard with all charts, heatmap and calendar */}
+         {(activityByDay.length > 0 || (analysis.importantDates?.length ?? 0) > 0) ? (
            <AnalysisDashboard
              analysis={analysis}
              activityByDay={activityByDay}

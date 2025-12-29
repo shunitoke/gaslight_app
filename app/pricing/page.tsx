@@ -3,12 +3,16 @@
 import Link from 'next/link';
 
 import { PaddleCheckoutButton } from '../../components/subscription/PaddleCheckoutButton';
+import { Button } from '../../components/ui/Button';
 import { Card, CardBase } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Check, Shield, Sparkles } from 'lucide-react';
 import { useLanguage } from '../../features/i18n';
 
-const priceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE ?? '$9.99';
+const basicPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE ?? '$5.99';
+const mediaPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE_MEDIA ?? '$9.99';
+
+const basicPriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_ID_REPORT || undefined;
 const email = 'spinnermining@gmail.com';
 
 export default function PricingPage() {
@@ -16,17 +20,24 @@ export default function PricingPage() {
 
   const freeFeatures = [t('pricing_free_item1'), t('pricing_free_item2'), t('pricing_free_item3')];
 
-  const premiumFeatures = [
+  const basicFeatures = [
     t('pricing_premium_item1'),
     t('pricing_premium_item2'),
     t('pricing_premium_item3'),
     t('pricing_premium_item4')
   ];
 
+  const mediaFeatures = [
+    t('pricing_media_item1'),
+    t('pricing_media_item2'),
+    t('pricing_media_item3'),
+    t('pricing_media_item4')
+  ];
+
   return (
     <div className="min-h-screen bg-background py-12 px-6">
-      <div className="relative max-w-5xl mx-auto">
-        <div className="space-y-8 filter blur-sm md:blur-md pointer-events-none select-none">
+      <div className="max-w-5xl mx-auto">
+        <div className="space-y-8">
           <div className="space-y-3 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold uppercase tracking-wide">
             <Shield className="h-4 w-4" />
@@ -36,8 +47,8 @@ export default function PricingPage() {
           <p className="text-muted-foreground max-w-3xl mx-auto">{t('pricing_description')}</p>
         </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-6 space-y-4 border-border/50">
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card data-no-blur className="p-6 space-y-4 border-border/50">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('pricing_free_label')}</p>
@@ -64,12 +75,17 @@ export default function PricingPage() {
               </Link>
             </Card>
 
-            <Card className="p-6 space-y-4 border-primary/40 shadow-lg shadow-primary/10 bg-primary/5">
+            <Card data-no-blur className="p-6 space-y-4 border-primary/40 shadow-lg shadow-primary/10 bg-primary/5">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-primary font-semibold">{t('pricing_premium_label')}</p>
+                  <div className="mt-1">
+                    <Badge tone="warning" variant="outline">
+                      {t('pricing_any_chat_size_badge')}
+                    </Badge>
+                  </div>
                   <div className="flex items-baseline gap-2">
-                    <h2 className="text-3xl font-bold text-foreground">{priceDisplay}</h2>
+                    <h2 className="text-3xl font-bold text-foreground">{basicPriceDisplay}</h2>
                     <span className="text-sm text-muted-foreground">{t('pricing_price_unit')}</span>
                   </div>
                 </div>
@@ -77,19 +93,53 @@ export default function PricingPage() {
               </div>
               <p className="text-sm text-muted-foreground">{t('pricing_premium_description')}</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {premiumFeatures.map((item) => (
+                {basicFeatures.map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <Check className="h-4 w-4 text-primary mt-0.5" />
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <PaddleCheckoutButton label={t('pricing_premium_cta')} variant="primary" size="lg" className="w-full" />
+              <PaddleCheckoutButton
+                label={t('pricing_premium_cta')}
+                variant="primary"
+                size="lg"
+                className="w-full"
+                priceId={basicPriceId}
+              />
               <p className="text-xs text-muted-foreground">{t('pricing_checkout_note')}</p>
+            </Card>
+
+            <Card data-no-blur className="p-6 space-y-4 border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground font-semibold">{t('pricing_media_label')}</p>
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-3xl font-bold text-foreground">{mediaPriceDisplay}</h2>
+                    <span className="text-sm text-muted-foreground">{t('pricing_price_unit')}</span>
+                  </div>
+                </div>
+                <Badge tone="warning" variant="outline">
+                  {t('pricing_media_badge')}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{t('pricing_media_description')}</p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {mediaFeatures.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button variant="outline" size="lg" className="w-full" disabled>
+                {t('pricing_media_cta')}
+              </Button>
+              <p className="text-xs text-muted-foreground">{t('pricing_media_note')}</p>
             </Card>
           </div>
 
-          <CardBase className="p-5 space-y-3">
+          <CardBase data-no-blur className="p-5 space-y-3">
             <h3 className="text-lg font-semibold text-foreground">{t('pricing_what_you_get_title')}</h3>
             <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
               <div className="space-y-1">
@@ -113,19 +163,6 @@ export default function PricingPage() {
               {t('pricing_help_text_suffix')}
             </div>
           </CardBase>
-        </div>
-
-        <div className="pointer-events-auto absolute inset-0 flex items-center justify-center">
-          <div className="mx-4 max-w-lg rounded-2xl border border-border/60 bg-background/95 p-6 text-center shadow-2xl backdrop-blur-xl space-y-3">
-            <h2 className="text-2xl font-bold text-foreground">{t('pricing_overlay_title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('pricing_overlay_description')}</p>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-md transition hover:brightness-110"
-            >
-              {t('pricing_overlay_cta')}
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -432,28 +432,12 @@ export const ptBundle: LocaleBundle = {
     privacy_title: 'Política de Privacidade',
     refund_title: 'Política de Reembolso',
     pricing_title: 'Preços',
-    paddle_buy_label: 'Comprar relatório completo',
+    paddle_buy_label: 'Comprar 10 análises',
     paddle_status_loading: 'Carregando checkout…',
     paddle_status_verifying: 'Verificando pagamento…',
     paddle_status_opening: 'Abrindo checkout seguro…',
-    paddle_status_unlocked: 'Premium desbloqueado!',
+    paddle_status_unlocked: 'Pacote desbloqueado!',
     paddle_error_missing_token: 'Token de cliente Paddle ausente',
-    paddle_error_token_missing: 'Token ausente na resposta',
-    paddle_error_unlock: 'Não foi possível desbloquear o premium',
-    paddle_error_not_ready: 'Paddle ainda não está pronto',
-    paddle_error_start: 'Falha ao iniciar o checkout',
-    paddle_error_txn_missing: 'Falta o ID da transação',
-    terms_intro:
-      'Estes Termos e Condições ("Termos") regem o seu uso do aplicativo web Textos com meu ex ("Serviço"). Ao acessar ou usar o Serviço, você concorda em estar vinculado a estes Termos.',
-    terms_operator_title: 'Operador e nome legal',
-    terms_operator_content:
-      'Nome legal: Texts with My Ex. E-mail de contato: spinnermining@gmail.com.',
-    terms_section1_title: '1. Descrição do serviço',
-    terms_section1_content:
-      'Textos com meu ex é uma ferramenta de análise assistida por IA e anônima que permite carregar exportações de chats (por exemplo, Telegram ou WhatsApp) e receber um relatório automatizado sobre padrões de comunicação. Não é terapia, aconselhamento jurídico ou serviço de crise.',
-    terms_section2_title: '2. Elegibilidade e uso',
-    terms_section2_content:
-      'Você só pode usar o Serviço se tiver pelo menos 18 anos e for legalmente capaz de celebrar estes Termos. Você é responsável por garantir que tem o direito de carregar e processar os chats que envia ao Serviço.',
     terms_section3_title: '3. Tratamento de dados e privacidade',
     terms_section3_content:
       'Os chats passam por HTTPS e são descriptografados no servidor para que a IA gere o relatório; não há criptografia ponta a ponta. O acesso é restrito a processos do serviço e fornecedores de modelos. O armazenamento é curto: progresso/tarefas até ~2 horas, análises em cache até ~24 horas, arquivos temporários são removidos na limpeza. A lista local de “análises recentes” (id + breve resumo) fica no seu dispositivo ~24 horas em localStorage/cookies e pode ser apagada pelo botão ou limpando cookies/localStorage. Os dados não são usados para treinar modelos de terceiros. Veja a Política de Privacidade para detalhes.',
@@ -513,9 +497,9 @@ export const ptBundle: LocaleBundle = {
     refund_contact_title: 'Como solicitar um reembolso',
     refund_contact_text_prefix: 'Envie sua solicitação de reembolso via',
     refund_contact_text_suffix: 'e inclua seu ID de transação da Paddle.',
-    pricing_badge_text: 'Pagamento único, sem assinatura',
+    pricing_badge_text: 'Pacotes avulsos',
     pricing_description:
-      'Faça uma prévia gratuita para ver suas pontuações e visão geral. Desbloqueie o relatório completo e as exportações com um único checkout seguro via Paddle.',
+      'Faça uma prévia gratuita para ver suas pontuações e visão geral. Depois, desbloqueie relatórios completos com pagamento único via Paddle.',
     pricing_overlay_title: 'Por enquanto grátis',
     pricing_overlay_description:
       'Os preços estão temporariamente ocultos e todo o acesso está liberado gratuitamente. Volte mais tarde para novidades.',
@@ -529,15 +513,27 @@ export const ptBundle: LocaleBundle = {
     pricing_free_item2: 'Veja pontuações principais e um breve panorama',
     pricing_free_item3: 'Linha do tempo básica de atividade',
     pricing_free_cta: 'Iniciar prévia gratuita',
-    pricing_premium_label: 'Relatório Premium',
     pricing_price_unit: 'pagamento único',
-    pricing_premium_description:
-      'Desbloqueie o relatório completo de IA, evidências, perfis dos participantes e todas as opções de exportação. Sem cobranças recorrentes.',
     pricing_premium_item1: 'Quebra completa de evidências e padrões',
     pricing_premium_item2: 'Perfis dos participantes, insights e seção de fechamento',
     pricing_premium_item3: 'Exportar para TXT / JSON / PDF',
-    pricing_premium_item4: 'Configurações prioritárias de análise quando disponíveis',
-    pricing_premium_cta: 'Comprar relatório completo',
+    pricing_premium_label: 'Pacote de 5 relatórios (qualquer tamanho)',
+    pricing_premium_description:
+      'Inclui 5 relatórios completos neste dispositivo. Sem assinatura. Sem cobrança recorrente.',
+    pricing_premium_item4: '5 relatórios completos incluídos',
+    pricing_premium_cta: 'Comprar 5 relatórios',
+    pricing_any_chat_size_badge: 'Qualquer tamanho de chat',
+    pricing_media_label: 'Pacote com mídia (próxima versão)',
+    pricing_media_badge: 'Em breve',
+    pricing_media_description:
+      'Planejado: analisar fotos/áudios e desbloquear 10 relatórios. Ainda não disponível.',
+    pricing_media_item1: '10 relatórios completos incluídos',
+    pricing_media_item2: 'Análise de mídia (imagens/áudio) no relatório',
+    pricing_media_item3: 'Ideal para exportações do Telegram com fotos/áudios',
+    pricing_media_item4: 'Acesso antecipado assim que a atualização sair',
+    pricing_media_cta: 'Na próxima versão',
+    pricing_media_note:
+      'Este plano ainda não pode ser comprado. Vamos ativar o checkout após a atualização de mídia.',
     pricing_checkout_note:
       'O checkout é feito pela Paddle. O preço final e a moeda são confirmados antes do pagamento.',
     pricing_what_you_get_title: 'O que você recebe',
@@ -547,9 +543,9 @@ export const ptBundle: LocaleBundle = {
     pricing_what_exports_title: 'Exportações',
     pricing_what_exports_text:
       'Baixe seu relatório em TXT, JSON ou PDF para usar offline e compartilhar.',
-    pricing_what_onetime_title: 'Acesso único',
+    pricing_what_onetime_title: 'Acesso vitalício',
     pricing_what_onetime_text:
-      'Sem assinatura. Cada compra premium libera um relatório completo para a análise atual.',
+      'Sem assinatura. Sua compra libera um pacote de relatórios completos neste dispositivo.',
     pricing_help_text_prefix: 'Precisa de ajuda com cobrança? Escreva para',
     pricing_help_text_suffix: '.',
     donation_beta_label: 'Beta',

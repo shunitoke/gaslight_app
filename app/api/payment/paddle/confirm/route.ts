@@ -7,6 +7,8 @@ import { logError, logInfo } from '@/lib/telemetry';
 export const runtime = 'nodejs';
 export const maxDuration = 20;
 
+const LIFETIME_HOURS = 10 * 365 * 24;
+
 const getApiBase = () => {
   const env = process.env.PADDLE_ENV === 'sandbox' ? 'sandbox' : 'live';
   if (process.env.PADDLE_API_BASE) return process.env.PADDLE_API_BASE;
@@ -62,12 +64,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = generatePremiumToken(transactionId, 48);
+    const token = generatePremiumToken(transactionId, LIFETIME_HOURS);
     const now = Date.now();
     await recordPurchase({
       transactionId,
       tokenIssuedAt: now,
-      expiresAt: now + 48 * 60 * 60 * 1000,
+      expiresAt: now + LIFETIME_HOURS * 60 * 60 * 1000,
       priceId,
       amount: typeof amount === 'number' ? amount : null,
       currency: currency || null
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       token,
-      expiresIn: 48 * 60 * 60,
+      expiresIn: LIFETIME_HOURS * 60 * 60,
       tier: 'premium'
     });
   } catch (error) {

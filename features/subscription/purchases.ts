@@ -18,7 +18,7 @@ export type ReportDeliveryRecord = {
 
 const KEY_PREFIX = 'purchase:';
 const INDEX_KEY = 'purchase:index';
-const DEFAULT_TTL_SECONDS = 180 * 24 * 60 * 60; // 180 days
+const DEFAULT_TTL_SECONDS = 10 * 365 * 24 * 60 * 60; // 10 years
 const REPORT_SET_PREFIX = 'purchase_reports:';
 const REPORT_COUNT_PREFIX = 'purchase_reports_count:';
 const REPORT_LAST_PREFIX = 'purchase_reports_last:';
@@ -43,6 +43,26 @@ export async function recordPurchase(record: PurchaseRecord): Promise<void> {
       transactionId: record.transactionId,
       error: (error as Error).message
     });
+  }
+}
+
+export async function getPurchaseRecord(transactionId: string): Promise<PurchaseRecord | null> {
+  if (!isKvAvailable()) {
+    return null;
+  }
+
+  try {
+    const redis = await getRedisClient();
+    if (!redis) return null;
+    const row = await redis.get(`${KEY_PREFIX}${transactionId}`);
+    if (!row) return null;
+    return JSON.parse(row) as PurchaseRecord;
+  } catch (error) {
+    logError('purchase_get_failed', {
+      transactionId,
+      error: (error as Error).message
+    });
+    return null;
   }
 }
 

@@ -432,28 +432,12 @@ export const deBundle: LocaleBundle = {
     privacy_title: 'Datenschutzrichtlinie',
     refund_title: 'Rückerstattungsrichtlinie',
     pricing_title: 'Preise',
-    paddle_buy_label: 'Vollständigen Bericht kaufen',
+    paddle_buy_label: '10 Analysen kaufen',
     paddle_status_loading: 'Checkout wird geladen…',
     paddle_status_verifying: 'Zahlung wird geprüft…',
     paddle_status_opening: 'Sicherer Checkout wird geöffnet…',
-    paddle_status_unlocked: 'Premium freigeschaltet!',
+    paddle_status_unlocked: 'Paket freigeschaltet!',
     paddle_error_missing_token: 'Paddle-Client-Token fehlt',
-    paddle_error_token_missing: 'Token fehlt in der Antwort',
-    paddle_error_unlock: 'Premium konnte nicht freigeschaltet werden',
-    paddle_error_not_ready: 'Paddle noch nicht bereit',
-    paddle_error_start: 'Checkout konnte nicht gestartet werden',
-    paddle_error_txn_missing: 'Transaktions-ID fehlt',
-    terms_intro:
-      'Diese Nutzungsbedingungen ("Bedingungen") regeln Ihre Nutzung der Webanwendung Texte mit meinem Ex ("Service"). Durch den Zugriff auf oder die Nutzung des Service stimmen Sie zu, an diese Bedingungen gebunden zu sein.',
-    terms_operator_title: 'Betreiber & rechtlicher Geschäftsname',
-    terms_operator_content:
-      'Rechtlicher Geschäftsname: Texts with My Ex. Kontakt-E-Mail: spinnermining@gmail.com.',
-    terms_section1_title: '1. Servicebeschreibung',
-    terms_section1_content:
-      'Texte mit meinem Ex ist ein anonymes, KI-gestütztes Analysetool, das es Ihnen ermöglicht, Chat-Exporte (z. B. Telegram oder WhatsApp) hochzuladen und einen automatisierten Bericht über Kommunikationsmuster zu erhalten. Es ist keine Therapie, Rechtsberatung oder Krisendienst.',
-    terms_section2_title: '2. Berechtigung und Nutzung',
-    terms_section2_content:
-      'Sie dürfen den Service nur nutzen, wenn Sie mindestens 18 Jahre alt sind und rechtlich in der Lage sind, diese Bedingungen einzugehen. Sie sind dafür verantwortlich sicherzustellen, dass Sie das Recht haben, die Chats, die Sie an den Service übermitteln, hochzuladen und zu verarbeiten.',
     terms_section3_title: '3. Datenverarbeitung und Datenschutz',
     terms_section3_content:
       'Chats laufen über HTTPS und werden serverseitig entschlüsselt, damit die KI den Bericht erzeugen kann; Ende-zu-Ende-Verschlüsselung gibt es nicht. Der Zugriff ist auf Serviceprozesse und Modellanbieter beschränkt. Aufbewahrung ist kurz: Progress/Jobs bis ~2 Stunden, gecachte Analysen bis ~24 Stunden, temporäre Dateien werden beim Aufräumen entfernt. Die lokale Liste „Letzte Analysen“ (id + kurze Zusammenfassung) liegt ~24 Stunden auf deinem Gerät in localStorage/Cookies und lässt sich über den Button oder durch Löschen von Cookies/localStorage entfernen. Daten werden nicht zum Training von Drittmodellen genutzt. Details stehen in der Datenschutzerklärung.',
@@ -513,9 +497,9 @@ export const deBundle: LocaleBundle = {
     refund_contact_title: 'So beantragst du eine Rückerstattung',
     refund_contact_text_prefix: 'Stelle deinen Rückerstattungsantrag über',
     refund_contact_text_suffix: 'und gib deine Paddle-Transaktions-ID an.',
-    pricing_badge_text: 'Einmalzahlung, kein Abo',
+    pricing_badge_text: 'Einmalpakete',
     pricing_description:
-      'Starte eine kostenlose Vorschau, um deine Scores und die Übersicht zu sehen. Schalte den vollständigen Bericht und Exporte mit einem einzigen, sicheren Paddle-Checkout frei.',
+      'Starte eine kostenlose Vorschau, um deine Scores und die Übersicht zu sehen. Schalte danach volle Berichte per einmaligem Paddle-Checkout frei.',
     pricing_overlay_title: 'Aktuell kostenlos',
     pricing_overlay_description:
       'Die Preise sind vorübergehend ausgeblendet und der gesamte Zugang ist kostenlos. Schau später noch einmal vorbei.',
@@ -529,15 +513,27 @@ export const deBundle: LocaleBundle = {
     pricing_free_item2: 'Sieh Haupt-Scores und eine kurze Zusammenfassung',
     pricing_free_item3: 'Einfache Aktivitäts-Timeline',
     pricing_free_cta: 'Kostenlose Vorschau starten',
-    pricing_premium_label: 'Premium-Bericht',
     pricing_price_unit: 'einmalig',
-    pricing_premium_description:
-      'Schalte den vollständigen KI-Bericht, Beweise, Teilnehmerprofile und alle Exportoptionen frei. Keine wiederkehrenden Kosten.',
     pricing_premium_item1: 'Vollständige Beweis- und Musterauflistung',
     pricing_premium_item2: 'Profile, Insights und Abschlussbereich für Teilnehmer',
     pricing_premium_item3: 'Export als TXT / JSON / PDF',
-    pricing_premium_item4: 'Priorisierte Analyse-Einstellungen, wo verfügbar',
-    pricing_premium_cta: 'Vollständigen Bericht kaufen',
+    pricing_premium_label: '5 Berichte-Paket (beliebige Chat-Größe)',
+    pricing_premium_description:
+      'Enthält 5 vollständige Berichte auf diesem Gerät. Kein Abo. Keine wiederkehrenden Zahlungen.',
+    pricing_premium_item4: '5 vollständige Berichte inklusive',
+    pricing_premium_cta: '5 Berichte kaufen',
+    pricing_any_chat_size_badge: 'Beliebige Chat-Größe',
+    pricing_media_label: 'Media-Paket (nächste Version)',
+    pricing_media_badge: 'Bald verfügbar',
+    pricing_media_description:
+      'Geplant: Fotos/Sprachnachrichten analysieren und 10 Berichte freischalten. Noch nicht verfügbar.',
+    pricing_media_item1: '10 vollständige Berichte inklusive',
+    pricing_media_item2: 'Media-Analyse (Bilder/Audio) im Bericht',
+    pricing_media_item3: 'Ideal für Telegram-Exporte mit Fotos/Sprachnachrichten',
+    pricing_media_item4: 'Früher Zugriff sobald das Update live ist',
+    pricing_media_cta: 'In der nächsten Version',
+    pricing_media_note:
+      'Dieses Paket ist noch nicht kaufbar. Wir aktivieren den Checkout nach dem Media-Update.',
     pricing_checkout_note:
       'Der Checkout läuft über Paddle. Endpreis und Währung werden vor der Zahlung bestätigt.',
     pricing_what_you_get_title: 'Was du bekommst',
@@ -547,9 +543,9 @@ export const deBundle: LocaleBundle = {
     pricing_what_exports_title: 'Exporte',
     pricing_what_exports_text:
       'Lade deinen Bericht als TXT, JSON oder PDF für Offline-Nutzung und Teilen herunter.',
-    pricing_what_onetime_title: 'Einmaliger Zugang',
+    pricing_what_onetime_title: 'Lebenslanger Zugang',
     pricing_what_onetime_text:
-      'Kein Abo. Jeder Premium-Kauf schaltet einen vollständigen Bericht für deine aktuelle Analyse frei.',
+      'Kein Abo. Dein Kauf schaltet ein Paket vollständiger Berichte auf diesem Gerät frei.',
     pricing_help_text_prefix: 'Brauchst du Hilfe bei der Abrechnung? Schreib an',
     pricing_help_text_suffix: '.',
     donation_beta_label: 'Beta',

@@ -57,6 +57,42 @@ type AnalysisHistoryItem = {
   sourcePlatform?: string | null;
 };
 
+const DUPLICATE_ANALYSIS_HASH_KEY = 'analysis_last_chat_hash_v1';
+const DUPLICATE_ANALYSIS_TTL_MS = 24 * 60 * 60 * 1000;
+
+const sha256Hex = async (input: string): Promise<string> => {
+  if (typeof window === 'undefined' || !window.crypto?.subtle) return '';
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+};
+
+const computeChatHashClient = async (messages: Message[], mediaArtifacts: any[] = []): Promise<string> => {
+  const chatContent = (messages || [])
+    .map((msg) => `${msg.senderId}:${msg.sentAt}:${msg.text || ''}`)
+    .join('|');
+
+  const mediaContent = (mediaArtifacts || [])
+    .map((m) =>
+      [
+        m?.id,
+        m?.type,
+        m?.originalFilename || '',
+        m?.contentType || '',
+        m?.sizeBytes ?? '',
+        m?.blobUrl || m?.transientPathOrUrl || ''
+      ].join(':')
+    )
+    .sort()
+    .join('|');
+
+  const full = `${chatContent}||${mediaContent}`;
+  const hex = await sha256Hex(full);
+  return hex ? hex.substring(0, 32) : '';
+};
+
 const ANALYSIS_HISTORY_KEY = 'analysis_history_v1';
 const ANALYSIS_HISTORY_TTL_DAYS = 1;
 const ANALYSIS_HISTORY_TTL_MS = ANALYSIS_HISTORY_TTL_DAYS * 24 * 60 * 60 * 1000;
@@ -275,6 +311,20 @@ const getPremiumToken = () => {
   return localStorage.getItem('premium_token');
 };
 
+const getClientId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const key = 'client_id_v1';
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const created = `cid_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(key, created);
+    return created;
+  } catch {
+    return null;
+  }
+};
+
 const FORCE_PREMIUM =
   typeof process !== 'undefined' &&
   process.env.NEXT_PUBLIC_PREMIUM_EVERYONE === 'true';
@@ -439,6 +489,40 @@ export default function HomePageClient() {
       isVoiceRecording?: boolean;
       analysisMode?: 'default' | 'screenshot';
     }) => {
+      try {
+        const chatHash = await computeChatHashClient(importData.messages || [], importData.media || []);
+        if (chatHash && typeof window !== 'undefined') {
+          const raw = localStorage.getItem(DUPLICATE_ANALYSIS_HASH_KEY);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw) as { chatHash?: string; ts?: number };
+              const isFresh = typeof parsed.ts === 'number' && Date.now() - parsed.ts < DUPLICATE_ANALYSIS_TTL_MS;
+              if (isFresh && parsed.chatHash === chatHash) {
+                const ok = window.confirm(
+                  t('duplicate_analysis_warning')
+                );
+                if (!ok) {
+                  setUploading(false);
+                  setUploadProgress(0);
+                  setAnimationLocked(false);
+                  setAnalyzing(false);
+                  setAnalysisProgress(null);
+                  return;
+                }
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+          localStorage.setItem(
+            DUPLICATE_ANALYSIS_HASH_KEY,
+            JSON.stringify({ chatHash, ts: Date.now() })
+          );
+        }
+      } catch {
+        // ignore hashing failures
+      }
+
       const premiumToken = getPremiumToken();
       const hasPremium = FORCE_PREMIUM || Boolean(premiumToken);
       const featuresToStore = {
@@ -627,6 +711,7 @@ export default function HomePageClient() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...(getClientId() ? { 'x-client-id': getClientId() as string } : {}),
             ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
           },
           body: JSON.stringify({
@@ -691,41 +776,71 @@ export default function HomePageClient() {
     setError(null);
     let progressPollInterval: NodeJS.Timeout | null = null;
 
+    const importViaDirectUpload = async () => {
+      const premiumToken = getPremiumToken();
+      const form = new FormData();
+      form.append('file', file);
+      form.append('platform', platform);
+      setUploadProgress(10);
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: {
+          ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+        },
+        body: form
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: t('importFailed') }));
+        throw new Error(errorData.error || t('importFailed'));
+      }
+      setUploadProgress(100);
+      return res.json();
+    };
+
     try {
       try {
-        const premiumToken = getPremiumToken();
-        const blob = await upload(`import-${Date.now()}-${file.name}`, file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload-to-blob',
-          onUploadProgress: (progressEvent) => {
-            const progress = progressEvent.percentage || 0;
-            setUploadProgress(Math.round(progress));
-          }
-        });
+        const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024; // 4MB safe threshold for serverless body/form parsing
+        const shouldUseDirect = file.size <= DIRECT_UPLOAD_MAX_BYTES;
 
-        const blobUrl = blob.url;
-        setUploadProgress(100);
+        const importData = shouldUseDirect
+          ? await importViaDirectUpload()
+          : await (async () => {
+              const premiumToken = getPremiumToken();
+              const blob = await upload(`import-${Date.now()}-${file.name}`, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload-to-blob',
+                onUploadProgress: (progressEvent) => {
+                  const progress = progressEvent.percentage || 0;
+                  setUploadProgress(Math.round(progress));
+                }
+              });
 
-        const importResponse = await fetch('/api/import/blob', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
-          },
-          body: JSON.stringify({
-            blobUrl: blobUrl,
-            platform,
-            fileName: file.name,
-            contentType: file.type
-          })
-        });
+              const blobUrl = blob.url;
+              setUploadProgress(100);
 
-        if (!importResponse.ok) {
-          const errorData = await importResponse.json().catch(() => ({ error: t('importFailed') }));
-          throw new Error(errorData.error || t('importFailed'));
-        }
+              const importResponse = await fetch('/api/import/blob', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(premiumToken ? { 'x-premium-token': premiumToken } : {})
+                },
+                body: JSON.stringify({
+                  blobUrl: blobUrl,
+                  platform,
+                  fileName: file.name,
+                  contentType: file.type
+                })
+              });
 
-        const importData = await importResponse.json();
+              if (!importResponse.ok) {
+                const errorData = await importResponse
+                  .json()
+                  .catch(() => ({ error: t('importFailed') }));
+                throw new Error(errorData.error || t('importFailed'));
+              }
+
+              return importResponse.json();
+            })();
 
         // Immediately transition into analysis view without flicker
         setAnalyzing(true);
@@ -738,10 +853,33 @@ export default function HomePageClient() {
 
         await startAnalysisWithImport(importData);
         return;
-      } catch (blobError) {
-        const errorMessage = (blobError as Error).message || '';
+      } catch (uploadError) {
+        const errorMessage = (uploadError as Error).message || '';
         if (errorMessage.includes('INVALID_FORMAT') || errorMessage.includes('Failed to parse')) {
           throw new Error('INVALID_FORMAT');
+        }
+        // If blob flow fails on a small file (common on localhost without Blob), fall back to direct.
+        if (file.size <= 4 * 1024 * 1024) {
+          try {
+            const importData = await importViaDirectUpload();
+            setAnalyzing(true);
+            setAnalysisProgress({
+              progress: 0,
+              status: 'starting',
+              message: 'Starting AI analysis...'
+            });
+            setUploading(false);
+            await startAnalysisWithImport(importData);
+            return;
+          } catch (fallbackErr) {
+            const fallbackMessage = (fallbackErr as Error).message || '';
+            if (
+              fallbackMessage.includes('INVALID_FORMAT') ||
+              fallbackMessage.includes('Failed to parse')
+            ) {
+              throw new Error('INVALID_FORMAT');
+            }
+          }
         }
         throw new Error(
           `${t('failedToUploadFile')}: ${errorMessage}\n\n` +
@@ -1197,7 +1335,10 @@ export default function HomePageClient() {
 
       const startResponse = await fetch('/api/analyze/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(getClientId() ? { 'x-client-id': getClientId() as string } : {})
+        },
         body: JSON.stringify({
           conversation: manualConversation,
           messages,

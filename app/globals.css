@@ -941,19 +941,19 @@ html, body {
 @layer overrides {
   /* Force all cards to use lighter, transparent colors with GPU acceleration */
   /* Using data attributes and maximum specificity selectors */
-  [data-card="true"],
-  [data-card="true"].rounded-2xl,
-  [data-card="true"][class*="rounded-2xl"],
-  [data-card="true"][class*="border"],
+  [data-card="true"]:not([data-no-blur]),
+  [data-card="true"].rounded-2xl:not([data-no-blur]),
+  [data-card="true"][class*="rounded-2xl"]:not([data-no-blur]),
+  [data-card="true"][class*="border"]:not([data-no-blur]),
   [data-upload-card],
   [data-upload-card].rounded-2xl,
   [data-upload-card][class*="rounded-2xl"],
   [data-upload-card][class*="border"],
   [data-testimonial-card],
   [data-testimonial-card][class*="rounded-2xl"],
-  [class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card),
-  div[class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card),
-  .rounded-2xl.border:not(.phone-glass-card):not([class*="max-w-[85%]"]) {
+  [class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card):not([data-no-blur]),
+  div[class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card):not([data-no-blur]),
+  .rounded-2xl.border:not(.phone-glass-card):not([class*="max-w-[85%]"]):not([data-no-blur]) {
     background-color: hsl(var(--card) / 0.85) !important;
     border-color: var(--card-border-soft, hsla(var(--border), 0.08)) !important;
     will-change: background-color, opacity, backdrop-filter !important;
@@ -966,19 +966,19 @@ html, body {
   
   /* Reduce blur on mobile for better performance */
   @media (max-width: 768px) {
-    [data-card="true"],
-    [data-card="true"].rounded-2xl,
-    [data-card="true"][class*="rounded-2xl"],
-    [data-card="true"][class*="border"],
+    [data-card="true"]:not([data-no-blur]),
+    [data-card="true"].rounded-2xl:not([data-no-blur]),
+    [data-card="true"][class*="rounded-2xl"]:not([data-no-blur]),
+    [data-card="true"][class*="border"]:not([data-no-blur]),
     [data-upload-card],
     [data-upload-card].rounded-2xl,
     [data-upload-card][class*="rounded-2xl"],
     [data-upload-card][class*="border"],
     [data-testimonial-card],
     [data-testimonial-card][class*="rounded-2xl"],
-    [class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card),
-    div[class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card),
-    .rounded-2xl.border:not(.phone-glass-card):not([class*="max-w-[85%]"]) {
+    [class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card):not([data-no-blur]),
+    div[class*="rounded-2xl"][class*="border"]:not([class*="max-w-[85%]"]):not(.phone-glass-card):not([data-no-blur]),
+    .rounded-2xl.border:not(.phone-glass-card):not([class*="max-w-[85%]"]):not([data-no-blur]) {
       backdrop-filter: blur(8px) saturate(120%) !important;
       -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
     }

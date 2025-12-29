@@ -8,12 +8,13 @@ const CardBase = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
   ({ className, style, ...props }, ref) => {
     // Check if this is upload card - use slightly softer blur for readability
     const isUploadCard = (props as any)['data-upload-card'] !== undefined;
+    const isNoBlur = (props as any)['data-no-blur'] !== undefined;
     const defaultOpacity = 0.85;
     
     // Use CSS media queries for mobile detection instead of JS to prevent hydration mismatch
     // Always use desktop defaults - mobile styles handled via CSS
-    const blurAmount = isUploadCard ? 'blur(4px)' : 'blur(16px)';
-    const saturation = isUploadCard ? 'saturate(100%)' : 'saturate(180%)';
+    const blurAmount = isNoBlur ? 'blur(0px)' : isUploadCard ? 'blur(4px)' : 'blur(16px)';
+    const saturation = isNoBlur ? 'saturate(100%)' : isUploadCard ? 'saturate(100%)' : 'saturate(180%)';
     
     // Merge styles - all cards use same opacity now
     // Preserve custom backgroundColor from style if provided, otherwise use default
@@ -56,7 +57,8 @@ const CardBase = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
         ref={ref}
         data-card="true"
         className={cn(
-          "rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl hover:border-[color:var(--card-border-strong,hsla(var(--border),0.16))]",
+          "rounded-2xl border border-[color:var(--card-border-soft,hsla(var(--border),0.08))] shadow-lg transition-all duration-300 hover:shadow-xl hover:border-[color:var(--card-border-strong,hsla(var(--border),0.16))]",
+          !isNoBlur && "backdrop-blur-lg",
           className
         )}
         style={mergedStyle}

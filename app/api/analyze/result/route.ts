@@ -4,6 +4,7 @@ import { getJob, deleteJob } from '../jobStore';
 import { deleteProgressStore } from '../progress/route';
 import { logWarn } from '../../../../lib/telemetry';
 import { setAnalysisResult } from '../../../../lib/analysisResultStore';
+import { getSubscriptionTier } from '../../../../features/subscription/types';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -42,12 +43,40 @@ export async function GET(request: Request) {
   }
 
   // Completed job with result
+  const tier = await getSubscriptionTier(request);
+
   const payload = {
     jobId: job.id,
     status: job.status,
     progress: job.progress,
     conversation: job.result.conversation,
-    analysis: job.result.analysis,
+    analysis:
+      tier === 'premium'
+        ? job.result.analysis
+        : {
+            ...job.result.analysis,
+            sections: Array.isArray(job.result.analysis?.sections)
+              ? job.result.analysis.sections.map((s: any) => ({
+                  ...s,
+                  evidenceSnippets: [],
+                  recommendedReplies: undefined
+                }))
+              : [],
+            participantProfiles: undefined,
+            importantDates: undefined,
+            communicationStats: undefined,
+            promiseTracking: undefined,
+            redFlagCounts: undefined,
+            emotionalCycle: undefined,
+            timePatterns: undefined,
+            contradictions: undefined,
+            realityCheck: undefined,
+            frameworkDiagnosis: undefined,
+            hardTruth: undefined,
+            whatYouShouldKnow: undefined,
+            whatsNext: undefined,
+            closure: undefined
+          },
     activityByDay: job.result.activityByDay,
   };
 

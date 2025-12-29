@@ -9,6 +9,8 @@ import { logError, logInfo } from '@/lib/telemetry';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+const LIFETIME_HOURS = 10 * 365 * 24;
+
 type PaddleWebhook = {
   event_type?: string;
   eventType?: string;
@@ -71,12 +73,12 @@ export async function POST(request: Request) {
         payload.data?.id ||
         null;
       if (transactionId) {
-        const token = generatePremiumToken(transactionId, 48);
+        const token = generatePremiumToken(transactionId, LIFETIME_HOURS);
         const now = Date.now();
         await recordPurchase({
           transactionId,
           tokenIssuedAt: now,
-          expiresAt: now + 48 * 60 * 60 * 1000,
+          expiresAt: now + LIFETIME_HOURS * 60 * 60 * 1000,
           priceId: payload.data?.items?.[0]?.price_id || payload.data?.items?.[0]?.priceId || null,
           amount: null,
           currency: null
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
           ok: true,
           token,
-          expiresIn: 48 * 60 * 60
+          expiresIn: LIFETIME_HOURS * 60 * 60
         });
       }
     }

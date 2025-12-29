@@ -10,6 +10,7 @@ type Props = {
   label?: string;
   className?: string;
   onSuccess?: (token: string) => void;
+  priceId?: string;
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
 };
@@ -42,6 +43,7 @@ export function PaddleCheckoutButton({
   variant = 'primary',
   size = 'lg',
   className,
+  priceId,
   onSuccess
 }: Props) {
   const { t, locale } = useLanguage();
@@ -120,14 +122,24 @@ export function PaddleCheckoutButton({
         const token = data.token as string | undefined;
         if (token) {
           localStorage.setItem('premium_token', token);
-          sessionStorage.setItem('currentSubscriptionTier', 'premium');
+
+          const tier = (data.tier as string | undefined) || 'premium';
+          sessionStorage.setItem('currentSubscriptionTier', tier);
+
+          const features = data.features as
+            | { canAnalyzeMedia: boolean; canUseEnhancedAnalysis: boolean }
+            | undefined;
+
           sessionStorage.setItem(
             'currentFeatures',
-            JSON.stringify({
-              canAnalyzeMedia: true,
-              canUseEnhancedAnalysis: true
-            })
+            JSON.stringify(
+              features ?? {
+                canAnalyzeMedia: true,
+                canUseEnhancedAnalysis: true
+              }
+            )
           );
+
           setStatus(t('paddle_status_unlocked') || 'Premium unlocked!');
           setError(null);
           onSuccess?.(token);
@@ -157,7 +169,8 @@ export function PaddleCheckoutButton({
 
       const res = await fetch('/api/payment/paddle/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...(priceId ? { priceId } : {}) })
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
