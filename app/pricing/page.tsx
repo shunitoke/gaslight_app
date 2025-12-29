@@ -9,8 +9,8 @@ import { Badge } from '../../components/ui/badge';
 import { Check, Shield, Sparkles } from 'lucide-react';
 import { useLanguage } from '../../features/i18n';
 
-const basicPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE ?? '$5.99';
-const mediaPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE_MEDIA ?? '$9.99';
+const basicPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE || '$5.99';
+const mediaPriceDisplay = process.env.NEXT_PUBLIC_PREMIUM_PRICE_MEDIA || '$9.99';
 
 const basicPriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_ID_REPORT || undefined;
 const email = 'spinnermining@gmail.com';
@@ -79,11 +79,6 @@ export default function PricingPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-primary font-semibold">{t('pricing_premium_label')}</p>
-                  <div className="mt-1">
-                    <Badge tone="warning" variant="outline">
-                      {t('pricing_any_chat_size_badge')}
-                    </Badge>
-                  </div>
                   <div className="flex items-baseline gap-2">
                     <h2 className="text-3xl font-bold text-foreground">{basicPriceDisplay}</h2>
                     <span className="text-sm text-muted-foreground">{t('pricing_price_unit')}</span>
