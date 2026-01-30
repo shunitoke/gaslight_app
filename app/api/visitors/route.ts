@@ -1,5 +1,4 @@
 import { randomUUID } from 'crypto';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { getRedisClient, isKvAvailable } from '../../../lib/kv';
@@ -12,9 +11,20 @@ const VISITOR_COOKIE = 'visitor_id';
 const VISITOR_SET_KEY = 'visitors:unique';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const existingId = cookieStore.get(VISITOR_COOKIE)?.value;
+export async function GET(request: Request) {
+  // Get visitor ID from cookie header
+  const cookieHeader = request.headers.get('cookie');
+  let existingId: string | undefined;
+  
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [name, value] = cookie.trim().split('=');
+      if (name && value) acc[name] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    existingId = cookies[VISITOR_COOKIE];
+  }
+  
   const visitorId = existingId || randomUUID();
 
   let totalVisitors: number | null = null;
@@ -86,13 +96,9 @@ export async function GET() {
   });
 
   if (!existingId) {
-    response.cookies.set(VISITOR_COOKIE, visitorId, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: ONE_YEAR_SECONDS,
-      path: '/',
-    });
+    response.headers.set('Set-Cookie', 
+      `${VISITOR_COOKIE}=${visitorId}; HttpOnly; SameSite=lax; Secure=${process.env.NODE_ENV === 'production'}; Max-Age=${ONE_YEAR_SECONDS}; Path=/`
+    );
   }
 
   response.headers.set('Cache-Control', 'no-store');

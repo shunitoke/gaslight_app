@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { triggerManualBackup } from '../../../lib/scheduledBackup';
-import { isKvAvailable } from '../../../lib/kv';
+import { triggerManualBackup } from '../../../../lib/scheduledBackup';
+import { isKvAvailable } from '../../../../lib/kv';
 
 export const runtime = 'nodejs';
 
@@ -54,7 +54,7 @@ export async function GET() {
   }
 
   try {
-    const { backupHealthCheck } = await import('../../../lib/scheduledBackup');
+    const { backupHealthCheck } = await import('../../../../lib/scheduledBackup');
     const health = await backupHealthCheck();
     
     return NextResponse.json({

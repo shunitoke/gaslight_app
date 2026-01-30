@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { getCounterProtectionStatus } from '../../../lib/counterProtection';
-import { isKvAvailable } from '../../../lib/kv';
+import { getCounterProtectionStatus } from '../../../../lib/counterProtection';
+import { isKvAvailable } from '../../../../lib/kv';
 
 export const runtime = 'nodejs';
 
