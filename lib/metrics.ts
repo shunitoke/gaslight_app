@@ -11,6 +11,7 @@
 
 import { logInfo, logError } from './telemetry';
 import { getRedisClient } from './kv';
+import { incrementProtectedCounter } from './counterProtection';
 
 const METRICS_KEY_PREFIX = 'metrics:';
 const METRICS_TTL = 30 * 24 * 60 * 60; // 30 days
@@ -270,26 +271,39 @@ async function updateAggregateMetrics(metrics: AnalysisMetrics): Promise<void> {
       return;
     }
 
-    // Update average duration
+    // Update average duration (keep existing logic for other metrics)
     const avgKey = `${METRICS_KEY_PREFIX}avg:duration`;
     const countKey = `${METRICS_KEY_PREFIX}avg:count`;
     
-    const [currentAvg, currentCount] = await Promise.all([
-      redis.get(avgKey),
-      redis.get(countKey)
+    const [currentAvg] = await Promise.all([
+      redis.get(avgKey)
     ]);
 
+    // Get current count from protected counter
+    const { getProtectedCounter } = await import('./counterProtection');
+    const currentProtectedCount = await getProtectedCounter('analyses');
+    
     const avg = parseFloat(currentAvg || '0');
-    const count = parseInt(currentCount || '0', 10);
-    const newAvg = count > 0 
-      ? (avg * count + (metrics.durationMs || 0)) / (count + 1)
+    const newAvg = currentProtectedCount > 0 
+      ? (avg * currentProtectedCount + (metrics.durationMs || 0)) / (currentProtectedCount + 1)
       : (metrics.durationMs || 0);
 
+    // Update average duration
+    await redis.setEx(avgKey, METRICS_TTL, newAvg.toString());
+    
+    // Increment protected counter (this also updates backups)
+    await incrementProtectedCounter('analyses', 1);
+    
+    // Also update legacy count key for compatibility
     await Promise.all([
-      redis.setEx(avgKey, METRICS_TTL, newAvg.toString()),
       redis.incr(countKey),
       redis.expire(countKey, METRICS_TTL)
     ]);
+
+    logInfo('metrics_aggregate_updated_with_protection', {
+      newCount: currentProtectedCount + 1,
+      newAvg
+    });
   } catch (error) {
     logError('metrics_aggregate_error', {
       error: (error as Error).message

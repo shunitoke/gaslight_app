@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { getRedisClient, isKvAvailable } from '../../../lib/kv';
-import { logWarn } from '../../../lib/telemetry';
+import { getProtectedCounter, incrementProtectedCounter } from '../../../lib/counterProtection';
+import { logWarn, logInfo } from '../../../lib/telemetry';
 
 export const runtime = 'nodejs';
 
@@ -29,21 +30,53 @@ export async function GET() {
             : await redis.sadd?.(VISITOR_SET_KEY, visitorId);
         counted = added === 1;
 
+        // Get protected visitor count first
+        const protectedCount = await getProtectedCounter('visitors');
+        
+        // Get current set size as fallback
         const total =
           typeof redis.sCard === 'function'
             ? await redis.sCard(VISITOR_SET_KEY)
             : await redis.scard?.(VISITOR_SET_KEY);
 
+        let currentSetCount = 0;
         if (typeof total === 'number') {
-          totalVisitors = total;
+          currentSetCount = total;
         } else if (typeof total === 'string') {
           const parsed = parseInt(total, 10);
-          totalVisitors = Number.isNaN(parsed) ? null : parsed;
+          currentSetCount = Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        // Use the higher of protected count or current set count
+        totalVisitors = Math.max(protectedCount, currentSetCount);
+        
+        // If this is a new visitor and protected count is lower, update it
+        if (counted && totalVisitors > protectedCount) {
+          await incrementProtectedCounter('visitors', 1);
+          logInfo('visitor_protected_counter_incremented', {
+            newTotal: totalVisitors,
+            previousProtected: protectedCount
+          });
+        }
+        
+        // If set count is higher than protected, sync protected up
+        if (currentSetCount > protectedCount) {
+          await incrementProtectedCounter('visitors', currentSetCount - protectedCount);
+          logInfo('visitor_protected_counter_synced', {
+            protectedCount: currentSetCount,
+            previousProtected: protectedCount
+          });
         }
       }
     } catch (error) {
       logWarn('visitor_counter_error', { error: (error as Error).message });
+      
+      // Fallback to protected counter if Redis operations fail
+      totalVisitors = await getProtectedCounter('visitors');
     }
+  } else {
+    // Fallback to protected counter if Redis is not available
+    totalVisitors = await getProtectedCounter('visitors');
   }
 
   const response = NextResponse.json({
