@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Скрытый нарциссизм: опасность под маской уязвимости',
   description:
-    'Как тихая обида, позиция жертвы и «добро с условием» используют сочувствие для контроля и зависимости.'
-};
+    'Как тихая обида, позиция жертвы и «добро с условием» используют сочувствие для контроля и зависимости.',
+  path: '/articles/covert-narcissism',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -278,4 +279,3 @@ const content: ArticleContentByLocale = {
 export default function CovertNarcissismPage() {
   return <ArticlePageClient content={content} />;
 }
-

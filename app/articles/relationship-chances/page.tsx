@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Есть ли шанс у отношений?',
   description:
-    'Когда изменения реалистичны, какие красные флаги закрывают попытки и как принимать решения безопасно.'
-};
+    'Когда изменения реалистичны, какие красные флаги закрывают попытки и как принимать решения безопасно.',
+  path: '/articles/relationship-chances',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -278,4 +279,3 @@ const content: ArticleContentByLocale = {
 export default function RelationshipChancesPage() {
   return <ArticlePageClient content={content} />;
 }
-

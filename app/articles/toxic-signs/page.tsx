@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Как распознать токсичный сценарий отношений',
   description:
-    'Ключевые сигналы критики, контроля, изоляции и эмоциональных качелей, разрушающих чувство безопасности.'
-};
+    'Ключевые сигналы критики, контроля, изоляции и эмоциональных качелей, разрушающих чувство безопасности.',
+  path: '/articles/toxic-signs',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -380,4 +381,3 @@ const content: ArticleContentByLocale = {
 export default function ToxicSignsPage() {
   return <ArticlePageClient content={content} />;
 }
-

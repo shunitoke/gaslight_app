@@ -15,6 +15,7 @@ import type { SupportedLocale } from '../features/i18n/types';
 import { ThemeProvider } from '../features/theme';
 import { getPalette, paletteToStyleObject, type Scheme, type PaletteName } from '../features/theme/palettes';
 import { AnimationProvider } from '../contexts/AnimationContext';
+import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/seo';
 
 const inter = Inter({ 
   subsets: ['latin', 'cyrillic'],
@@ -33,11 +34,36 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Texts with My Ex - AI Gaslight Detection',
-  description:
-    'Upload Telegram or WhatsApp chats to receive an impartial, AI-powered relationship analysis. Detect gaslighting patterns, communication issues, and relationship dynamics.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  applicationName: SITE_NAME,
+  description: SITE_DESCRIPTION,
   keywords: ['gaslighting detection', 'relationship analysis', 'AI analysis', 'chat analysis', 'telegram', 'whatsapp'],
   manifest: '/manifest.json?v=2',
+  category: 'relationships',
+  classification: 'AI relationship analysis',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -48,15 +74,25 @@ export const metadata: Metadata = {
     apple: '/icon-v2.png?v=2'
   },
   openGraph: {
-    title: 'Texts with My Ex - AI Gaslight Detection',
-    description: 'AI-powered relationship analysis from your chat exports. Detect gaslighting patterns and communication issues.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
     type: 'website',
-    siteName: 'Texts with My Ex',
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        alt: SITE_TITLE,
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Texts with My Ex - AI Gaslight Detection',
-    description: 'AI-powered relationship analysis from your chat exports.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    creator: '@textswithmyex',
+    site: '@textswithmyex',
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
@@ -177,4 +213,3 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     </html>
   );
 }
-

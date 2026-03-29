@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Психологические последствия токсичных связей',
   description:
-    'ПТСР-подобные симптомы, тревога, диссоциация, влияние на мозг и тело, и что помогает восстановлению.'
-};
+    'ПТСР-подобные симптомы, тревога, диссоциация, влияние на мозг и тело, и что помогает восстановлению.',
+  path: '/articles/psychological-consequences',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -314,4 +315,3 @@ const content: ArticleContentByLocale = {
 export default function PsychologicalConsequencesPage() {
   return <ArticlePageClient content={content} />;
 }
-

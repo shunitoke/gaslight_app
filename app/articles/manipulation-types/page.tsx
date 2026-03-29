@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Ключевые виды манипуляций в отношениях',
   description:
-    'Эмоциональный шантаж, газлайтинг, изоляция, нарушение границ и как замечать повторяющиеся паттерны.'
-};
+    'Эмоциональный шантаж, газлайтинг, изоляция, нарушение границ и как замечать повторяющиеся паттерны.',
+  path: '/articles/manipulation-types',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -284,4 +285,3 @@ const content: ArticleContentByLocale = {
 export default function ManipulationTypesPage() {
   return <ArticlePageClient content={content} />;
 }
-

@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Практические шаги, пока отношения еще продолжаются',
   description:
-    'Опоры на реальность, восстановление границ, план безопасности и забота о теле без прямых столкновений.'
-};
+    'Опоры на реальность, восстановление границ, план безопасности и забота о теле без прямых столкновений.',
+  path: '/articles/practical-steps',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -392,4 +393,3 @@ const content: ArticleContentByLocale = {
 export default function PracticalStepsPage() {
   return <ArticlePageClient content={content} />;
 }
-

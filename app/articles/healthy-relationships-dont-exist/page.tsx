@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Здоровые отношения не идеальны (и это нормально)',
   description:
-    'Реалистичные признаки работоспособных отношений и отличие от мифа о безупречной гармонии.'
-};
+    'Реалистичные признаки работоспособных отношений и отличие от мифа о безупречной гармонии.',
+  path: '/articles/healthy-relationships-dont-exist',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -272,4 +273,3 @@ const content: ArticleContentByLocale = {
 export default function HealthyRelationshipsMythPage() {
   return <ArticlePageClient content={content} />;
 }
-

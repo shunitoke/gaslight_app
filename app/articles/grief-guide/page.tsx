@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Как прожить горе после трудных отношений',
   description:
-    'Нелинейные стадии горя после токсичной динамики и способы вернуть устойчивость, смысл и опору на себя.'
-};
+    'Нелинейные стадии горя после токсичной динамики и способы вернуть устойчивость, смысл и опору на себя.',
+  path: '/articles/grief-guide',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {

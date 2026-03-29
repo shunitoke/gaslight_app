@@ -1,11 +1,12 @@
-import type { Metadata } from 'next';
-
 import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Как отпустить травматическую привязку',
-  description: 'Почему сложно уйти, как подготовиться и удерживать границы в период отмены контакта.'
-};
+  description: 'Почему сложно уйти, как подготовиться и удерживать границы в период отмены контакта.',
+  path: '/articles/letting-go',
+  type: 'article',
+});
 
 const content: ArticleContentByLocale = {
   ru: {
@@ -277,4 +278,3 @@ const content: ArticleContentByLocale = {
 export default function LettingGoPage() {
   return <ArticlePageClient content={content} />;
 }
-
