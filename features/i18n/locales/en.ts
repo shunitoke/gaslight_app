@@ -5,14 +5,14 @@ export const enBundle: LocaleBundle = {
   displayName: 'English',
   messages: {
     appName: 'Texts with my Ex®',
-    appTagline: 'Unbiased insight into what really happened.',
-    hero_tagline: 'Unbiased AI insight into what really happened.',
-    hero_tagline_alt1: 'Not vibes, not gossip — AI science under the hood.',
+    appTagline: 'What actually happened in the relationship, read from the chat.',
+    hero_tagline: 'The AI reads the chat and shows what was happening in it.',
+    hero_tagline_alt1: 'Patterns, scores and quotes, taken from your own messages.',
     hero_tagline_alt2: 'Behavioral patterns, attachment, and conflict — AI analyzed for you.',
     hero_tagline_alt3: 'Fully anonymous and confidential.',
     hero_cta: 'Analyze your conversation with AI',
     hero_copy:
-      'Upload chats to get an impartial, AI-powered relationship analysis.',
+      'Upload a chat export: pattern breakdown with quotes and scores.',
     hero_confidential: 'Completely confidential.',
     footer_disclaimer: 'Not therapy. Not gossip. Just AI clarity.',
     footer_visitors_label: 'Unique visitors',
@@ -44,13 +44,13 @@ export const enBundle: LocaleBundle = {
     progress_analyzing_hint: 'AI is analyzing patterns, communication styles, and relationship dynamics...',
     progress_media_hint: 'Analyzing images, stickers, and media content with AI vision models...',
     progress_finalizing_hint:
-      'Combining all sections and charts. This last step can take up to a minute — thanks for waiting.',
+      'Combining sections and charts. Usually under a minute.',
     progress_chunk_label: 'Chunk {current} of {total}',
     progress_disclaimer: 'Please do not close this window while analysis is in progress.',
     backToHome: 'Back to Home',
     noAnalysisFound: 'No analysis found. Please upload a conversation first.',
     noAnalysisFound_help:
-      'Go back to the home page, upload a chat export, and wait for the analysis to finish to see your report.',
+      'Go back to the home page, upload the export and wait for the analysis to finish.',
     analysisReport: 'AI Analysis Report',
     gaslightingRisk: 'Gaslighting Risk',
     conflictIntensity: 'Conflict Intensity',
@@ -75,9 +75,9 @@ export const enBundle: LocaleBundle = {
     premium_badge: 'Premium',
     free_badge: 'Free',
     premium_hint:
-      'Premium analysis: full report with detailed insights, evidence examples, and exports.',
+      'Premium: full report with quotes, participant profiles, charts and export.',
     free_hint:
-      'Free preview: overview only. Unlock full report, evidence, and exports.',
+      'Free shows the overview only. Quotes, breakdowns and export are in premium.',
     premium_progress_hint:
       'Running detailed analysis: processing text and available media.',
     free_progress_hint:
@@ -121,10 +121,10 @@ export const enBundle: LocaleBundle = {
     pasteHelp: 'Works best for small excerpts. For long histories, please use chat export import.',
     analyzePasted: 'Analyze pasted text',
     paste_error_empty: 'Please paste some conversation text first.',
-    paste_error_too_long: 'Pasted text is too long. Please use a smaller excerpt (up to 8000 characters).',
+    paste_error_too_long: 'Too long. Paste an excerpt under 8000 characters.',
     paste_error_not_conversation:
-      "This text doesn't look like a conversation. Please paste real messages, not random characters.",
-    error_invalid_format: 'Invalid file format. Please check that the file matches the export format of the selected platform.',
+      'This does not look like a conversation. Paste a real stretch of dialogue.',
+    error_invalid_format: 'Wrong file format. Check that this is an export from the selected platform.',
     exportTXT: 'Export TXT',
     exportJSON: 'Export JSON',
     exportPDF: 'Export PDF',
@@ -135,11 +135,11 @@ export const enBundle: LocaleBundle = {
     exportScores: '📊 Scores',
     exportPatterns: '📌 Patterns',
     exportEvidence: '🧾 Evidence',
-    analysisDefaultOverview: 'Analysis completed. Review sections for detailed insights.',
-    analysisDefaultNoPatterns: 'Analysis completed. No specific patterns detected in this excerpt.',
+    analysisDefaultOverview: 'Analysis done. Details are in the sections below.',
+    analysisDefaultNoPatterns: 'Analysis done. No clear patterns in this excerpt.',
     analysisDefaultTitle: 'Analysis',
     analysisParseError: 'Analysis completed with partial results due to parsing error.',
-    analysisEmptySummary: 'Analysis completed. No specific patterns detected in this section.',
+    analysisEmptySummary: 'Analysis done. No clear patterns in this section.',
     analysisGenericWarningTitle: 'It looks like the AI only returned a generic summary without concrete examples.',
     analysisGenericWarningBody:
       'Please try running the analysis again. If this keeps happening, try splitting your conversation into shorter chunks.',
@@ -160,10 +160,10 @@ export const enBundle: LocaleBundle = {
     step1_title: 'Upload Your Chat',
     step1_description: 'Export your conversation from Telegram or WhatsApp and upload it here. Your data is processed securely and never stored.',
     step2_title: 'AI Analysis',
-    step2_description: 'Our AI analyzes communication patterns, detects gaslighting behaviors, and identifies relationship dynamics using scientific methods.',
-    step3_title: 'Get Insights',
-    step3_description: 'Receive a comprehensive report with scores, evidence, and explanations to help you understand what really happened.',
-    howItWorks_subtitle: '3 quick steps, then the AI does the heavy lifting for you.',
+    step2_description: 'The AI reads how you two talk to each other: where the gaslighting is, where the pressure is, how the dynamic shifted.',
+    step3_title: 'Read the report',
+    step3_description: 'Scores per section and quotes from the chat, so every conclusion shows its basis.',
+    howItWorks_subtitle: 'Three steps. Then the analysis runs.',
     recentAnalysesTitle: 'Recent analyses',
     recentAnalysesEmpty: 'Your history will appear here after the first report is ready.',
     recentAnalysesClear: 'Clear list',
@@ -180,7 +180,7 @@ export const enBundle: LocaleBundle = {
     articles_label: 'Articles & guides',
     articles_title: 'Guides on gaslighting, manipulation, and recovery',
     articles_subtitle:
-      'Short reads on spotting patterns, exiting safely, processing grief, and moving toward healthier dynamics.',
+      'Guides: how to spot the patterns, leave safely, sit with grief, and not repeat the script.',
     articles_cta: 'Read article',
     articles_read_time_short: '5 min read',
     articles_tag_awareness: 'Awareness',
@@ -193,22 +193,22 @@ export const enBundle: LocaleBundle = {
       'Examples of reality distortion, blame shifting, and language cues the detector flags most often.',
     articles_export_title: 'How to export chats safely from Telegram & WhatsApp',
     articles_export_description:
-      'Step-by-step export tips, file formats we accept, and how to keep sensitive data private.',
+      'How to export the chat, which formats fit, and what to leave out.',
     articles_method_title: 'How our AI analyzes your messages',
     articles_method_description:
-      'A plain-language walkthrough of scoring, evidence extraction, and why your chats are never stored permanently.',
+      'How scores are computed, where quotes come from, and why chats are not stored.',
     articles_toxic_title: 'How to recognize toxic relationship patterns',
     articles_toxic_description:
-      'Key signals of criticism, control, isolation, and emotional whiplash that erode safety.',
+      'Criticism, control, isolation, emotional whiplash — the phrases that give them away.',
     articles_steps_title: 'Practical steps while the relationship is ongoing',
     articles_steps_description:
-      'Grounding actions: reality checks, boundary practice, safety planning, and body care.',
+      'How to stay grounded in facts, test boundaries, and put a safety plan together.',
     articles_grief_title: 'How to grieve the end of a difficult relationship',
     articles_grief_description:
-      'Non-linear stages of grief after toxic dynamics and ways to regain meaning and stability.',
+      'Grief after a toxic relationship does not follow stages. What helps you get your footing back.',
     articles_manipulation_title: 'Key types of manipulation in relationships',
     articles_manipulation_description:
-      'Emotional blackmail, gaslighting, isolation, boundary violations, and how to spot the patterns.',
+      'Blackmail, gaslighting, isolation, crossed boundaries — and how to notice them.',
     articles_covert_title: 'Covert narcissism: danger behind vulnerability',
     articles_covert_description:
       'How quiet entitlement, victim stance, and weaponized kindness keep control in disguise.',
@@ -217,13 +217,13 @@ export const enBundle: LocaleBundle = {
       'Why leaving is hard, how to prepare, and what helps hold no-contact through withdrawal.',
     articles_consequences_title: 'Psychological consequences of toxic bonds',
     articles_consequences_description:
-      'PTSD-like symptoms, anxiety, dissociation, and why body and mind both need recovery.',
+      'Anxiety, dissociation, PTSD-like symptoms: why recovery takes time.',
     articles_chances_title: 'Is there a chance for these relationships?',
     articles_chances_description:
-      'When change is realistic, red flags that end the discussion, and how to decide safely.',
+      'When change is realistic, which red flags close the question, and how to decide without rushing.',
     articles_healthy_title: 'Healthy relationships are not perfect (and that is fine)',
     articles_healthy_description:
-      'Realistic traits of workable relationships versus myths of flawless harmony.',
+      'Signs of a relationship that works — without the myth of flawless harmony.',
 
     // Hero badges & preview card
     hero_badge_patterns: 'Deep pattern analysis',
@@ -550,7 +550,7 @@ export const enBundle: LocaleBundle = {
     pricing_premium_description:
       'Includes 5 full reports on this device. No subscription. No recurring billing.',
     pricing_premium_item1: 'Full evidence and pattern breakdowns',
-    pricing_premium_item2: 'Participant profiles, insights, and closure section',
+    pricing_premium_item2: 'Participant profiles, a section-by-section breakdown and a closing part',
     pricing_premium_item3: 'Export to TXT / JSON / PDF',
     pricing_premium_item4: '5 full reports included',
     pricing_premium_cta: 'Buy 5 reports',
