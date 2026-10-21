@@ -183,6 +183,99 @@ function getDefaultMessages(locale: SupportedLocale): {
 
 
 /**
+ * Sections returned by the LLM need a reality check before they reach the report.
+ *
+ * GigaChat (the current provider) tends to:
+ *  - leak the top-level JSON blocks (communicationStats, promiseTracking,
+ *    redFlagCounts, emotionalCycle, ...) INTO sections[] as fake "patterns";
+ *  - repeat the same quote several times inside a section;
+ *  - invent quotes that never appear in the conversation.
+ *
+ * Fake sections push the real patterns out of the report and ungrounded quotes
+ * are worse than no quotes, so every excerpt is verified against the chunk text.
+ */
+const STRUCTURAL_SECTION_KEYS = [
+  'initiatorBalance',
+  'apologyCount',
+  'conflictFrequency',
+  'resolutionRate',
+  'made',
+  'kept',
+  'percentage',
+  'yellow',
+  'orange',
+  'conflictTimes',
+  'triggers',
+  'isPresent',
+  'behaviors',
+  'resources',
+  'signals',
+  'originalStatement',
+  'denialStatement',
+  'severity'
+];
+
+const STRUCTURAL_SECTION_TITLE_RE =
+  /(статистик|statistic|обещан|promise|красн\w* флаг|red flag|цикл|cycle|временн\w* (закон|паттерн|pattern)|time pattern|несостык|contradiction|проверк\w* (факт|восприят|реальн)|reality check|диагностик|framework|жестк\w* правд|hard truth|что стоит знать|what you should know|что делать дальше|what.?s next|завершен|closure|безопасн|safety concern|разрыв|breakup)/i;
+
+function normalizeForQuoteMatch(value: string): string {
+  return value
+    .replace(/^[^:]{1,40}:\s*/, '') // drop a leading "Name: " label
+    .replace(/[«»""'']/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function sanitizeChunkSections(rawSections: any[], chunk: Message[]) {
+  const chunkHaystack = normalizeForQuoteMatch(chunk.map(m => m.text || '').join(' \n '));
+  const seen = new Set<string>();
+
+  return rawSections
+    .filter((s) => {
+      if (!s || typeof s !== 'object') return false;
+      // a leaked top-level block never carries a real pattern summary
+      if (STRUCTURAL_SECTION_KEYS.some((key) => key in s)) return false;
+      const title = typeof s.title === 'string' ? s.title.trim() : '';
+      const summary = typeof s.summary === 'string' ? s.summary.trim() : '';
+      if (!title || !summary) return false;
+      if (STRUCTURAL_SECTION_TITLE_RE.test(title)) return false;
+      const key = `${s.id || ''}|${title}`.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((s) => {
+      const seenExcerpts = new Set<string>();
+      const evidenceSnippets = (Array.isArray(s.evidenceSnippets) ? s.evidenceSnippets : [])
+        .map((e: any) => ({
+          messageId: null,
+          mediaArtifactId: null,
+          excerpt: typeof e?.excerpt === 'string' ? e.excerpt.trim() : '',
+          explanation: typeof e?.explanation === 'string' ? e.explanation.trim() : ''
+        }))
+        .filter((e: any) => {
+          const normalized = normalizeForQuoteMatch(e.excerpt);
+          if (normalized.length < 12) return false;
+          if (seenExcerpts.has(normalized)) return false;
+          // keep only quotes that actually occur in the conversation chunk
+          if (!chunkHaystack.includes(normalized)) return false;
+          seenExcerpts.add(normalized);
+          return true;
+        });
+
+      return {
+        id: s.id || `section_${Date.now()}_${Math.random()}`,
+        title: s.title,
+        summary: s.summary,
+        plainSummary: s.plainSummary || undefined,
+        score: s.score ?? undefined,
+        evidenceSnippets
+      };
+    });
+}
+
+/**
  * Chunk messages for LLM processing (respect token limits).
  * Larger chunks = fewer API calls = less rate limiting risk.
  * We also hard-cap the total number of chunks for very large conversations
@@ -190,23 +283,38 @@ function getDefaultMessages(locale: SupportedLocale): {
  */
 function chunkMessages(
   messages: Message[],
-  // Larger defaults to leverage long-context models (e.g., Grok 2M)
-  maxChunkSize: number = 4000,
+  // GigaChat degrades on very long inputs: it starts leaking top-level JSON
+  // blocks into sections[] and drops quotes. Keep chunks small and overlap just
+  // enough to catch claim-vs-denial pairs across the seam.
+  maxChunkSize: number = 400,
   maxChunks: number = 80,
   // Overlap helps catch cross-chunk contradictions (claims vs denials)
-  overlap: number = 300
+  overlap: number = 40,
+  // Character budget per chunk: long messages hit the model context long before
+  // the message count does, so the cap is enforced on both.
+  maxChunkChars: number = 18000
 ): Message[][] {
   const rawChunks: Message[][] = [];
   const safeChunkSize = Math.max(1, maxChunkSize);
   const safeOverlap = Math.min(Math.max(0, overlap), safeChunkSize - 1);
-  const step = Math.max(1, safeChunkSize - safeOverlap);
 
-  for (let start = 0; start < messages.length; start += step) {
-    const end = start + safeChunkSize;
+  let start = 0;
+  while (start < messages.length) {
+    let end = start;
+    let chars = 0;
+    while (end < messages.length && end - start < safeChunkSize) {
+      const nextSize = (messages[end].text || '').length + 32;
+      if (end > start && chars + nextSize > maxChunkChars) {
+        break;
+      }
+      chars += nextSize;
+      end += 1;
+    }
     rawChunks.push(messages.slice(start, end));
     if (end >= messages.length) {
       break;
     }
+    start = Math.max(start + 1, end - safeOverlap);
   }
 
   if (rawChunks.length <= maxChunks) {
@@ -1381,24 +1489,7 @@ export async function analyzeConversation(
           }))
         });
         
-        const validSections = parsed.sections
-          .map((s) => ({
-            id: s.id || `section_${Date.now()}_${Math.random()}`,
-            title: s.title || 'Pattern',
-            summary: s.summary || '',
-            plainSummary: s.plainSummary || undefined,
-            score: s.score ?? undefined,
-            evidenceSnippets: Array.isArray(s.evidenceSnippets)
-              ? s.evidenceSnippets.map((e) => ({
-                  messageId: null,
-                  mediaArtifactId: null,
-                  excerpt: e.excerpt || '',
-                  explanation: e.explanation || ''
-                }))
-              : []
-          }))
-          // keep sections that have at least some content (summary/title), even if evidence is empty
-          .filter((s) => (s.summary && s.summary.trim().length > 0) || (s.title && s.title.trim().length > 0));
+        const validSections = sanitizeChunkSections(parsed.sections, chunks[chunkIndex] || []);
         
         logInfo('analysis_sections_filtered', {
           conversationId: conversation.id,
