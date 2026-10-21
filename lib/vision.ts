@@ -1,35 +1,63 @@
+import { createHash } from 'node:crypto';
+
 import { getConfig } from './config';
+import { callGigaChat, uploadGigaChatFile } from './gigachat';
 import { logError, logInfo } from './telemetry';
 import type { MediaArtifact } from '../features/analysis/types';
 
-type VisionRequest = {
-  model: string;
-  messages: Array<{
-    role: 'system' | 'user' | 'assistant';
-    content: Array<
-      | { type: 'text'; text: string }
-      | { type: 'image_url'; image_url: { url: string } }
-    >;
-  }>;
-  max_tokens?: number;
-  temperature?: number;
-};
+/** Uploaded-file cache: same screenshot re-analysed twice must not be re-uploaded. */
+const FILE_CACHE_LIMIT = 50;
+const fileCache = new Map<string, string>();
 
-type VisionResponse = {
-  id: string;
-  choices: Array<{
-    message: {
-      role: string;
-      content: string;
+function rememberFile(key: string, fileId: string): void {
+  if (fileCache.size >= FILE_CACHE_LIMIT) {
+    const oldest = fileCache.keys().next().value;
+    if (oldest) fileCache.delete(oldest);
+  }
+  fileCache.set(key, fileId);
+}
+
+type ImagePayload = { data: Buffer; filename: string; contentType: string };
+
+const DATA_URL_RE = /^data:([^;,]+)?(;base64)?,(.*)$/s;
+
+async function toImagePayload(imageUrl: string): Promise<ImagePayload> {
+  const dataUrlMatch = imageUrl.match(DATA_URL_RE);
+  if (dataUrlMatch) {
+    const contentType = dataUrlMatch[1] || 'image/jpeg';
+    const isBase64 = Boolean(dataUrlMatch[2]);
+    const raw = dataUrlMatch[3];
+    const data = isBase64
+      ? Buffer.from(raw, 'base64')
+      : Buffer.from(decodeURIComponent(raw), 'utf8');
+    return {
+      data,
+      filename: `image.${contentType.split('/')[1] || 'jpg'}`,
+      contentType
     };
-  }>;
-};
+  }
+
+  if (/^https?:\/\//i.test(imageUrl)) {
+    const res = await fetch(imageUrl, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`Failed to download image for vision (${res.status})`);
+    }
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    const data = Buffer.from(await res.arrayBuffer());
+    return {
+      data,
+      filename: `image.${contentType.split('/')[1]?.split(';')[0] || 'jpg'}`,
+      contentType: contentType.split(';')[0]
+    };
+  }
+
+  throw new Error('Unsupported image reference: expected a data URL or http(s) URL');
+}
 
 /**
- * Analyze an image using OpenRouter vision model.
- * @param imageUrl Base64 data URL or public URL of the image
- * @param prompt Text prompt describing what to analyze
- * @returns Analysis result with labels, sentiment, and description
+ * Analyze an image with one of the GigaChat multimodal models.
+ * GigaChat takes images as uploaded file ids (`attachments`), not as inline
+ * `image_url` parts, so the image is uploaded once and cached by content hash.
  */
 export async function analyzeImage(
   imageUrl: string,
@@ -43,63 +71,42 @@ export async function analyzeImage(
   const config = getConfig();
 
   try {
-    if (!config.visionModel) {
-      throw new Error('Vision model is not configured (GASLIGHT_VISION_MODEL missing).');
-    }
-    if (config.visionModel === config.textModel) {
-      throw new Error(
-        `Vision model is misconfigured: GASLIGHT_VISION_MODEL equals GASLIGHT_TEXT_MODEL (${config.visionModel}). Choose a vision-capable model that supports image_url.`
-      );
+    const image = await toImagePayload(imageUrl);
+    const hash = createHash('sha256').update(image.data).digest('hex');
+
+    let fileId = fileCache.get(hash);
+    if (!fileId) {
+      fileId = await uploadGigaChatFile(image.data, image.filename, image.contentType);
+      rememberFile(hash, fileId);
     }
 
-    const request: VisionRequest = {
+    logInfo('vision_request', {
       model: config.visionModel,
+      baseUrl: config.llmBaseUrl,
+      bytes: image.data.length
+    });
+
+    const response = await callGigaChat({
+      models: [config.visionModel, config.textModel].filter(
+        (m, i, arr) => Boolean(m) && arr.indexOf(m) === i
+      ),
       messages: [
         {
           role: 'system',
-          content: [
-            {
-              type: 'text',
-              text: 'You are an OCR extractor. Extract ONLY readable text from the provided image (including chat bubbles, captions, UI text). Return JSON with shape {"text": "<all text you found>"}; keep original line order where possible. Do NOT summarize, do NOT add interpretation, do NOT add extra fields.'
-            }
-          ]
+          content:
+            'You are an OCR extractor. Extract ONLY readable text from the provided image (including chat bubbles, captions, UI text). Return JSON with shape {"text": "<all text you found>"}; keep original line order where possible. Do NOT summarize, do NOT add interpretation, do NOT add extra fields.'
         },
         {
           role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: imageUrl } }
-          ]
+          content: prompt,
+          attachments: [fileId]
         }
       ],
       max_tokens: 500,
-      temperature: 0.7
-    };
-
-    logInfo('vision_request', { model: config.visionModel, url: config.openrouterBaseUrl });
-
-    const response = await fetch(`${config.openrouterBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.openrouterApiKey}`
-      },
-      body: JSON.stringify(request),
-      cache: 'no-store'
+      temperature: 0.2
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      logError('vision_error', {
-        status: response.status,
-        body: text.slice(0, 800),
-        model: config.visionModel
-      });
-      throw new Error(`Vision API request failed (${response.status})`);
-    }
-
-    const json = (await response.json()) as VisionResponse;
-    const content = json.choices[0]?.message?.content || '{}';
+    const content = response.choices?.[0]?.message?.content || '{}';
 
     // Try to parse JSON from response
     let parsed: { text?: string };
@@ -185,9 +192,3 @@ export async function fileToDataUrl(file: File | Blob): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
-
-
-
-
-
-

@@ -5,7 +5,7 @@ AI assistant that analyzes chat exports and media to highlight manipulation and 
 ## Highlights
 
 - Multi‑format import: Telegram, WhatsApp, Signal, Viber, iMessage, Messenger, Discord, generic text/JSON, plus manual paste (up to ~8k chars).
-- Multimodal: text, images/stickers/GIF, and voice notes (automatic transcription) via OpenRouter text + vision models.
+- Multimodal: text, images/stickers/GIF, and voice notes (automatic transcription) via GigaChat text + vision models.
 - Premium flow: Paddle checkout → time-limited premium token stored in `localStorage`; development override headers supported.
 - Fast UX: background upload to Vercel Blob, Redis-backed job/progress tracking, analysis caching by chat hash.
 - Internationalized UI: en, ru, fr, de, es, pt; light/dark themes and PWA install.
@@ -15,14 +15,14 @@ AI assistant that analyzes chat exports and media to highlight manipulation and 
 
 - Next.js 16 (App Router) + React 19, TypeScript
 - Tailwind + shadcn/ui components
-- OpenRouter (text + vision) with model fallback chain
+- GigaChat (Sber, text + vision) with a client-side model fallback chain
 - Vercel Blob for uploads/results; Redis for rate limits, progress, and caching
 - Paddle payments for premium access
 - Vitest + Testing Library, Playwright E2E; PWA support enabled
 
 ## Getting Started
 
-Prerequisites: Node 18+ and npm (or pnpm/yarn/bun), OpenRouter key, Vercel Blob token, optional Redis + Paddle keys for full flow.
+Prerequisites: Node 18+ and npm (or pnpm/yarn/bun), GigaChat authorization key, Vercel Blob token, optional Redis + Paddle keys for full flow.
 
 1) Install deps (project root):
 ```bash
@@ -38,14 +38,16 @@ npm run dev
 ## Environment Variables
 
 Required
-- `OPENROUTER_API_KEY` – OpenRouter key
-- `GASLIGHT_VISION_MODEL` – vision-capable model id (e.g. `openai/gpt-4o-mini`)
+- `GIGACHAT_AUTH_KEY` – authorization key from the GigaChat cabinet (Basic; the `client_id:client_secret` Base64 string)
 - `BLOB_READ_WRITE_TOKEN` – Vercel Blob token for direct uploads
 
 Important optional (defaults shown where relevant)
-- `OPENROUTER_BASE_URL` (default `https://openrouter.ai/api/v1`)
-- `GASLIGHT_TEXT_MODEL` (default `x-ai/grok-4.1-fast`)
-- `GASLIGHT_TEXT_MODEL_FALLBACKS` (default `anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free`)
+- `GIGACHAT_BASE_URL` (default `https://api.giga.chat/v1`)
+- `GIGACHAT_OAUTH_URL` (default `https://ngw.devices.sberbank.ru:9443/api/v2/oauth`)
+- `GIGACHAT_SCOPE` (default `GIGACHAT_API_PERS`; use `GIGACHAT_API_B2B`/`GIGACHAT_API_CORP` for business keys)
+- `GASLIGHT_TEXT_MODEL` (default `GigaChat-3-Pro`; `GigaChat-3-Ultra` for best quality)
+- `GASLIGHT_TEXT_MODEL_FALLBACKS` (default `GigaChat-2-Max,GigaChat-3-Lightning`)
+- `GASLIGHT_VISION_MODEL` (default `GigaChat-2-Max`)
 - `MAX_UPLOAD_SIZE_MB` (default `25`)
 - `ANALYSIS_TIMEOUT_MS` (default `120000`)
 - `REDIS_URL` (enables shared rate limits/progress/cache)
@@ -55,11 +57,13 @@ Important optional (defaults shown where relevant)
 
 Example `.env.local`:
 ```env
-OPENROUTER_API_KEY=sk-...
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-GASLIGHT_TEXT_MODEL=x-ai/grok-4.1-fast
-GASLIGHT_TEXT_MODEL_FALLBACKS=anthropic/claude-3-haiku,google/gemini-2.0-flash-exp:free
-GASLIGHT_VISION_MODEL=openai/gpt-4o-mini
+GIGACHAT_AUTH_KEY=base64_client_id:client_secret
+GIGACHAT_BASE_URL=https://api.giga.chat/v1
+GIGACHAT_OAUTH_URL=https://ngw.devices.sberbank.ru:9443/api/v2/oauth
+GIGACHAT_SCOPE=GIGACHAT_API_PERS
+GASLIGHT_TEXT_MODEL=GigaChat-3-Pro
+GASLIGHT_TEXT_MODEL_FALLBACKS=GigaChat-2-Max,GigaChat-3-Lightning
+GASLIGHT_VISION_MODEL=GigaChat-2-Max
 MAX_UPLOAD_SIZE_MB=25
 ANALYSIS_TIMEOUT_MS=120000
 BLOB_READ_WRITE_TOKEN=vercel_blob_token
@@ -99,7 +103,7 @@ NEXT_PUBLIC_PREMIUM_EVERYONE=false
 - `app/` — App Router pages and API routes (`analysis`, `pricing`, `admin`, etc.)
 - `components/` — UI, layout, analysis/report widgets, PWA prompts
 - `features/` — domain logic (analysis, import/parsers, i18n, subscription, theme, report mapping)
-- `lib/` — config, OpenRouter client, telemetry, rate limiting, blob/kv helpers
+- `lib/` — config, GigaChat client (`gigachat.ts`), telemetry, rate limiting, blob/kv helpers
 - `public/` — PWA assets and icons
 - `tests/` — unit/integration (`vitest`), e2e (`playwright`)
 
@@ -107,7 +111,8 @@ NEXT_PUBLIC_PREMIUM_EVERYONE=false
 
 - Upload failing with 503: ensure `BLOB_READ_WRITE_TOKEN` is set and Blob is accessible.
 - Progress stuck: check `REDIS_URL`; without Redis, progress falls back to in-memory (single worker only).
-- Vision/media analysis errors: verify `GASLIGHT_VISION_MODEL` supports images/audio.
+- Vision/media analysis errors: the image is uploaded to GigaChat `/files` first; failures there mean the key lacks file access or the payload is not a supported image.
+- TLS errors (`self-signed certificate in certificate chain`): GigaChat serves the Russian Trusted Root CA chain. The client pins it explicitly in `lib/gigachat.ts` — do not disable TLS verification.
 - Paddle sandbox: set `PADDLE_ENV=sandbox` and use sandbox price ID.
 
 ## Support

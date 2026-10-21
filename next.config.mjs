@@ -85,7 +85,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://openrouter.ai https://vercel.com https://*.vercel.com https://*.vercel.app https://blob.vercel-storage.com https://cdn.botpress.cloud https://*.botpress.cloud https://*.bpcontent.cloud",
+              "connect-src 'self' https://api.giga.chat https://ngw.devices.sberbank.ru:9443 https://vercel.com https://*.vercel.com https://*.vercel.app https://blob.vercel-storage.com https://cdn.botpress.cloud https://*.botpress.cloud https://*.bpcontent.cloud",
               "frame-src 'self' https://cdn.botpress.cloud https://*.botpress.cloud https://*.bpcontent.cloud",
               "frame-ancestors 'none'",
               "base-uri 'self'",

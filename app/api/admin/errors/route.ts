@@ -1,6 +1,6 @@
 /**
  * Admin endpoint to view recent error logs
- * Returns recent errors from OpenRouter and analysis
+ * Returns recent LLM (GigaChat) and analysis errors
  */
 
 import { NextResponse } from 'next/server';
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get('limit') || '50', 10);
-    const filter = url.searchParams.get('filter') || ''; // e.g., "403", "openrouter", "analysis"
+    const filter = url.searchParams.get('filter') || ''; // e.g., "403", "gigachat", "analysis"
     const test = url.searchParams.get('test') === 'true'; // Create test error
     const clear = url.searchParams.get('clear') === 'true'; // Clear logs
 
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     if (test) {
       // Create a test error to verify logging works
       logError('test_error_403', {
-        message: 'Test 403 error from OpenRouter',
+        message: 'Test 403 error from GigaChat',
         status: 403,
         body: 'Forbidden: Test error for debugging',
         model: 'test-model',

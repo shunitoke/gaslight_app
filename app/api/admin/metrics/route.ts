@@ -16,6 +16,7 @@ import { logError, logInfo } from '../../../../lib/telemetry';
 import { getRedisClient, isKvAvailable } from '../../../../lib/kv';
 import { checkDatabaseHealth } from '../../../../lib/db-health';
 import { getConfig } from '../../../../lib/config';
+import { listGigaChatModels } from '../../../../lib/gigachat';
 import { countActiveAnalyses, countActiveImports } from '../../../../lib/activity';
 
 export const runtime = 'nodejs';
@@ -65,10 +66,7 @@ export async function GET(request: Request) {
       countActiveAnalyses(),
       countActiveImports()
     ]);
-    const openrouterStatus = await getOpenRouterStatus(
-      config.openrouterBaseUrl,
-      config.openrouterConfigured
-    );
+    const llmStatus = await getLlmStatus(config.llmConfigured);
 
     const response = {
       timestamp: new Date().toISOString(),
@@ -91,7 +89,7 @@ export async function GET(request: Request) {
       },
       configuration: {
         ...config,
-        openrouterStatus
+        llmStatus
       }
     };
 
@@ -143,22 +141,21 @@ function getConfigSafe(): {
   textModelFallbacks: string[];
   maxUploadSizeMb: number;
   analysisTimeoutMs: number;
-  openrouterConfigured: boolean;
-  openrouterBaseUrl: string;
-  openrouterKeyPreview: string | null;
+  llmConfigured: boolean;
+  llmBaseUrl: string;
+  llmKeyPreview: string | null;
 } {
   try {
     const config = getConfig();
-    const key = process.env.OPENROUTER_API_KEY;
     return {
       textModel: config.textModel,
       visionModel: config.visionModel,
       textModelFallbacks: config.textModelFallbacks,
       maxUploadSizeMb: config.maxUploadSizeMb,
       analysisTimeoutMs: config.analysisTimeoutMs,
-      openrouterConfigured: !!config.openrouterApiKey,
-      openrouterBaseUrl: config.openrouterBaseUrl,
-      openrouterKeyPreview: key ? `${key.slice(0, 4)}…${key.slice(-4)}` : null
+      llmConfigured: config.llmConfigured,
+      llmBaseUrl: config.llmBaseUrl,
+      llmKeyPreview: config.llmKeyPreview
     };
   } catch (error) {
     return {
@@ -167,48 +164,28 @@ function getConfigSafe(): {
       textModelFallbacks: [],
       maxUploadSizeMb: 0,
       analysisTimeoutMs: 0,
-      openrouterConfigured: false,
-      openrouterBaseUrl: 'unknown',
-      openrouterKeyPreview: null
+      llmConfigured: false,
+      llmBaseUrl: 'unknown',
+      llmKeyPreview: null
     };
   }
 }
 
-async function getOpenRouterStatus(baseUrl: string, hasKey: boolean) {
-  if (!hasKey) {
+async function getLlmStatus(configured: boolean) {
+  if (!configured) {
     return {
       configured: false,
       reachable: false,
-      error: 'OPENROUTER_API_KEY is missing'
+      error: 'GIGACHAT_AUTH_KEY is missing'
     };
   }
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${baseUrl}/models`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      signal: controller.signal,
-      cache: 'no-store'
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const text = await res.text();
-      return {
-        configured: true,
-        reachable: false,
-        error: `Status ${res.status}: ${text.substring(0, 160)}`
-      };
-    }
-
+    const models = await listGigaChatModels();
     return {
       configured: true,
-      reachable: true
+      reachable: true,
+      models
     };
   } catch (error) {
     return {
@@ -218,4 +195,3 @@ async function getOpenRouterStatus(baseUrl: string, hasKey: boolean) {
     };
   }
 }
-

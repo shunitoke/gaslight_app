@@ -78,7 +78,7 @@ export async function validateConversationFormat(
   // Use AI to validate if this looks like a conversation
   try {
     const config = getConfig();
-    if (!config.openrouterApiKey) {
+    if (!config.llmConfigured) {
       // If no API key, fall back to basic heuristics
       return validateWithHeuristics(textSample);
     }
