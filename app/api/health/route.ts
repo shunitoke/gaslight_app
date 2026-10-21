@@ -13,6 +13,9 @@ export async function GET() {
     {
       status: dbHealth.overall === 'healthy' ? 'ok' : dbHealth.overall,
       timestamp: new Date().toISOString(),
+      // Deployed revision — lets us verify from outside which build is live.
+      commit: (process.env.VERCEL_GIT_COMMIT_SHA || 'local').slice(0, 7),
+      provider: 'gigachat',
       databases: {
         redis: {
           enabled: dbHealth.redis.enabled,
