@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Ключевые сигналы критики, контроля, изоляции и эмоциональных качелей, разрушающих чувство безопасности.',
   path: '/articles/toxic-signs',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Осознанность',
     title: 'Как распознать токсичный сценарий отношений',
     intro:
-      'Токсичность редко заметна в начале. Со временем критика, контроль и эмоциональные качели размывают ощущение реальности, а изоляция делает сложнее увидеть картину со стороны.',
+      'Токсичность редко видна сразу. Критика и контроль накапливаются, качели смазывают ощущение реальности, а изоляция мешает посмотреть со стороны.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Анализирует экспорт переписки и выделяет паттерны критики, контроля и газлайтинга.',
-      'Показывает динамику по времени и примеры сообщений, чтобы увидеть системность, а не отдельные эпизоды.',
-      'Выделяет участки переписки, которые стоит разобрать с терапевтом или поддержкой, чтобы не оставаться в цикле.'
+      'Разбирает экспорт и находит паттерны критики, контроля и газлайтинга.',
+      'Показывает динамику по времени и примеры сообщений — видно систему, а не эпизод.',
+      'Отмечает фрагменты, которые стоит разобрать с терапевтом или поддержкой.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -75,12 +78,12 @@ const content: ArticleContentByLocale = {
     badge: 'Awareness',
     title: 'How to recognize a toxic relationship pattern',
     intro:
-      'Toxicity is rarely obvious at the start. Over time, criticism, control, and emotional whiplash erode reality, and isolation makes it harder to see the full picture.',
+      'Toxicity is rarely visible at the start. Criticism and control pile up, the swings blur what is real, and isolation keeps you from looking at it from outside.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Analyzes your chat export and highlights patterns of criticism, control, and gaslighting.',
-      'Shows timeline dynamics and message examples to reveal systems, not one-off episodes.',
-      'Flags chat segments worth reviewing with a therapist or support so you don’t stay stuck in the cycle.'
+      'Reads the export and finds the patterns of criticism, control and gaslighting.',
+      'Shows the timeline and example messages: the system, not an episode.',
+      'Marks the stretches worth going through with a therapist or support.'
     ],
     appCta: 'Open the app',
     sections: [

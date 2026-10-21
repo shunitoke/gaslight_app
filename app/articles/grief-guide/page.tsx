@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Нелинейные стадии горя после токсичной динамики и способы вернуть устойчивость, смысл и опору на себя.',
   path: '/articles/grief-guide',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Поддержка',
     title: 'Как прожить горе после трудных отношений',
     intro:
-      'Завершение токсичной связи приносит одновременно облегчение и пустоту. Горе идет волнами и редко движется линейно — важны терпение к себе и простые ритуалы восстановления.',
+      'Расставание с токсичным человеком даёт облегчение и пустоту одновременно. Горе идёт волнами, не по ступеням: важнее терпение к себе и простые ритуалы.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Дает объективный срез переписки, чтобы увидеть реальность, а не идеализированные воспоминания.',
-      'Отмечает эпизоды газлайтинга и обесценивания, разделяя фантазию о партнере и факты.',
-      'Показывает, какие темы особенно триггерят откат, чтобы готовиться заранее.'
+      'Показывает переписку без идеализации — что было на самом деле, а не в воспоминаниях.',
+      'Отмечает газлайтинг и обесценивание: где фантазия о партнёре расходится с фактами.',
+      'Показывает, какие темы чаще возвращают в откат, чтобы готовиться заранее.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -80,12 +83,12 @@ const content: ArticleContentByLocale = {
     badge: 'Support',
     title: 'How to process grief after a hard relationship',
     intro:
-      'Ending a toxic bond brings both relief and emptiness. Grief comes in waves, not straight lines — patience and simple rituals matter.',
+      'Leaving a toxic bond brings relief and emptiness at once. Grief comes in waves, not steps: patience with yourself and a few rituals matter more than a plan.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Gives an objective slice of chats instead of idealized memories.',
-      'Flags gaslighting and devaluation to separate fantasy from facts.',
-      'Shows which topics trigger relapses so you can prepare.'
+      'Shows the chat without idealisation: what happened, not what you remember.',
+      'Flags gaslighting and devaluation, where the fantasy of the partner parts from the facts.',
+      'Shows which topics pull you back into relapse most often.'
     ],
     appCta: 'Open the app',
     sections: [
@@ -147,7 +150,7 @@ const content: ArticleContentByLocale = {
     title: 'Vivre le deuil après une relation difficile',
     intro:
       'Mettre fin à un lien toxique apporte à la fois soulagement et vide. Le deuil va par vagues — patience et rituels simples aident.',
-    appHeading: "Comment l’app aide",
+    appHeading: 'Comment l’app aide',
     appPoints: [
       'Offre une lecture objective des échanges plutôt que des souvenirs idéalisés.',
       'Repère gaslighting et dévalorisation pour distinguer fantasme et réalité.',
@@ -411,17 +414,3 @@ const content: ArticleContentByLocale = {
 export default function GriefGuidePage() {
   return <ArticlePageClient content={content} />;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Как тихая обида, позиция жертвы и «добро с условием» используют сочувствие для контроля и зависимости.',
   path: '/articles/covert-narcissism',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Осознанность',
     title: 'Скрытый нарциссизм: опасность под маской уязвимости',
     intro:
-      'Скрытые нарциссические паттерны маскируются ранимостью и просьбами о заботе, но приводят к контролю и обесцениванию окружающих.',
+      'Скрытый нарциссизм выглядит как ранимость и просьбы о заботе, а заканчивается контролем и обесцениванием.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Показывает, где в переписке «уязвимость» используется как инструмент давления.',
-      'Находит циклы молчаливых наказаний, упреков и обесценивания успехов.',
-      'Отмечает, в каких темах появляются попытки вызвать вину и чем они заканчиваются — полезно для будущих границ.'
+      'Показывает, где «уязвимость» в переписке работает как рычаг давления.',
+      'Находит циклы молчаливых наказаний, упрёков и обесценивания успехов.',
+      'Отмечает, на каких темах вызывают вину и чем это заканчивается — пригодится для границ.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -58,12 +61,12 @@ const content: ArticleContentByLocale = {
     badge: 'Awareness',
     title: 'Covert narcissism: danger behind a mask of vulnerability',
     intro:
-      'Covert narcissistic patterns hide behind fragility and requests for care but end up controlling and devaluing others.',
+      'Covert narcissism looks like fragility and requests for care, and ends in control and devaluation.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Shows where “vulnerability” in chats is used as leverage.',
-      'Finds cycles of silent treatment, reproaches, and devaluing accomplishments.',
-      'Highlights topics where guilt is evoked and how it ends — useful for setting future boundaries.'
+      'Shows where “vulnerability” in the chat works as leverage.',
+      'Finds the cycles of silent treatment, reproaches and devalued successes.',
+      'Marks the topics where guilt gets evoked and how it ends — useful for boundaries later.'
     ],
     appCta: 'Open the app',
     sections: [

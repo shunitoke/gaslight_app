@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'ПТСР-подобные симптомы, тревога, диссоциация, влияние на мозг и тело, и что помогает восстановлению.',
   path: '/articles/psychological-consequences',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Осознанность',
     title: 'Психологические последствия токсичных связей',
     intro:
-      'Эмоциональный абьюз оставляет следы в нервной системе: ПТСР-подобные симптомы, тревожность, изменения внимания и памяти. Понимание механизмов помогает строить план восстановления.',
+      'Эмоциональное насилие оставляет след в нервной системе: симптомы, похожие на ПТСР, тревога, сбои внимания и памяти. Если понимать механизм, план восстановления проще.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Дает объективный срез переписки, снижая сомнения в реальности произошедшего.',
-      'Помогает увидеть частоту триггерных эпизодов и динамику, чтобы планировать восстановление.',
-      'Маркирует повторяющиеся темы конфликтов и нарушения границ, чтобы обсуждать конкретику.'
+      'Даёт срез переписки, чтобы не сомневаться в том, что произошло.',
+      'Показывает, как часто случаются триггерные эпизоды и как менялась динамика.',
+      'Отмечает повторяющиеся темы конфликтов и нарушения границ — есть с чем идти к специалисту.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -64,12 +67,12 @@ const content: ArticleContentByLocale = {
     badge: 'Awareness',
     title: 'Psychological consequences of toxic bonds',
     intro:
-      'Emotional abuse leaves marks on the nervous system: PTSD-like symptoms, anxiety, attention and memory shifts. Knowing the mechanisms helps plan recovery.',
+      'Emotional abuse leaves marks on the nervous system: PTSD-like symptoms, anxiety, attention and memory slipping. Understanding the mechanism makes the recovery plan simpler.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Gives an objective slice of chats, reducing doubt about what happened.',
-      'Shows frequency of triggering episodes and dynamics to plan recovery.',
-      'Flags recurring conflict themes and boundary breaks to discuss specifics.'
+      'Gives a slice of the chat, so you stop doubting what happened.',
+      'Shows how often the triggering episodes come and how the dynamic moved.',
+      'Marks the repeating conflict themes and boundary breaks — something to bring to a specialist.'
     ],
     appCta: 'Open the app',
     sections: [

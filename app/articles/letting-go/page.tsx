@@ -1,11 +1,15 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
   title: 'Как отпустить травматическую привязку',
-  description: 'Почему сложно уйти, как подготовиться и удерживать границы в период отмены контакта.',
+  description:
+    'Почему сложно уйти, как подготовиться и удерживать границы в период отмены контакта.',
   path: '/articles/letting-go',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -13,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Поддержка',
     title: 'Как отпустить травматическую привязку',
     intro:
-      'Отпустить травматическую связь непросто: циклы боли и «наград» усиливают зависимость. Подготовка и структура помогают пройти период отмены контакта безопаснее.',
+      'Травматическую связь держит цикл «боль — награда». Подготовка и структура делают период без контакта проходимым.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Фиксирует болезненные паттерны в переписке, напоминая, почему разрыв необходим.',
-      'Отмечает, с каких тем начинается повторный контакт и какие сообщения запускают откаты.',
-      'Позволяет отметить, какие попытки держать дистанцию срабатывают, а какие снова тянут в контакт.'
+      'Фиксирует болезненные паттерны в переписке — как напоминание, зачем нужен разрыв.',
+      'Показывает, с каких тем возвращается контакт и какие сообщения запускают откат.',
+      'Видно, какие попытки держать дистанцию срабатывают, а какие снова тянут в переписку.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -57,12 +61,12 @@ const content: ArticleContentByLocale = {
     badge: 'Support',
     title: 'Letting go of a traumatic bond',
     intro:
-      'Letting go is hard: cycles of pain and “rewards” create dependence. Preparation and structure make the no-contact phase safer.',
+      'What holds a traumatic bond is the pain-then-reward cycle. Preparation and structure make the no-contact stretch survivable.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Logs painful patterns in chats to remind why the break is needed.',
-      'Shows which topics reopen contact and which messages trigger relapses.',
-      'Tracks which distance attempts work and which pull you back.'
+      'Logs the painful patterns in the chat, as a reminder of why the break was needed.',
+      'Shows which topics restart contact and which messages trigger a relapse.',
+      'Shows which attempts at distance hold and which pull you back into the chat.'
     ],
     appCta: 'Open the app',
     sections: [

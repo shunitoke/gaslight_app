@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Когда изменения реалистичны, какие красные флаги закрывают попытки и как принимать решения безопасно.',
   path: '/articles/relationship-chances',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Инструкция',
     title: 'Есть ли шанс у отношений?',
     intro:
-      'Изменение поведения возможно, но требует признания проблемы, готовности к помощи и длительной работы. Некоторые красные флаги закрывают попытки — их важно учитывать заранее.',
+      'Поведение меняется, но для этого нужно признание вреда, помощь и время. Часть красных флагов закрывает вопрос — их лучше знать заранее.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Фиксирует динамику критики, угроз и перемен, чтобы оценивать реальный прогресс, а не обещания.',
-      'Показывает циклы «обещание — откат», чтобы не терять годы в повторении сценариев.',
-      'Помогает видеть, где договорённости выполняются, а где возвращаются старые паттерны.'
+      'Фиксирует критику, угрозы и сдвиги, чтобы судить о прогрессе по фактам, а не по обещаниям.',
+      'Показывает циклы «обещание — откат», чтобы не потратить на них годы.',
+      'Видно, где договорённости держатся, а где возвращаются старые паттерны.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -58,12 +61,12 @@ const content: ArticleContentByLocale = {
     badge: 'Guide',
     title: 'Is there a chance for this relationship?',
     intro:
-      'Behavior change is possible but requires admitting harm, seeking help, and sustained work. Some red flags shut attempts down — factor them early.',
+      'Behaviour can change, but it takes admitting harm, outside help and time. Some red flags close the question — better to know them early.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Captures the dynamics of criticism, threats, and shifts to judge real progress, not promises.',
-      'Shows “promise → relapse” cycles so you don’t lose years repeating the pattern.',
-      'Helps see where agreements hold and where old patterns return.'
+      'Logs criticism, threats and shifts, so progress is judged on facts rather than promises.',
+      'Shows the promise-then-relapse cycles before they eat years.',
+      'Shows where agreements hold and where the old patterns come back.'
     ],
     appCta: 'Open the app',
     sections: [

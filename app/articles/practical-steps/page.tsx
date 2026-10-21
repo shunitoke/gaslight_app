@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Опоры на реальность, восстановление границ, план безопасности и забота о теле без прямых столкновений.',
   path: '/articles/practical-steps',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Практика',
     title: 'Практические шаги, пока отношения еще продолжаются',
     intro:
-      'Осознание проблемы не всегда ведет к немедленному разрыву. Эти шаги помогают удерживать опору на факты, восстанавливать границы и готовить безопасность, пока ситуация оценивается.',
+      'Понимать проблему — не то же, что сразу уйти. Эти шаги помогают опираться на факты, держать границы и готовить безопасность, пока вы разбираетесь.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Фиксирует хронологию и интенсивность конфликтов по датам, чтобы видеть динамику, а не единичные эпизоды.',
-      'Показывает, где появляются паттерны обесценивания или контроля, и чем отличаются периоды «тепла» и «холода».',
-      'Отмечает, какие формулировки границ вызывают эскалацию, а какие проходят мягче — для выбора безопасной стратегии.'
+      'Собирает хронологию конфликтов по датам: видно динамику, а не один скандал.',
+      'Показывает, где появляются обесценивание и контроль, чем «тепло» отличается от «холода».',
+      'Отмечает, какие формулировки границ вызывают эскалацию, а какие проходят спокойно.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -77,12 +80,12 @@ const content: ArticleContentByLocale = {
     badge: 'Practice',
     title: 'Practical steps while the relationship is still ongoing',
     intro:
-      'Seeing the problem doesn’t always mean an immediate breakup. These steps keep you anchored in facts, restore boundaries, and prepare safety while you assess.',
+      'Seeing the problem is not the same as leaving today. These steps keep you on the facts, hold the boundary, and prepare safety while you work it out.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Logs chronology and intensity of conflicts by date to show dynamics, not one-off fights.',
-      'Shows where devaluation or control patterns appear, and how “warm” and “cold” periods differ.',
-      'Notes which boundary phrases escalate and which land softer — to pick a safer strategy.'
+      'Collects the chronology of fights by date: the dynamic, not one blow-up.',
+      'Shows where devaluation and control appear, and how “warm” differs from “cold”.',
+      'Notes which boundary phrasings escalate and which land calmly.'
     ],
     appCta: 'Open the app',
     sections: [
@@ -141,7 +144,7 @@ const content: ArticleContentByLocale = {
     title: 'Étapes pratiques tant que la relation continue',
     intro:
       'Voir le problème ne mène pas toujours à une rupture immédiate. Ces étapes aident à rester sur les faits, restaurer les limites et préparer la sécurité pendant l’évaluation.',
-    appHeading: "Comment l’app aide",
+    appHeading: 'Comment l’app aide',
     appPoints: [
       'Consigne la chronologie et l’intensité des conflits pour voir la dynamique, pas des épisodes isolés.',
       'Montre où apparaissent dévalorisation ou contrôle et comment diffèrent les phases « chaud/froid ».',

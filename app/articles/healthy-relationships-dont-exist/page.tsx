@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Реалистичные признаки работоспособных отношений и отличие от мифа о безупречной гармонии.',
   path: '/articles/healthy-relationships-dont-exist',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Продукт',
     title: 'Здоровые отношения не идеальны (и это нормально)',
     intro:
-      'Реалистичные отношения включают конфликты и периоды дистанции. Отличие от токсичности — в уважении границ, готовности к восстановлению и отсутствии контроля.',
+      'В рабочих отношениях бывают ссоры и дистанция. От токсичных их отличает уважение к границам, готовность мириться и отсутствие контроля.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Помогает отличить рабочие конфликты от токсичных паттернов, опираясь на примеры из переписки.',
-      'Показывает частоту и тон ссор, чтобы понимать, где начинается обесценивание или контроль.',
-      'Показывает, есть ли примирение после конфликтов или разговоры остаются незавершёнными — важный индикатор здоровья общения.'
+      'Отличает рабочий конфликт от токсичного паттерна — на примерах из вашей переписки.',
+      'Показывает, как часто и в каком тоне вы ссоритесь, где начинается обесценивание.',
+      'Видно, мирятся ли после конфликта или разговор остаётся висеть.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -57,12 +60,12 @@ const content: ArticleContentByLocale = {
     badge: 'Product',
     title: 'Healthy relationships aren’t perfect (and that’s okay)',
     intro:
-      'Realistic relationships include conflict and distance. The difference from toxicity is respect for boundaries, willingness to repair, and absence of control.',
+      'Working relationships have fights and distance. What separates them from toxic ones is respect for boundaries, willingness to repair, and no control.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Helps tell workable conflict from toxic patterns using your chat examples.',
-      'Shows frequency and tone of arguments to spot where devaluation or control begins.',
-      'Highlights whether repair happens after conflicts or conversations stay unfinished — a key health indicator.'
+      'Tells workable conflict from a toxic pattern, using examples from your chat.',
+      'Shows how often and in what tone you argue, and where devaluation starts.',
+      'Shows whether you repair after a fight or the conversation just hangs.'
     ],
     appCta: 'Open the app',
     sections: [

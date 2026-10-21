@@ -1,4 +1,7 @@
-import { ArticlePageClient, type ArticleContentByLocale } from '../components/ArticlePageClient';
+import {
+  ArticlePageClient,
+  type ArticleContentByLocale
+} from '../components/ArticlePageClient';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -6,7 +9,7 @@ export const metadata = createPageMetadata({
   description:
     'Эмоциональный шантаж, газлайтинг, изоляция, нарушение границ и как замечать повторяющиеся паттерны.',
   path: '/articles/manipulation-types',
-  type: 'article',
+  type: 'article'
 });
 
 const content: ArticleContentByLocale = {
@@ -14,12 +17,12 @@ const content: ArticleContentByLocale = {
     badge: 'Осознанность',
     title: 'Ключевые виды манипуляций в отношениях',
     intro:
-      'Манипуляции подменяют реальность, вызывая чувство вины и зависимость. Важно замечать повторяющиеся приемы, а не только отдельные эпизоды.',
+      'Манипуляция подменяет реальность и добавляет вину. Замечать нужно повторяющиеся приёмы, а не отдельные эпизоды.',
     appHeading: 'Как помогает приложение',
     appPoints: [
-      'Подсвечивает газлайтинг, шантаж и обесценивание в переписках и привязывает их к датам.',
-      'Показывает, какие темы сопровождаются изоляцией или контролем, чтобы увидеть систему, а не единичные фразы.',
-      'Помогает видеть, где нарушаются границы, и фиксировать формулировки, которые работают или нет.'
+      'Находит газлайтинг, шантаж и обесценивание в переписке и привязывает их к датам.',
+      'Показывает, с какими темами идут изоляция и контроль — система, а не одна фраза.',
+      'Отмечает, где нарушаются границы, и какие формулировки их держат.'
     ],
     appCta: 'Открыть приложение',
     sections: [
@@ -59,12 +62,12 @@ const content: ArticleContentByLocale = {
     badge: 'Awareness',
     title: 'Key types of manipulation in relationships',
     intro:
-      'Manipulation swaps reality with guilt and dependency. Spotting repeating tactics matters more than isolated episodes.',
+      'Manipulation replaces reality and adds guilt. What matters is the repeat, not the single episode.',
     appHeading: 'How the app helps',
     appPoints: [
-      'Highlights gaslighting, blackmail, and devaluation in chats and ties them to dates.',
-      'Shows which topics come with isolation or control so you see the system, not single phrases.',
-      'Helps track where boundaries are violated and which phrasing works or not.'
+      'Finds gaslighting, blackmail and devaluation in the chat and ties them to dates.',
+      'Shows which topics come with isolation and control — the system, not one phrase.',
+      'Marks where boundaries get crossed and which phrasings hold them.'
     ],
     appCta: 'Open the app',
     sections: [
@@ -105,7 +108,7 @@ const content: ArticleContentByLocale = {
     title: 'Principales formes de manipulation dans les relations',
     intro:
       'La manipulation remplace la réalité par la culpabilité et la dépendance. Mieux vaut repérer les schémas répétés que les épisodes isolés.',
-    appHeading: "Comment l’app aide",
+    appHeading: 'Comment l’app aide',
     appPoints: [
       'Met en évidence le gaslighting, le chantage et la dévalorisation dans les messages, avec les dates.',
       'Montre quels sujets s’accompagnent d’isolement ou de contrôle pour voir le système, pas une phrase isolée.',
