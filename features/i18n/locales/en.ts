@@ -14,7 +14,7 @@ export const enBundle: LocaleBundle = {
     hero_copy:
       'Upload a chat export: pattern breakdown with quotes and scores.',
     hero_confidential: 'Completely confidential.',
-    footer_disclaimer: 'Not therapy. Not gossip. Just AI clarity.',
+    footer_disclaimer: 'Not therapy, not gossip: a read of your chat.',
     footer_visitors_label: 'Unique visitors',
     footer_visitors_loading: 'Counting visitors...',
     footer_analyses_label: 'Analyses completed',

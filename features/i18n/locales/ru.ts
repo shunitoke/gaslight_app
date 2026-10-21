@@ -13,7 +13,7 @@ export const ruBundle: LocaleBundle = {
     hero_cta: 'Проанализировать переписку с ИИ',
     hero_copy: 'Загрузите экспорт чата: получите разбор паттернов с цитатами и оценками.',
     hero_confidential: 'Полностью конфиденциально.',
-    footer_disclaimer: 'Не терапия и не сплетни — только ясность от ИИ.',
+    footer_disclaimer: 'Не терапия и не сплетни — разбор вашей переписки.',
     footer_visitors_label: 'Уникальные посетители',
     footer_visitors_loading: 'Считаем посетителей...',
     footer_analyses_label: 'Проведено анализов',
