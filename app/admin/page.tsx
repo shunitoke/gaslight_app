@@ -68,11 +68,12 @@ type MetricsData = {
     textModelFallbacks: string[];
     maxUploadSizeMb: number;
     analysisTimeoutMs: number;
-    openrouterConfigured: boolean;
-    openrouterKeyPreview: string | null;
-    openrouterStatus?: {
+    llmConfigured: boolean;
+    llmKeyPreview: string | null;
+    llmStatus?: {
       configured: boolean;
       reachable: boolean;
+      models?: string[];
       error?: string;
     };
   };
@@ -685,24 +686,24 @@ export default function AdminDashboard() {
                       <span className="text-foreground">{(metrics.configuration.analysisTimeoutMs / 1000).toFixed(0)}s</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">OpenRouter:</span>
-                      <StatusBadge status={metrics.configuration.openrouterConfigured} label="" />
+                      <span className="text-muted-foreground">GigaChat:</span>
+                      <StatusBadge status={metrics.configuration.llmConfigured} label="" />
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">API key:</span>
                       <span className="text-foreground font-mono text-xs">
-                        {metrics.configuration.openrouterKeyPreview || 'missing'}
+                        {metrics.configuration.llmKeyPreview || 'missing'}
                       </span>
                     </div>
-                    {metrics.configuration.openrouterStatus && (
+                    {metrics.configuration.llmStatus && (
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">OpenRouter Reachable:</span>
-                        <StatusBadge status={metrics.configuration.openrouterStatus.reachable} label="" />
+                        <span className="text-muted-foreground">GigaChat Reachable:</span>
+                        <StatusBadge status={metrics.configuration.llmStatus.reachable} label="" />
                       </div>
                     )}
-                    {metrics.configuration.openrouterStatus?.error && (
+                    {metrics.configuration.llmStatus?.error && (
                       <div className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-md p-2">
-                        {metrics.configuration.openrouterStatus.error}
+                        {metrics.configuration.llmStatus.error}
                       </div>
                     )}
                     {metrics.configuration.textModelFallbacks.length > 0 && (
@@ -738,14 +739,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* OpenRouter test */}
+              {/* GigaChat test */}
               <div className="flex items-center gap-2 mb-4">
                 <button
                   type="button"
                   onClick={async () => {
                     setTestResult('Running...');
                     try {
-                      const res = await fetch('/api/admin/openrouter-test', {
+                      const res = await fetch('/api/admin/llm-test', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ prompt: 'ping' })
@@ -763,7 +764,7 @@ export default function AdminDashboard() {
                   className="text-sm px-3 py-2 rounded-md border border-border bg-muted hover:bg-muted/70 transition"
                   disabled={!authenticated || !secret}
                 >
-                  Test OpenRouter
+                  Test GigaChat
                 </button>
                 {testResult && (
                   <span className="text-xs text-muted-foreground">{testResult}</span>
@@ -823,7 +824,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    placeholder="Filter (e.g., 403, openrouter)"
+                    placeholder="Filter (e.g., 403, gigachat)"
                     value={errorFilter}
                     onChange={(e) => setErrorFilter(e.target.value)}
                     className="px-3 py-1.5 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"

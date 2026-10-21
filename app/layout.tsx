@@ -190,7 +190,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="apple-touch-icon" href="/icon-v2.png?v=2" />
         <link rel="manifest" href="/manifest.json?v=2" />
         {/* Resource hints - Next.js handles font preconnect automatically */}
-        <link rel="dns-prefetch" href="https://openrouter.ai" />
+        <link rel="dns-prefetch" href="https://api.giga.chat" />
       </head>
       <body className={`${inter.className} ${playfair.variable} bg-background text-foreground`} suppressHydrationWarning>
         <AnimationProvider>

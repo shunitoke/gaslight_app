@@ -656,7 +656,7 @@ async function analyzeChunk(
       llmCallCompleted = true;
       const errorMessage = (llmError as Error).message;
       
-      // Extract error code from OpenRouter error messages
+      // Extract error code from LLM (GigaChat) error messages
       const errorCodeMatch = errorMessage.match(/\b(402|403|429|408|500|502|503)\b/) || 
                             errorMessage.match(/\((\d{3})\)/) ||
                             (errorMessage.includes('token limit') ? ['402'] : null) ||
@@ -754,7 +754,7 @@ async function analyzeChunk(
     const errorInfo = (response as any)?.error || null;
     const errorText = lastError?.message || errorInfo?.message || '';
     
-    // Extract error code from OpenRouter error messages (402, 403, 429, etc.)
+    // Extract error code from LLM (GigaChat) error messages (402, 403, 429, etc.)
     // First try to get from lastError, then from error text
     let errorCode = lastError?.errorCode || null;
     if (!errorCode) {
@@ -899,7 +899,7 @@ export async function analyzeConversation(
   let configStatus = 'unknown';
   try {
     const config = getConfig();
-    configStatus = config.openrouterApiKey ? 'configured' : 'MISSING';
+    configStatus = config.llmConfigured ? 'configured' : 'MISSING';
     logInfo('analysis_started', { 
       conversationId: conversation.id, 
       messageCount: messages.length,
@@ -908,8 +908,8 @@ export async function analyzeConversation(
       enhancedAnalysis,
       locale,
       platform: conversation.sourcePlatform,
-      openrouterApiKey: configStatus,
-      openrouterBaseUrl: config.openrouterBaseUrl,
+      llmConfigured: config.llmConfigured,
+      llmBaseUrl: config.llmBaseUrl,
       textModel: config.textModel,
       visionModel: config.visionModel
     });
@@ -925,7 +925,7 @@ export async function analyzeConversation(
   // Fail fast if model configuration is missing to avoid opaque LLM errors later
   if (configStatus !== 'configured') {
     const progressId = conversationId || conversation.id;
-    const errorMessage = configErrorMessage || 'Missing OpenRouter API key. Set OPENROUTER_API_KEY before running analysis.';
+    const errorMessage = configErrorMessage || 'Missing GigaChat authorization key. Set GIGACHAT_AUTH_KEY before running analysis.';
     await updateProgress(progressId, {
       status: 'error',
       progress: 0,

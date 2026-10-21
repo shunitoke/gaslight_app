@@ -1,6 +1,7 @@
 // No client component imports; keep server defaults
 
 import { NextResponse } from 'next/server';
+
 import {
   validateAdminSecret,
   extractAdminSecret,
@@ -8,8 +9,8 @@ import {
   validateAdminSessionToken,
   isAdminEnabled
 } from '@/lib/admin-auth';
-import { callOpenRouter } from '@/lib/openrouter';
 import { getConfig } from '@/lib/config';
+import { callGigaChat } from '@/lib/gigachat';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     const config = getConfig();
     const model = config.textModel;
 
-    const res = await callOpenRouter({
+    const res = await callGigaChat({
       model,
       messages: [
         { role: 'system', content: 'You are a diagnostic probe. Answer in one short word.' },
