@@ -286,13 +286,13 @@ function chunkMessages(
   // GigaChat degrades on very long inputs: it starts leaking top-level JSON
   // blocks into sections[] and drops quotes. Keep chunks small and overlap just
   // enough to catch claim-vs-denial pairs across the seam.
-  maxChunkSize: number = 400,
-  maxChunks: number = 80,
+  maxChunkSize: number = 700,
+  maxChunks: number = 8,
   // Overlap helps catch cross-chunk contradictions (claims vs denials)
   overlap: number = 40,
   // Character budget per chunk: long messages hit the model context long before
   // the message count does, so the cap is enforced on both.
-  maxChunkChars: number = 18000
+  maxChunkChars: number = 30000
 ): Message[][] {
   const rawChunks: Message[][] = [];
   const safeChunkSize = Math.max(1, maxChunkSize);

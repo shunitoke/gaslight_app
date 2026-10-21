@@ -185,7 +185,9 @@ function httpRequest(
 let activeRequests = 0;
 let lastFinishedAt = 0;
 
-const MAX_CONCURRENT = Math.max(1, Number(process.env.GIGACHAT_MAX_CONCURRENCY ?? '4'));
+// GigaChat (PERS scope) rejects any parallel request on the same key with 429,
+// so the default is strictly one request in flight.
+const MAX_CONCURRENT = Math.max(1, Number(process.env.GIGACHAT_MAX_CONCURRENCY ?? '1'));
 const MIN_DELAY_MS = Math.max(0, Number(process.env.GIGACHAT_MIN_DELAY_MS ?? '100'));
 
 async function acquireSlot(): Promise<void> {
@@ -273,6 +275,9 @@ export async function getGigaChatToken(forceRefresh = false): Promise<string> {
 // ---------------------------------------------------------------------------
 // Chat completions with sequential model fallback
 // ---------------------------------------------------------------------------
+/** GigaChat allows a single in-flight request per key: 429s are worth retrying. */
+const MAX_RATE_LIMIT_RETRIES = 5;
+
 /**
  * Call GigaChat /chat/completions.
  *
@@ -308,6 +313,7 @@ export async function callGigaChat(
   for (const model of models) {
     let authRetried = false;
     let tryNextModel = false;
+    let rateLimitRetries = 0;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       await acquireSlot();
@@ -391,12 +397,16 @@ export async function callGigaChat(
             : retryAfter
               ? Number(retryAfter) * 1000
               : Number.NaN;
-          const delayMs = Number.isFinite(retryAfterMs)
-            ? retryAfterMs
-            : initialDelayMs * Math.pow(2, attempt);
-          if (attempt < maxRetries) {
-            logWarn('gigachat_rate_limited', { model, attempt: attempt + 1, delayMs });
+          if (rateLimitRetries < MAX_RATE_LIMIT_RETRIES) {
+            // Backoff grows fast on purpose: the key allows a single in-flight
+            // request, so a 429 usually means another chunk holds the slot.
+            const delayMs = Number.isFinite(retryAfterMs)
+              ? Math.max(retryAfterMs, 1000)
+              : Math.min(32000, 2000 * Math.pow(2, rateLimitRetries));
+            rateLimitRetries += 1;
+            logWarn('gigachat_rate_limited', { model, retry: rateLimitRetries, delayMs });
             await sleep(delayMs);
+            attempt -= 1;
             continue;
           }
           throw new Error(`GigaChat rate limit exceeded (429) on ${model}: ${bodyText}`);
